@@ -1,4 +1,5 @@
 // Firebase Configuration
+
 var firebaseConfig = {
   apiKey: "AIzaSyCQVPtZYcLAIk55m9eG_sfXV5awTUDv024",
   authDomain: "surveykshan-2e4d6.firebaseapp.com",
@@ -16,4 +17,3 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 console.log("Firebase Connected Successfully");
-alert("Firebase Loaded");
