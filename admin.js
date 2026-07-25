@@ -57,6 +57,7 @@ function loadSurvey() {
                 }
 
                 table.innerHTML += `
+<tr class="surveyRow">
 <tr>
 <td>${data.name || ""}</td>
 <td>${data.mobile || ""}</td>
