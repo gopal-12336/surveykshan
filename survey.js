@@ -3,7 +3,7 @@ console.log("Survey JS Loaded");
 const db = firebase.firestore();
 
 document.getElementById("submitSurvey").addEventListener("click", function () {
-
+alert("Submit button clicked");
     const name = document.getElementById("name").value.trim();
     const mobile = document.getElementById("mobile").value.trim();
     const age = document.getElementById("age").value.trim();
