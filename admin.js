@@ -1,16 +1,19 @@
 // Admin Panel Loaded
 console.log("Admin Panel Loaded");
 
-// Sirf Admin ko access
-auth.onAuthStateChanged(function(user){
+// Check Login
+auth.onAuthStateChanged(function (user) {
 
-    if(!user){
+    if (!user) {
         window.location.href = "index.html";
         return;
     }
 
-    if(user.email !== "goswamivinod2305@gmail.com"){
-        alert("Access Denied");
+    // Admin Email Check
+    const adminEmail = "ramgopal140103@gmail.com";
+
+    if (user.email.toLowerCase() !== adminEmail.toLowerCase()) {
+        alert("Access Denied\n\nLogged in as: " + user.email);
         window.location.href = "survey.html";
         return;
     }
@@ -19,8 +22,8 @@ auth.onAuthStateChanged(function(user){
 
 });
 
-// Survey Load
-function loadSurvey(){
+// Load Survey Data
+function loadSurvey() {
 
     let total = 0;
     let bjp = 0;
@@ -32,59 +35,67 @@ function loadSurvey(){
     table.innerHTML = "";
 
     db.collection("surveys")
-    .orderBy("createdAt","desc")
-    .get()
+        .orderBy("createdAt", "desc")
+        .get()
 
-    .then(function(snapshot){
+        .then(function (snapshot) {
 
-        snapshot.forEach(function(doc){
+            snapshot.forEach(function (doc) {
 
-            const data = doc.data();
+                const data = doc.data();
 
-            total++;
+                total++;
 
-            if(data.party==="BJP") bjp++;
-            else if(data.party==="Congress") congress++;
-            else if(data.party==="AAP") aap++;
-            else other++;
+                if (data.party === "BJP") {
+                    bjp++;
+                } else if (data.party === "Congress") {
+                    congress++;
+                } else if (data.party === "AAP") {
+                    aap++;
+                } else {
+                    other++;
+                }
 
-            table.innerHTML += `
-            <tr>
-                <td>${data.name || ""}</td>
-                <td>${data.mobile || ""}</td>
-                <td>${data.age || ""}</td>
-                <td>${data.gender || ""}</td>
-                <td>${data.village || ""}</td>
-                <td>${data.party || ""}</td>
-                <td>${data.candidate || ""}</td>
-                <td>${data.feedback || ""}</td>
-            </tr>
-            `;
+                table.innerHTML += `
+<tr>
+<td>${data.name || ""}</td>
+<td>${data.mobile || ""}</td>
+<td>${data.age || ""}</td>
+<td>${data.gender || ""}</td>
+<td>${data.village || ""}</td>
+<td>${data.party || ""}</td>
+<td>${data.candidate || ""}</td>
+<td>${data.feedback || ""}</td>
+</tr>
+`;
+
+            });
+
+            document.getElementById("totalSurvey").innerHTML = total;
+            document.getElementById("bjpCount").innerHTML = bjp;
+            document.getElementById("congressCount").innerHTML = congress;
+            document.getElementById("aapCount").innerHTML = aap;
+            document.getElementById("otherCount").innerHTML = other;
+
+        })
+
+        .catch(function (error) {
+
+            alert("Firestore Error:\n" + error.message);
+            console.error(error);
 
         });
-
-        document.getElementById("totalSurvey").innerHTML = total;
-        document.getElementById("bjpCount").innerHTML = bjp;
-        document.getElementById("congressCount").innerHTML = congress;
-        document.getElementById("aapCount").innerHTML = aap;
-        document.getElementById("otherCount").innerHTML = other;
-
-    })
-
-    .catch(function(error){
-
-        alert(error.message);
-
-    });
 
 }
 
 // Logout
-document.getElementById("logoutBtn").addEventListener("click",function(){
+document.getElementById("logoutBtn").addEventListener("click", function () {
 
-    auth.signOut().then(function(){
+    auth.signOut().then(function () {
 
-        window.location.href="index.html";
+        localStorage.clear();
+
+        window.location.href = "index.html";
 
     });
 
