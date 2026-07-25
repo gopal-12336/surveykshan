@@ -16,3 +16,4 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 console.log("Firebase Connected Successfully");
+alert("Firebase Loaded");
