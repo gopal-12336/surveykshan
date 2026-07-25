@@ -1,1 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
 
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Surveykshan Admin Panel</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+body{
+    background:#f4f6f9;
+}
+
+.header{
+    background:#1565c0;
+    color:white;
+    padding:15px;
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    text-align:center;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+}
+
+.card h2{
+    color:#1565c0;
+    font-size:30px;
+}
+
+.container{
+    padding:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:center;
+}
+
+th{
+    background:#1565c0;
+    color:white;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-bottom:15px;
+}
+
+button{
+    margin:5px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+Surveykshan Admin Dashboard
+</div>
+
+<div class="dashboard">
+
+<div class="card">
+<h4>Total Surveys</h4>
+<h2 id="totalSurvey">0</h2>
+</div>
+
+<div class="card">
+<h4>BJP</h4>
+<h2 id="bjpCount">0</h2>
+</div>
+
+<div class="card">
+<h4>Congress</h4>
+<h2 id="congressCount">0</h2>
+</div>
+
+<div class="card">
+<h4>AAP</h4>
+<h2 id="aapCount">0</h2>
+</div>
+
+<div class="card">
+<h4>Others</h4>
+<h2 id="otherCount">0</h2>
+</div>
+
+</div>
+
+<div class="container">
+
+<input
+type="text"
+id="searchBox"
+placeholder="Search by Name, Mobile or Village">
+
+<button id="logoutBtn">
+Logout
+</button>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+<th>Mobile</th>
+<th>Age</th>
+<th>Gender</th>
+<th>Village</th>
+<th>Party</th>
+<th>Candidate</th>
+<th>Feedback</th>
+
+</tr>
+
+</thead>
+
+<tbody id="surveyTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script src="firebase.js"></script>
+<script src="admin.js"></script>
+
+</body>
+</html>
