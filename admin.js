@@ -101,3 +101,34 @@ document.getElementById("logoutBtn").addEventListener("click", function () {
     });
 
 });
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", function () {
+
+    auth.signOut().then(function () {
+
+        localStorage.clear();
+
+        window.location.href = "index.html";
+
+    });
+
+});
+
+// Live Search
+document.getElementById("searchBox").addEventListener("keyup", function () {
+
+    let value = this.value.toLowerCase();
+
+    let rows = document.querySelectorAll("#surveyTable tr");
+
+    rows.forEach(function (row) {
+
+        if (row.innerText.toLowerCase().includes(value)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+
+    });
+
+});
