@@ -9,7 +9,7 @@ auth.onAuthStateChanged(function(user){
         return;
     }
 
-    if(user.email !== "ramgopal140103@gmail.com"){
+    if(user.email !== "goswamivinod2305@gmail.com"){
         alert("Access Denied");
         window.location.href = "survey.html";
         return;
