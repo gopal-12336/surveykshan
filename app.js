@@ -8,6 +8,8 @@ document.getElementById("loginBtn").addEventListener("click", function () {
     const password = document.getElementById("password").value.trim();
     const message = document.getElementById("message");
 
+    message.innerHTML = "";
+
     if (email === "" || password === "") {
         message.innerHTML = "Please enter Email and Password.";
         return;
@@ -15,18 +17,19 @@ document.getElementById("loginBtn").addEventListener("click", function () {
 
     auth.signInWithEmailAndPassword(email, password)
 
-    .then(function(userCredential){
+    .then(function () {
 
-        localStorage.setItem("userLoggedIn","true");
+        localStorage.setItem("userLoggedIn", "true");
         localStorage.setItem("userEmail", email);
 
         window.location.href = "survey.html";
 
     })
 
-    .catch(function(error){
+    .catch(function (error) {
 
         message.innerHTML = error.message;
+        console.log(error);
 
     });
 
