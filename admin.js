@@ -10,7 +10,7 @@ auth.onAuthStateChanged(function (user) {
     }
 
     // Admin Email Check
-    const adminEmail = "admin@surveykshan.com";
+    const adminEmail = "goswamivinod2305@gmail.com";
 
     if (user.email.toLowerCase() !== adminEmail.toLowerCase()) {
         alert("Access Denied\n\nLogged in as: " + user.email);
