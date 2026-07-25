@@ -1,4 +1,4 @@
-console.log("Survey JS Loaded");
+alert("Survey JS Version 2 Loaded");
 
 const db = firebase.firestore();
 
