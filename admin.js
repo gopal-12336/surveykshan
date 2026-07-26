@@ -167,3 +167,31 @@ document.getElementById("exportExcel").addEventListener("click", function () {
     });
 
 });
+
+
+// Delete Survey
+function deleteSurvey(id) {
+
+    let confirmDelete = confirm("Kya aap is survey ko delete karna chahte hain?");
+
+    if (!confirmDelete) {
+        return;
+    }
+
+    db.collection("surveys").doc(id).delete()
+
+    .then(function () {
+
+        alert("✅ Survey Delete Ho Gaya");
+
+        loadSurvey();
+
+    })
+
+    .catch(function (error) {
+
+        alert("❌ Error: " + error.message);
+
+    });
+
+}
