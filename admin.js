@@ -79,6 +79,7 @@ else {
 <td>${data.feedback || ""}</td>
 
 <td>
+<button onclick="editSurvey('${doc.id}')">✏️ Edit</button>
 <button onclick="deleteSurvey('${doc.id}')">🗑 Delete</button>
 </td>
 
