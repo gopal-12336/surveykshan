@@ -278,7 +278,7 @@ function editSurvey(id){
 
     name: newName,
 mobile: newMobile
-
+age: newAge
 }).then(function(){
 
     alert("Name Updated Successfully");
