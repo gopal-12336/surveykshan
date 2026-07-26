@@ -127,19 +127,7 @@ document.getElementById("logoutBtn").addEventListener("click", function () {
 
     });
 
-});
-// Logout
-document.getElementById("logoutBtn").addEventListener("click", function () {
 
-    auth.signOut().then(function () {
-
-        localStorage.clear();
-
-        window.location.href = "index.html";
-
-    });
-
-});
 
 // Live Search
 document.getElementById("searchBox").addEventListener("keyup", function () {
@@ -277,7 +265,7 @@ function editSurvey(id){
         db.collection("surveys").doc(id).update({
 
     name: newName,
-mobile: newMobile
+mobile: newMobile,
 age: newAge
 }).then(function(){
 
