@@ -57,7 +57,6 @@ function loadSurvey() {
                 }
 
                 table.innerHTML += `
-<tr class="surveyRow">
 <tr>
 <td>${data.name || ""}</td>
 <td>${data.mobile || ""}</td>
@@ -67,9 +66,13 @@ function loadSurvey() {
 <td>${data.party || ""}</td>
 <td>${data.candidate || ""}</td>
 <td>${data.feedback || ""}</td>
+
+<td>
+<button onclick="deleteSurvey('${doc.id}')">🗑 Delete</button>
+</td>
+
 </tr>
 `;
-
             });
 
             document.getElementById("totalSurvey").innerHTML = total;
