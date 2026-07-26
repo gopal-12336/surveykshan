@@ -269,7 +269,9 @@ function editSurvey(id){
         const newName = prompt("Edit Name", data.name);
 
         if(newName == null) return;
+        const newMobile = prompt("Edit Mobile", data.mobile);
 
+        if(newMobile == null) return;
         db.collection("surveys").doc(id).update({
 
     name: newName
