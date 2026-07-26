@@ -93,6 +93,17 @@ document.getElementById("aapCount").innerHTML = aap;
 document.getElementById("bspCount").innerHTML = bsp;
 document.getElementById("spCount").innerHTML = sp;
 document.getElementById("otherCount").innerHTML = other;
+
+         partyChart.data.datasets[0].data = [
+    bjp,
+    congress,
+    aap,
+    bsp,
+    sp,
+    other
+];
+
+partyChart.update();   
         })
 
         .catch(function (error) {
