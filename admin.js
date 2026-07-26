@@ -67,24 +67,7 @@ else {
     other++;
 }
 
-                table.innerHTML += `
-<tr>
-<td>${data.name || ""}</td>
-<td>${data.mobile || ""}</td>
-<td>${data.age || ""}</td>
-<td>${data.gender || ""}</td>
-<td>${data.village || ""}</td>
-<td>${data.party || ""}</td>
-<td>${data.candidate || ""}</td>
-<td>${data.feedback || ""}</td>
-
-<td>
-<button onclick="editSurvey('${doc.id}')">✏️ Edit</button>
-<button onclick="deleteSurvey('${doc.id}')">🗑 Delete</button>
-</td>
-
-</tr>
-`;
+                table.innerHTML += ` <tr> <td>${data.name || ""}</td> <td>${data.mobile || ""}</td> <td>${data.age || ""}</td> <td>${data.gender || ""}</td> <td>${data.village || ""}</td> <td>${data.party || ""}</td> <td>${data.candidate || ""}</td> <td>${data.feedback || ""}</td> <td> <button onclick="editSurvey('${doc.id}')">✏️ Edit</button> <button onclick="deleteSurvey('${doc.id}')">🗑 Delete</button> </td> </tr> `;
             });
 
             document.getElementById("totalSurvey").innerHTML = total;
