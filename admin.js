@@ -132,3 +132,35 @@ document.getElementById("searchBox").addEventListener("keyup", function () {
     });
 
 });
+// Export Excel
+document.getElementById("exportExcel").addEventListener("click", function () {
+
+    db.collection("surveys").get()
+
+    .then(function(snapshot){
+
+        let data = [];
+
+        snapshot.forEach(function(doc){
+
+            data.push(doc.data());
+
+        });
+
+        let worksheet = XLSX.utils.json_to_sheet(data);
+
+        let workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Survey Data");
+
+        XLSX.writeFile(workbook, "Surveykshan_Data.xlsx");
+
+    })
+
+    .catch(function(error){
+
+        alert(error.message);
+
+    });
+
+});
