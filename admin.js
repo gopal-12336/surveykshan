@@ -135,6 +135,32 @@ document.getElementById("searchBox").addEventListener("keyup", function () {
     });
 
 });
+
+// Party Filter
+document.getElementById("partyFilter").addEventListener("change", function () {
+
+    let selectedParty = this.value.toLowerCase();
+
+    let rows = document.querySelectorAll("#surveyTable tr");
+
+    rows.forEach(function (row) {
+
+        if (selectedParty === "") {
+            row.style.display = "";
+        } else {
+
+            if (row.innerText.toLowerCase().includes(selectedParty)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+
+        }
+
+    });
+
+});
+
 // Export Excel
 document.getElementById("exportExcel").addEventListener("click", function () {
 
