@@ -270,7 +270,17 @@ function editSurvey(id){
 
         if(newName == null) return;
 
-        alert("Next step me Mobile, Party aur Feedback edit karenge.");
+        db.collection("surveys").doc(id).update({
+
+    name: newName
+
+}).then(function(){
+
+    alert("Name Updated Successfully");
+
+    loadSurvey();
+
+});
 
     }
 
