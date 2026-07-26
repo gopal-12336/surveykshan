@@ -233,3 +233,15 @@ function deleteSurvey(id) {
     });
 
 }
+// Pie Chart
+const ctx = document.getElementById('partyChart').getContext('2d');
+
+const partyChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: ['BJP', 'Congress', 'AAP', 'BSP', 'SP', 'Others'],
+        datasets: [{
+            data: [0, 0, 0, 0, 0, 0]
+        }]
+    }
+});
