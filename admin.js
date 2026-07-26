@@ -127,8 +127,6 @@ document.getElementById("logoutBtn").addEventListener("click", function () {
 
     });
 
-
-
 // Live Search
 document.getElementById("searchBox").addEventListener("keyup", function () {
 
