@@ -26,10 +26,12 @@ auth.onAuthStateChanged(function (user) {
 function loadSurvey() {
 
     let total = 0;
-    let bjp = 0;
-    let congress = 0;
-    let aap = 0;
-    let other = 0;
+let bjp = 0;
+let congress = 0;
+let aap = 0;
+let bsp = 0;
+let sp = 0;
+let other = 0;
 
     const table = document.getElementById("surveyTable");
     table.innerHTML = "";
