@@ -274,7 +274,8 @@ function editSurvey(id){
         if(newMobile == null) return;
         db.collection("surveys").doc(id).update({
 
-    name: newName
+    name: newName,
+mobile: newMobile
 
 }).then(function(){
 
