@@ -49,14 +49,23 @@ let other = 0;
                 total++;
 
                 if (data.party === "BJP") {
-                    bjp++;
-                } else if (data.party === "Congress") {
-                    congress++;
-                } else if (data.party === "AAP") {
-                    aap++;
-                } else {
-                    other++;
-                }
+    bjp++;
+}
+else if (data.party === "Congress") {
+    congress++;
+}
+else if (data.party === "AAP") {
+    aap++;
+}
+else if (data.party === "BSP") {
+    bsp++;
+}
+else if (data.party === "SP") {
+    sp++;
+}
+else {
+    other++;
+}
 
                 table.innerHTML += `
 <tr>
