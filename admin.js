@@ -87,11 +87,12 @@ else {
             });
 
             document.getElementById("totalSurvey").innerHTML = total;
-            document.getElementById("bjpCount").innerHTML = bjp;
-            document.getElementById("congressCount").innerHTML = congress;
-            document.getElementById("aapCount").innerHTML = aap;
-            document.getElementById("otherCount").innerHTML = other;
-
+document.getElementById("bjpCount").innerHTML = bjp;
+document.getElementById("congressCount").innerHTML = congress;
+document.getElementById("aapCount").innerHTML = aap;
+document.getElementById("bspCount").innerHTML = bsp;
+document.getElementById("spCount").innerHTML = sp;
+document.getElementById("otherCount").innerHTML = other;
         })
 
         .catch(function (error) {
