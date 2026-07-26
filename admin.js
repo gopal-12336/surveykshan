@@ -257,3 +257,9 @@ const partyChart = new Chart(ctx, {
         }]
     }
 });
+// Edit Survey
+function editSurvey(id){
+
+    alert("Edit feature is under development.\n\nSurvey ID : " + id);
+
+}
