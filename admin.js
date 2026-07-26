@@ -260,6 +260,20 @@ const partyChart = new Chart(ctx, {
 // Edit Survey
 function editSurvey(id){
 
-    alert("Edit feature is under development.\n\nSurvey ID : " + id);
+    db.collection("surveys").doc(id).get().then(function(doc){
+
+    if(doc.exists){
+
+        const data = doc.data();
+
+        const newName = prompt("Edit Name", data.name);
+
+        if(newName == null) return;
+
+        alert("Next step me Mobile, Party aur Feedback edit karenge.");
+
+    }
+
+});
 
 }
