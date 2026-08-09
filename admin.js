@@ -1,27 +1,76 @@
 // ==========================================
 // SURVEYKSHAN ADMIN PANEL
-// Complete Working Version
 // ==========================================
 
-console.log("✅ Admin Panel Loaded");
+console.log("Admin Panel Loaded");
 
 
 // ==========================================
 // ADMIN EMAIL
 // ==========================================
 
-const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
+const adminEmail = "goswamivinod2305@gmail.com";
 
 
 // ==========================================
-// CHART VARIABLE
+// ELEMENTS
 // ==========================================
+
+const searchBox = document.getElementById("searchBox");
+const partyFilter = document.getElementById("partyFilter");
+const dateFilter = document.getElementById("dateFilter");
+const resetFilters = document.getElementById("resetFilters");
+
+
+// ==========================================
+// PARTY CHART
+// ==========================================
+
+const chartCanvas = document.getElementById("partyChart");
 
 let partyChart = null;
 
+if (chartCanvas) {
+
+    const ctx = chartCanvas.getContext("2d");
+
+    partyChart = new Chart(ctx, {
+
+        type: "pie",
+
+        data: {
+
+            labels: [
+                "BJP",
+                "Congress",
+                "AAP",
+                "BSP",
+                "SP",
+                "Others"
+            ],
+
+            datasets: [{
+
+                data: [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+
+            }]
+
+        }
+
+    });
+
+}
+
 
 // ==========================================
-// CHECK ADMIN LOGIN
+// CHECK LOGIN
 // ==========================================
 
 auth.onAuthStateChanged(function (user) {
@@ -29,36 +78,31 @@ auth.onAuthStateChanged(function (user) {
     if (!user) {
 
         window.location.href = "index.html";
-        return;
 
+        return;
     }
 
-    if (!user.email) {
 
-        alert("Unable to verify account.");
-        window.location.href = "index.html";
-        return;
+    // ADMIN EMAIL CHECK
 
-    }
-
-    if (user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    if (
+        !user.email ||
+        user.email.toLowerCase() !==
+        adminEmail.toLowerCase()
+    ) {
 
         alert(
             "Access Denied\n\nLogged in as: " +
             user.email
         );
 
-        auth.signOut();
-
-        window.location.href = "index.html";
+        window.location.href = "survey.html";
 
         return;
-
     }
 
-    console.log("✅ Admin Login Verified");
 
-    createChart();
+    // LOAD SURVEYS
 
     loadSurvey();
 
@@ -71,20 +115,8 @@ auth.onAuthStateChanged(function (user) {
 
 function loadSurvey() {
 
-    console.log("Loading surveys...");
-
-    const table = document.getElementById("surveyTable");
-
-    if (!table) {
-
-        console.error("surveyTable not found");
-        return;
-
-    }
-
-    table.innerHTML = "";
-
     let total = 0;
+
     let bjp = 0;
     let congress = 0;
     let aap = 0;
@@ -93,60 +125,69 @@ function loadSurvey() {
     let other = 0;
 
 
+    const table =
+        document.getElementById("surveyTable");
+
+
+    if (!table) {
+
+        console.error(
+            "surveyTable element not found"
+        );
+
+        return;
+    }
+
+
+    table.innerHTML = "";
+
+
     db.collection("surveys")
+
+        .orderBy("createdAt", "desc")
+
         .get()
 
         .then(function (snapshot) {
-
-            console.log(
-                "Total Firebase Documents:",
-                snapshot.size
-            );
 
 
             snapshot.forEach(function (doc) {
 
                 const data = doc.data();
 
+
                 total++;
 
 
-                // ==========================
+                // ==================================
                 // PARTY COUNT
-                // ==========================
+                // ==================================
 
-                const party = String(
-                    data.party || ""
-                ).trim().toLowerCase();
-
-
-                if (party === "bjp") {
+                if (data.party === "BJP") {
 
                     bjp++;
 
                 }
 
-                else if (
-                    party === "congress"
-                ) {
+                else if (data.party === "Congress") {
 
                     congress++;
 
                 }
 
-                else if (party === "aap") {
+                else if (data.party === "AAP") {
 
                     aap++;
 
                 }
 
-                else if (party === "bsp") {
+                else if (data.party === "BSP") {
 
                     bsp++;
 
                 }
 
-                else if (party === "sp") {
+                else if (data.party === "SP") {
 
                     sp++;
 
@@ -159,103 +200,157 @@ function loadSurvey() {
                 }
 
 
-                // ==========================
-                // TABLE
-                // ==========================
+                // ==================================
+                // DATE
+                // ==================================
+
+                let createdDate = "";
+
+                if (
+                    data.createdAt &&
+                    typeof data.createdAt.toDate === "function"
+                ) {
+
+                    createdDate =
+                        data.createdAt
+                            .toDate()
+                            .toISOString();
+
+                }
+
+
+                // ==================================
+                // SEARCH TEXT
+                // ==================================
+
+                const searchText = [
+
+                    data.name || "",
+                    data.mobile || "",
+                    data.age || "",
+                    data.gender || "",
+                    data.village || "",
+                    data.assembly || "",
+                    data.party || "",
+                    data.candidate || "",
+                    data.feedback || ""
+
+                ]
+                    .join(" ")
+                    .toLowerCase();
+
+
+                // ==================================
+                // CREATE TABLE ROW
+                // ==================================
 
                 table.innerHTML += `
 
-<tr>
+                    <tr
+                        data-date="${createdDate}"
+                        data-party="${(
+                            data.party || ""
+                        ).toLowerCase()}"
+                        data-search="${searchText}"
+                    >
 
-<td>${escapeHTML(data.name)}</td>
+                        <td>
+                            ${data.name || ""}
+                        </td>
 
-<td>${escapeHTML(data.mobile)}</td>
+                        <td>
+                            ${data.mobile || ""}
+                        </td>
 
-<td>${escapeHTML(data.age)}</td>
+                        <td>
+                            ${data.age || ""}
+                        </td>
 
-<td>${escapeHTML(data.gender)}</td>
+                        <td>
+                            ${data.gender || ""}
+                        </td>
 
-<td>${escapeHTML(data.village)}</td>
+                        <td>
+                            ${data.village || ""}
+                        </td>
 
-<td>${escapeHTML(data.party)}</td>
+                        <td>
+                            ${data.party || ""}
+                        </td>
 
-<td>${escapeHTML(data.candidate)}</td>
+                        <td>
+                            ${data.candidate || ""}
+                        </td>
 
-<td>${escapeHTML(data.feedback)}</td>
+                        <td>
+                            ${data.feedback || ""}
+                        </td>
 
-<td>
+                        <td>
 
-<button
-class="edit-btn"
-onclick="editSurvey('${doc.id}')">
+                            <button
+                                onclick="editSurvey('${doc.id}')"
+                            >
+                                ✏️ Edit
+                            </button>
 
-✏️ Edit
+                            <button
+                                onclick="deleteSurvey('${doc.id}')"
+                            >
+                                🗑 Delete
+                            </button>
 
-</button>
+                        </td>
 
-<button
-class="delete-btn"
-onclick="deleteSurvey('${doc.id}')">
+                    </tr>
 
-🗑 Delete
-
-</button>
-
-</td>
-
-</tr>
-
-`;
+                `;
 
             });
 
 
-            // ==========================
-            // DASHBOARD COUNTS
-            // ==========================
+            // ==================================
+            // UPDATE COUNTERS
+            // ==================================
 
-            setText(
-                "totalSurvey",
-                total
-            );
-
-            setText(
-                "bjpCount",
-                bjp
-            );
-
-            setText(
-                "congressCount",
-                congress
-            );
-
-            setText(
-                "aapCount",
-                aap
-            );
-
-            // Agar ye cards HTML me nahi hain
-            // to koi error nahi aayega.
-
-            setText(
-                "bspCount",
-                bsp
-            );
-
-            setText(
-                "spCount",
-                sp
-            );
-
-            setText(
-                "otherCount",
-                other
-            );
+            document.getElementById(
+                "totalSurvey"
+            ).innerHTML = total;
 
 
-            // ==========================
+            document.getElementById(
+                "bjpCount"
+            ).innerHTML = bjp;
+
+
+            document.getElementById(
+                "congressCount"
+            ).innerHTML = congress;
+
+
+            document.getElementById(
+                "aapCount"
+            ).innerHTML = aap;
+
+
+            document.getElementById(
+                "bspCount"
+            ).innerHTML = bsp;
+
+
+            document.getElementById(
+                "spCount"
+            ).innerHTML = sp;
+
+
+            document.getElementById(
+                "otherCount"
+            ).innerHTML = other;
+
+
+            // ==================================
             // UPDATE CHART
-            // ==========================
+            // ==================================
 
             if (partyChart) {
 
@@ -275,7 +370,11 @@ onclick="deleteSurvey('${doc.id}')">
             }
 
 
-            console.log("✅ Surveys Loaded");
+            // ==================================
+            // APPLY FILTER
+            // ==================================
+
+            filterTable();
 
         })
 
@@ -287,7 +386,7 @@ onclick="deleteSurvey('${doc.id}')">
             );
 
             alert(
-                "Firestore Error:\n\n" +
+                "Firestore Error:\n" +
                 error.message
             );
 
@@ -297,142 +396,13 @@ onclick="deleteSurvey('${doc.id}')">
 
 
 // ==========================================
-// CREATE PIE CHART
-// ==========================================
-
-function createChart() {
-
-    const canvas =
-        document.getElementById(
-            "partyChart"
-        );
-
-
-    if (!canvas) {
-
-        console.log(
-            "Party chart canvas not found."
-        );
-
-        return;
-
-    }
-
-
-    const ctx =
-        canvas.getContext("2d");
-
-
-    partyChart = new Chart(ctx, {
-
-        type: "pie",
-
-        data: {
-
-            labels: [
-
-                "BJP",
-                "Congress",
-                "AAP",
-                "BSP",
-                "SP",
-                "Others"
-
-            ],
-
-            datasets: [{
-
-                data: [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                ]
-
-            }]
-
-        },
-
-        options: {
-
-            responsive: true,
-
-            maintainAspectRatio: true,
-
-            plugins: {
-
-                legend: {
-
-                    position: "bottom"
-
-                }
-
-            }
-
-        }
-
-    });
-
-}
-
-
-// ==========================================
-// SEARCH
-// ==========================================
-
-const searchBox =
-    document.getElementById(
-        "searchBox"
-    );
-
-
-if (searchBox) {
-
-    searchBox.addEventListener(
-        "keyup",
-        function () {
-
-            filterTable();
-
-        }
-    );
-
-}
-
-
-// ==========================================
-// PARTY FILTER
-// ==========================================
-
-const partyFilter =
-    document.getElementById(
-        "partyFilter"
-    );
-
-
-if (partyFilter) {
-
-    partyFilter.addEventListener(
-        "change",
-        function () {
-
-            filterTable();
-
-        }
-    );
-
-}
-
-
-// ==========================================
-// SEARCH + PARTY FILTER
+// SEARCH + PARTY + DATE FILTER
 // ==========================================
 
 function filterTable() {
 
     const searchValue =
+
         searchBox
             ? searchBox.value
                 .toLowerCase()
@@ -440,11 +410,19 @@ function filterTable() {
             : "";
 
 
-    const partyValue =
+    const selectedParty =
+
         partyFilter
             ? partyFilter.value
                 .toLowerCase()
                 .trim()
+            : "";
+
+
+    const selectedDate =
+
+        dateFilter
+            ? dateFilter.value
             : "";
 
 
@@ -454,25 +432,135 @@ function filterTable() {
         );
 
 
+    const now = new Date();
+
+
     rows.forEach(function (row) {
 
-        const rowText =
-            row.innerText.toLowerCase();
+
+        // ==================================
+        // SEARCH
+        // ==================================
+
+        const rowSearch =
+
+            row.getAttribute(
+                "data-search"
+            ) || "";
 
 
         const searchMatch =
-            searchValue === "" ||
-            rowText.includes(searchValue);
+
+            rowSearch.includes(
+                searchValue
+            );
+
+
+        // ==================================
+        // PARTY
+        // ==================================
+
+        const rowParty =
+
+            row.getAttribute(
+                "data-party"
+            ) || "";
 
 
         const partyMatch =
-            partyValue === "" ||
-            rowText.includes(partyValue);
+
+            selectedParty === "" ||
+            rowParty === selectedParty;
+
+
+        // ==================================
+        // DATE
+        // ==================================
+
+        let dateMatch = true;
+
+
+        const rowDate =
+
+            row.getAttribute(
+                "data-date"
+            );
 
 
         if (
+            selectedDate !== "" &&
+            rowDate !== ""
+        ) {
+
+
+            const surveyDate =
+                new Date(rowDate);
+
+
+            // TODAY
+
+            if (
+                selectedDate === "today"
+            ) {
+
+                dateMatch =
+
+                    surveyDate.toDateString() ===
+                    now.toDateString();
+
+            }
+
+
+            // THIS WEEK
+
+            else if (
+                selectedDate === "week"
+            ) {
+
+                const weekAgo =
+                    new Date();
+
+
+                weekAgo.setDate(
+                    now.getDate() - 7
+                );
+
+
+                dateMatch =
+                    surveyDate >= weekAgo;
+
+            }
+
+
+            // THIS MONTH
+
+            else if (
+                selectedDate === "month"
+            ) {
+
+                dateMatch =
+
+                    surveyDate.getMonth() ===
+                    now.getMonth()
+
+                    &&
+
+                    surveyDate.getFullYear() ===
+                    now.getFullYear();
+
+            }
+
+        }
+
+
+        // ==================================
+        // SHOW / HIDE ROW
+        // ==================================
+
+        if (
             searchMatch &&
-            partyMatch
+            partyMatch &&
+            dateMatch
         ) {
 
             row.style.display = "";
@@ -491,25 +579,150 @@ function filterTable() {
 
 
 // ==========================================
+// SEARCH EVENT
+// ==========================================
+
+if (searchBox) {
+
+    searchBox.addEventListener(
+        "input",
+        filterTable
+    );
+
+}
+
+
+// ==========================================
+// PARTY FILTER EVENT
+// ==========================================
+
+if (partyFilter) {
+
+    partyFilter.addEventListener(
+        "change",
+        filterTable
+    );
+
+}
+
+
+// ==========================================
+// DATE FILTER EVENT
+// ==========================================
+
+if (dateFilter) {
+
+    dateFilter.addEventListener(
+        "change",
+        filterTable
+    );
+
+}
+
+
+// ==========================================
+// RESET FILTERS
+// ==========================================
+
+if (resetFilters) {
+
+    resetFilters.addEventListener(
+        "click",
+        function () {
+
+
+            if (searchBox) {
+
+                searchBox.value = "";
+
+            }
+
+
+            if (partyFilter) {
+
+                partyFilter.value = "";
+
+            }
+
+
+            if (dateFilter) {
+
+                dateFilter.value = "";
+
+            }
+
+
+            filterTable();
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// LOGOUT
+// ==========================================
+
+const logoutBtn =
+    document.getElementById("logoutBtn");
+
+
+if (logoutBtn) {
+
+    logoutBtn.addEventListener(
+        "click",
+        function () {
+
+
+            auth.signOut()
+
+                .then(function () {
+
+                    localStorage.clear();
+
+                    window.location.href =
+                        "index.html";
+
+                })
+
+                .catch(function (error) {
+
+                    alert(
+                        "Logout Error: " +
+                        error.message
+                    );
+
+                });
+
+        }
+    );
+
+}
+
+
+// ==========================================
 // EXPORT EXCEL
 // ==========================================
 
-const exportButton =
+const exportExcel =
     document.getElementById(
         "exportExcel"
     );
 
 
-if (exportButton) {
+if (exportExcel) {
 
-    exportButton.addEventListener(
+    exportExcel.addEventListener(
         "click",
         function () {
+
 
             db.collection("surveys")
                 .get()
 
                 .then(function (snapshot) {
+
 
                     let data = [];
 
@@ -548,23 +761,27 @@ if (exportButton) {
                                     survey.candidate || "",
 
                                 Feedback:
-                                    survey.feedback || ""
+                                    survey.feedback || "",
+
+                                CreatedBy:
+                                    survey.createdBy || "",
+
+                                CreatedAt:
+
+                                    survey.createdAt &&
+                                    typeof survey.createdAt.toDate ===
+                                    "function"
+
+                                        ? survey.createdAt
+                                            .toDate()
+                                            .toLocaleString()
+
+                                        : ""
 
                             });
 
                         }
                     );
-
-
-                    if (data.length === 0) {
-
-                        alert(
-                            "No survey data available."
-                        );
-
-                        return;
-
-                    }
 
 
                     const worksheet =
@@ -596,17 +813,12 @@ if (exportButton) {
 
                     );
 
-
-                    console.log(
-                        "✅ Excel Exported"
-                    );
-
                 })
 
                 .catch(function (error) {
 
                     alert(
-                        "Export Error:\n" +
+                        "Export Error: " +
                         error.message
                     );
 
@@ -624,7 +836,9 @@ if (exportButton) {
 
 function deleteSurvey(id) {
 
+
     const confirmDelete =
+
         confirm(
             "Kya aap is survey ko delete karna chahte hain?"
         );
@@ -643,9 +857,11 @@ function deleteSurvey(id) {
 
         .then(function () {
 
+
             alert(
                 "✅ Survey Delete Ho Gaya"
             );
+
 
             loadSurvey();
 
@@ -653,10 +869,8 @@ function deleteSurvey(id) {
 
         .catch(function (error) {
 
-            console.error(error);
-
             alert(
-                "❌ Delete Error:\n" +
+                "❌ Error: " +
                 error.message
             );
 
@@ -671,16 +885,18 @@ function deleteSurvey(id) {
 
 function editSurvey(id) {
 
+
     db.collection("surveys")
         .doc(id)
         .get()
 
         .then(function (doc) {
 
+
             if (!doc.exists) {
 
                 alert(
-                    "Survey not found."
+                    "Survey not found"
                 );
 
                 return;
@@ -688,119 +904,78 @@ function editSurvey(id) {
             }
 
 
-            const data = doc.data();
+            const data =
+                doc.data();
 
 
             const newName =
+
                 prompt(
                     "Edit Name",
                     data.name || ""
                 );
 
-            if (newName === null) return;
+
+            if (newName === null) {
+
+                return;
+
+            }
 
 
             const newMobile =
+
                 prompt(
                     "Edit Mobile",
                     data.mobile || ""
                 );
 
-            if (newMobile === null) return;
+
+            if (newMobile === null) {
+
+                return;
+
+            }
 
 
             const newAge =
+
                 prompt(
                     "Edit Age",
                     data.age || ""
                 );
 
-            if (newAge === null) return;
 
+            if (newAge === null) {
 
-            const newGender =
-                prompt(
-                    "Edit Gender",
-                    data.gender || ""
-                );
+                return;
 
-            if (newGender === null) return;
-
-
-            const newVillage =
-                prompt(
-                    "Edit Village",
-                    data.village || ""
-                );
-
-            if (newVillage === null) return;
-
-
-            const newAssembly =
-                prompt(
-                    "Edit Assembly",
-                    data.assembly || ""
-                );
-
-            if (newAssembly === null) return;
-
-
-            const newParty =
-                prompt(
-                    "Edit Party",
-                    data.party || ""
-                );
-
-            if (newParty === null) return;
-
-
-            const newCandidate =
-                prompt(
-                    "Edit Candidate",
-                    data.candidate || ""
-                );
-
-            if (newCandidate === null) return;
-
-
-            const newFeedback =
-                prompt(
-                    "Edit Feedback",
-                    data.feedback || ""
-                );
-
-            if (newFeedback === null) return;
+            }
 
 
             db.collection("surveys")
                 .doc(id)
+
                 .update({
 
-                    name: newName,
+                    name:
+                        newName.trim(),
 
-                    mobile: newMobile,
+                    mobile:
+                        newMobile.trim(),
 
-                    age: Number(newAge),
-
-                    gender: newGender,
-
-                    village: newVillage,
-
-                    assembly: newAssembly,
-
-                    party: newParty,
-
-                    candidate: newCandidate,
-
-                    feedback: newFeedback
+                    age:
+                        Number(newAge)
 
                 })
 
                 .then(function () {
 
+
                     alert(
                         "✅ Survey Updated Successfully"
                     );
+
 
                     loadSurvey();
 
@@ -809,7 +984,7 @@ function editSurvey(id) {
                 .catch(function (error) {
 
                     alert(
-                        "❌ Update Error:\n" +
+                        "❌ Update Error: " +
                         error.message
                     );
 
@@ -820,111 +995,10 @@ function editSurvey(id) {
         .catch(function (error) {
 
             alert(
-                "❌ Error:\n" +
+                "❌ Error: " +
                 error.message
             );
 
         });
 
 }
-
-
-// ==========================================
-// LOGOUT
-// ==========================================
-
-const logoutButton =
-    document.getElementById(
-        "logoutBtn"
-    );
-
-
-if (logoutButton) {
-
-    logoutButton.addEventListener(
-        "click",
-        function () {
-
-            auth.signOut()
-
-                .then(function () {
-
-                    localStorage.clear();
-
-                    window.location.href =
-                        "index.html";
-
-                })
-
-                .catch(function (error) {
-
-                    alert(
-                        "Logout Error:\n" +
-                        error.message
-                    );
-
-                });
-
-        }
-    );
-
-}
-
-
-// ==========================================
-// HELPER: SET TEXT
-// ==========================================
-
-function setText(id, value) {
-
-    const element =
-        document.getElementById(id);
-
-
-    if (element) {
-
-        element.innerHTML = value;
-
-    }
-
-}
-
-
-// ==========================================
-// HELPER: SAFE HTML
-// ==========================================
-
-function escapeHTML(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-
-        return "";
-
-    }
-
-
-    return String(value)
-
-        .replace(/&/g, "&amp;")
-
-        .replace(/</g, "&lt;")
-
-        .replace(/>/g, "&gt;")
-
-        .replace(/"/g, "&quot;")
-
-        .replace(/'/g, "&#039;");
-
-}
-
-
-// ==========================================
-// ADMIN.JS COMPLETE
-// ==========================================
-
-console.log(
-    "✅ admin.js Loaded Successfully"
-);
