@@ -499,16 +499,21 @@ function filterTable() {
 
             // TODAY
 
-            if (
-                selectedDate === "today"
-            ) {
+          if (selectedDate === "today") {
 
-                dateMatch =
+    const startOfToday = new Date();
 
-                    surveyDate.toDateString() ===
-                    now.toDateString();
+    startOfToday.setHours(0, 0, 0, 0);
 
-            }
+    const endOfToday = new Date();
+
+    endOfToday.setHours(23, 59, 59, 999);
+
+    dateMatch =
+        surveyDate >= startOfToday &&
+        surveyDate <= endOfToday;
+
+}
 
 
             // THIS WEEK
