@@ -20,7 +20,7 @@ const resetFilters = document.getElementById("resetFilters");
 
 
 // ==========================================
-// CHART
+// PARTY CHART
 // ==========================================
 
 let partyChart = null;
@@ -83,7 +83,7 @@ if (chartCanvas) {
 
 
 // ==========================================
-// CHECK ADMIN LOGIN
+// ADMIN LOGIN CHECK
 // ==========================================
 
 auth.onAuthStateChanged(function (user) {
@@ -124,7 +124,7 @@ auth.onAuthStateChanged(function (user) {
 
 
 // ==========================================
-// LOAD SURVEYS
+// LOAD SURVEY DATA
 // ==========================================
 
 function loadSurvey() {
@@ -137,6 +137,45 @@ function loadSurvey() {
     let bsp = 0;
     let sp = 0;
     let other = 0;
+
+
+    // ======================================
+    // DATE COUNTERS
+    // ======================================
+
+    let todayCount = 0;
+    let weekCount = 0;
+    let monthCount = 0;
+
+
+    const now = new Date();
+
+
+    const startOfToday =
+        new Date();
+
+    startOfToday.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    const startOfWeek =
+        new Date();
+
+    startOfWeek.setDate(
+        now.getDate() - 7
+    );
+
+
+    const startOfMonth =
+        new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            1
+        );
 
 
     const table =
@@ -186,9 +225,61 @@ function loadSurvey() {
                 total++;
 
 
-                // ==============================
+                // ==================================
+                // DATE COUNTS
+                // ==================================
+
+                if (
+                    data.createdAt &&
+                    typeof data.createdAt.toDate ===
+                    "function"
+                ) {
+
+                    const surveyDate =
+                        data.createdAt.toDate();
+
+
+                    // TODAY
+
+                    if (
+                        surveyDate >=
+                        startOfToday
+                    ) {
+
+                        todayCount++;
+
+                    }
+
+
+                    // LAST 7 DAYS
+
+                    if (
+                        surveyDate >=
+                        startOfWeek
+                    ) {
+
+                        weekCount++;
+
+                    }
+
+
+                    // CURRENT MONTH
+
+                    if (
+                        surveyDate >=
+                        startOfMonth
+                    ) {
+
+                        monthCount++;
+
+                    }
+
+                }
+
+
+                // ==================================
                 // PARTY COUNT
-                // ==============================
+                // ==================================
 
                 const party =
                     String(
@@ -243,9 +334,9 @@ function loadSurvey() {
                 }
 
 
-                // ==============================
+                // ==================================
                 // VILLAGE / ASSEMBLY
-                // ==============================
+                // ==================================
 
                 const village =
                     String(
@@ -273,9 +364,9 @@ function loadSurvey() {
                 }
 
 
-                // ==============================
+                // ==================================
                 // CREATED DATE
-                // ==============================
+                // ==================================
 
                 let createdDate = "";
 
@@ -294,9 +385,9 @@ function loadSurvey() {
                 }
 
 
-                // ==============================
+                // ==================================
                 // SEARCH DATA
-                // ==============================
+                // ==================================
 
                 const searchText = [
 
@@ -315,9 +406,9 @@ function loadSurvey() {
                     .toLowerCase();
 
 
-                // ==============================
+                // ==================================
                 // TABLE ROW
-                // ==============================
+                // ==================================
 
                 table.innerHTML += `
 
@@ -327,11 +418,17 @@ data-date="${createdDate}"
 
 data-party="${party}"
 
-data-village="${village.toLowerCase()}"
+data-village="${escapeAttribute(
+                    village.toLowerCase()
+                )}"
 
-data-assembly="${assembly.toLowerCase()}"
+data-assembly="${escapeAttribute(
+                    assembly.toLowerCase()
+                )}"
 
-data-search="${searchText}"
+data-search="${escapeAttribute(
+                    searchText
+                )}"
 
 >
 
@@ -371,16 +468,12 @@ ${escapeHTML(data.feedback)}
 
 <button
 onclick="editSurvey('${doc.id}')">
-
 ✏️ Edit
-
 </button>
 
 <button
 onclick="deleteSurvey('${doc.id}')">
-
 🗑 Delete
-
 </button>
 
 </td>
@@ -393,7 +486,7 @@ onclick="deleteSurvey('${doc.id}')">
 
 
             // ==================================
-            // DASHBOARD COUNTS
+            // UPDATE DASHBOARD COUNTS
             // ==================================
 
             setText(
@@ -401,30 +494,36 @@ onclick="deleteSurvey('${doc.id}')">
                 total
             );
 
+
             setText(
                 "bjpCount",
                 bjp
             );
+
 
             setText(
                 "congressCount",
                 congress
             );
 
+
             setText(
                 "aapCount",
                 aap
             );
+
 
             setText(
                 "bspCount",
                 bsp
             );
 
+
             setText(
                 "spCount",
                 sp
             );
+
 
             setText(
                 "otherCount",
@@ -433,7 +532,29 @@ onclick="deleteSurvey('${doc.id}')">
 
 
             // ==================================
-            // UPDATE PARTY CHART
+            // DATE CARDS
+            // ==================================
+
+            setText(
+                "todaySurvey",
+                todayCount
+            );
+
+
+            setText(
+                "weekSurvey",
+                weekCount
+            );
+
+
+            setText(
+                "monthSurvey",
+                monthCount
+            );
+
+
+            // ==================================
+            // UPDATE CHART
             // ==================================
 
             if (partyChart) {
@@ -457,7 +578,7 @@ onclick="deleteSurvey('${doc.id}')">
 
 
             // ==================================
-            // CREATE FILTER OPTIONS
+            // CREATE VILLAGE FILTER
             // ==================================
 
             createFilterOptions(
@@ -466,6 +587,10 @@ onclick="deleteSurvey('${doc.id}')">
                 "All Villages"
             );
 
+
+            // ==================================
+            // CREATE ASSEMBLY FILTER
+            // ==================================
 
             createFilterOptions(
                 assemblyFilter,
@@ -500,7 +625,7 @@ onclick="deleteSurvey('${doc.id}')">
 
 
 // ==========================================
-// CREATE DROPDOWN OPTIONS
+// CREATE FILTER OPTIONS
 // ==========================================
 
 function createFilterOptions(
@@ -656,9 +781,9 @@ function filterTable() {
     rows.forEach(function (row) {
 
 
-        // ==============================
+        // ==================================
         // SEARCH
-        // ==============================
+        // ==================================
 
         const rowSearch =
             row.getAttribute(
@@ -672,9 +797,9 @@ function filterTable() {
             );
 
 
-        // ==============================
+        // ==================================
         // PARTY
-        // ==============================
+        // ==================================
 
         const rowParty =
             row.getAttribute(
@@ -687,9 +812,9 @@ function filterTable() {
             rowParty === selectedParty;
 
 
-        // ==============================
+        // ==================================
         // VILLAGE
-        // ==============================
+        // ==================================
 
         const rowVillage =
             row.getAttribute(
@@ -702,9 +827,9 @@ function filterTable() {
             rowVillage === selectedVillage;
 
 
-        // ==============================
+        // ==================================
         // ASSEMBLY
-        // ==============================
+        // ==================================
 
         const rowAssembly =
             row.getAttribute(
@@ -717,9 +842,9 @@ function filterTable() {
             rowAssembly === selectedAssembly;
 
 
-        // ==============================
+        // ==================================
         // DATE
-        // ==============================
+        // ==================================
 
         let dateMatch = true;
 
@@ -806,7 +931,9 @@ function filterTable() {
 
                 dateMatch =
                     surveyDate.getMonth() ===
-                        now.getMonth() &&
+                        now.getMonth()
+
+                    &&
 
                     surveyDate.getFullYear() ===
                         now.getFullYear();
@@ -816,9 +943,9 @@ function filterTable() {
         }
 
 
-        // ==============================
-        // FINAL RESULT
-        // ==============================
+        // ==================================
+        // FINAL FILTER RESULT
+        // ==================================
 
         if (
 
@@ -1049,8 +1176,7 @@ if (exportExcel) {
                                 doc.data();
 
 
-                            let createdAt =
-                                "";
+                            let createdAt = "";
 
 
                             if (
@@ -1130,22 +1256,15 @@ if (exportExcel) {
 
 
                     XLSX.utils.book_append_sheet(
-
                         workbook,
-
                         worksheet,
-
                         "Survey Data"
-
                     );
 
 
                     XLSX.writeFile(
-
                         workbook,
-
                         "Surveykshan_Data.xlsx"
-
                     );
 
                 })
@@ -1247,9 +1366,7 @@ function editSurvey(id) {
 
 
             if (newName === null) {
-
                 return;
-
             }
 
 
@@ -1261,9 +1378,7 @@ function editSurvey(id) {
 
 
             if (newMobile === null) {
-
                 return;
-
             }
 
 
@@ -1275,9 +1390,7 @@ function editSurvey(id) {
 
 
             if (newAge === null) {
-
                 return;
-
             }
 
 
@@ -1289,9 +1402,7 @@ function editSurvey(id) {
 
 
             if (newGender === null) {
-
                 return;
-
             }
 
 
@@ -1303,9 +1414,7 @@ function editSurvey(id) {
 
 
             if (newVillage === null) {
-
                 return;
-
             }
 
 
@@ -1317,9 +1426,7 @@ function editSurvey(id) {
 
 
             if (newAssembly === null) {
-
                 return;
-
             }
 
 
@@ -1331,9 +1438,7 @@ function editSurvey(id) {
 
 
             if (newParty === null) {
-
                 return;
-
             }
 
 
@@ -1345,9 +1450,7 @@ function editSurvey(id) {
 
 
             if (newCandidate === null) {
-
                 return;
-
             }
 
 
@@ -1359,9 +1462,7 @@ function editSurvey(id) {
 
 
             if (newFeedback === null) {
-
                 return;
-
             }
 
 
@@ -1433,7 +1534,7 @@ function editSurvey(id) {
 
 
 // ==========================================
-// HELPER FUNCTIONS
+// HELPER: SET TEXT
 // ==========================================
 
 function setText(id, value) {
@@ -1450,6 +1551,10 @@ function setText(id, value) {
 
 }
 
+
+// ==========================================
+// HELPER: ESCAPE HTML
+// ==========================================
 
 function escapeHTML(value) {
 
@@ -1479,7 +1584,18 @@ function escapeHTML(value) {
 
 
 // ==========================================
-// COMPLETE
+// HELPER: ESCAPE ATTRIBUTE
+// ==========================================
+
+function escapeAttribute(value) {
+
+    return escapeHTML(value);
+
+}
+
+
+// ==========================================
+// READY
 // ==========================================
 
 console.log(
