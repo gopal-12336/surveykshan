@@ -4,11 +4,6 @@
 
 console.log("Admin Panel Loaded");
 
-
-// ==========================================
-// ADMIN EMAIL
-// ==========================================
-
 const adminEmail = "goswamivinod2305@gmail.com";
 
 
@@ -19,20 +14,24 @@ const adminEmail = "goswamivinod2305@gmail.com";
 const searchBox = document.getElementById("searchBox");
 const partyFilter = document.getElementById("partyFilter");
 const dateFilter = document.getElementById("dateFilter");
+const villageFilter = document.getElementById("villageFilter");
+const assemblyFilter = document.getElementById("assemblyFilter");
 const resetFilters = document.getElementById("resetFilters");
 
 
 // ==========================================
-// PARTY CHART
+// CHART
 // ==========================================
-
-const chartCanvas = document.getElementById("partyChart");
 
 let partyChart = null;
 
+const chartCanvas =
+    document.getElementById("partyChart");
+
 if (chartCanvas) {
 
-    const ctx = chartCanvas.getContext("2d");
+    const ctx =
+        chartCanvas.getContext("2d");
 
     partyChart = new Chart(ctx, {
 
@@ -62,6 +61,20 @@ if (chartCanvas) {
 
             }]
 
+        },
+
+        options: {
+
+            responsive: true,
+
+            plugins: {
+
+                legend: {
+                    position: "bottom"
+                }
+
+            }
+
         }
 
     });
@@ -70,7 +83,7 @@ if (chartCanvas) {
 
 
 // ==========================================
-// CHECK LOGIN
+// CHECK ADMIN LOGIN
 // ==========================================
 
 auth.onAuthStateChanged(function (user) {
@@ -80,10 +93,9 @@ auth.onAuthStateChanged(function (user) {
         window.location.href = "index.html";
 
         return;
+
     }
 
-
-    // ADMIN EMAIL CHECK
 
     if (
         !user.email ||
@@ -96,13 +108,15 @@ auth.onAuthStateChanged(function (user) {
             user.email
         );
 
-        window.location.href = "survey.html";
+        window.location.href =
+            "survey.html";
 
         return;
+
     }
 
 
-    // LOAD SURVEYS
+    console.log("Admin Login Verified");
 
     loadSurvey();
 
@@ -110,7 +124,7 @@ auth.onAuthStateChanged(function (user) {
 
 
 // ==========================================
-// LOAD SURVEY DATA
+// LOAD SURVEYS
 // ==========================================
 
 function loadSurvey() {
@@ -126,16 +140,19 @@ function loadSurvey() {
 
 
     const table =
-        document.getElementById("surveyTable");
+        document.getElementById(
+            "surveyTable"
+        );
 
 
     if (!table) {
 
         console.error(
-            "surveyTable element not found"
+            "surveyTable not found"
         );
 
         return;
+
     }
 
 
@@ -143,51 +160,77 @@ function loadSurvey() {
 
 
     db.collection("surveys")
-
         .orderBy("createdAt", "desc")
-
         .get()
 
         .then(function (snapshot) {
 
 
+            // ==================================
+            // UNIQUE VILLAGES / ASSEMBLIES
+            // ==================================
+
+            const villages =
+                new Set();
+
+            const assemblies =
+                new Set();
+
+
             snapshot.forEach(function (doc) {
 
-                const data = doc.data();
+                const data =
+                    doc.data();
 
 
                 total++;
 
 
-                // ==================================
+                // ==============================
                 // PARTY COUNT
-                // ==================================
+                // ==============================
 
-                if (data.party === "BJP") {
+                const party =
+                    String(
+                        data.party || ""
+                    )
+                    .trim()
+                    .toLowerCase();
+
+
+                if (party === "bjp") {
 
                     bjp++;
 
                 }
 
-                else if (data.party === "Congress") {
+                else if (
+                    party === "congress"
+                ) {
 
                     congress++;
 
                 }
 
-                else if (data.party === "AAP") {
+                else if (
+                    party === "aap"
+                ) {
 
                     aap++;
 
                 }
 
-                else if (data.party === "BSP") {
+                else if (
+                    party === "bsp"
+                ) {
 
                     bsp++;
 
                 }
 
-                else if (data.party === "SP") {
+                else if (
+                    party === "sp"
+                ) {
 
                     sp++;
 
@@ -200,15 +243,47 @@ function loadSurvey() {
                 }
 
 
-                // ==================================
-                // DATE
-                // ==================================
+                // ==============================
+                // VILLAGE / ASSEMBLY
+                // ==============================
+
+                const village =
+                    String(
+                        data.village || ""
+                    ).trim();
+
+
+                const assembly =
+                    String(
+                        data.assembly || ""
+                    ).trim();
+
+
+                if (village !== "") {
+
+                    villages.add(village);
+
+                }
+
+
+                if (assembly !== "") {
+
+                    assemblies.add(assembly);
+
+                }
+
+
+                // ==============================
+                // CREATED DATE
+                // ==============================
 
                 let createdDate = "";
 
+
                 if (
                     data.createdAt &&
-                    typeof data.createdAt.toDate === "function"
+                    typeof data.createdAt.toDate ===
+                    "function"
                 ) {
 
                     createdDate =
@@ -219,9 +294,9 @@ function loadSurvey() {
                 }
 
 
-                // ==================================
-                // SEARCH TEXT
-                // ==================================
+                // ==============================
+                // SEARCH DATA
+                // ==============================
 
                 const searchText = [
 
@@ -240,134 +315,163 @@ function loadSurvey() {
                     .toLowerCase();
 
 
-                // ==================================
-                // CREATE TABLE ROW
-                // ==================================
+                // ==============================
+                // TABLE ROW
+                // ==============================
 
                 table.innerHTML += `
 
-                    <tr
-                        data-date="${createdDate}"
-                        data-party="${(
-                            data.party || ""
-                        ).toLowerCase()}"
-                        data-search="${searchText}"
-                    >
+<tr
 
-                        <td>
-                            ${data.name || ""}
-                        </td>
+data-date="${createdDate}"
 
-                        <td>
-                            ${data.mobile || ""}
-                        </td>
+data-party="${party}"
 
-                        <td>
-                            ${data.age || ""}
-                        </td>
+data-village="${village.toLowerCase()}"
 
-                        <td>
-                            ${data.gender || ""}
-                        </td>
+data-assembly="${assembly.toLowerCase()}"
 
-                        <td>
-                            ${data.village || ""}
-                        </td>
+data-search="${searchText}"
 
-                        <td>
-                            ${data.party || ""}
-                        </td>
+>
 
-                        <td>
-                            ${data.candidate || ""}
-                        </td>
+<td>
+${escapeHTML(data.name)}
+</td>
 
-                        <td>
-                            ${data.feedback || ""}
-                        </td>
+<td>
+${escapeHTML(data.mobile)}
+</td>
 
-                        <td>
+<td>
+${escapeHTML(data.age)}
+</td>
 
-                            <button
-                                onclick="editSurvey('${doc.id}')"
-                            >
-                                ✏️ Edit
-                            </button>
+<td>
+${escapeHTML(data.gender)}
+</td>
 
-                            <button
-                                onclick="deleteSurvey('${doc.id}')"
-                            >
-                                🗑 Delete
-                            </button>
+<td>
+${escapeHTML(data.village)}
+</td>
 
-                        </td>
+<td>
+${escapeHTML(data.party)}
+</td>
 
-                    </tr>
+<td>
+${escapeHTML(data.candidate)}
+</td>
 
-                `;
+<td>
+${escapeHTML(data.feedback)}
+</td>
+
+<td>
+
+<button
+onclick="editSurvey('${doc.id}')">
+
+✏️ Edit
+
+</button>
+
+<button
+onclick="deleteSurvey('${doc.id}')">
+
+🗑 Delete
+
+</button>
+
+</td>
+
+</tr>
+
+`;
 
             });
 
 
             // ==================================
-            // UPDATE COUNTERS
+            // DASHBOARD COUNTS
             // ==================================
 
-            document.getElementById(
-                "totalSurvey"
-            ).innerHTML = total;
+            setText(
+                "totalSurvey",
+                total
+            );
 
+            setText(
+                "bjpCount",
+                bjp
+            );
 
-            document.getElementById(
-                "bjpCount"
-            ).innerHTML = bjp;
+            setText(
+                "congressCount",
+                congress
+            );
 
+            setText(
+                "aapCount",
+                aap
+            );
 
-            document.getElementById(
-                "congressCount"
-            ).innerHTML = congress;
+            setText(
+                "bspCount",
+                bsp
+            );
 
+            setText(
+                "spCount",
+                sp
+            );
 
-            document.getElementById(
-                "aapCount"
-            ).innerHTML = aap;
-
-
-            document.getElementById(
-                "bspCount"
-            ).innerHTML = bsp;
-
-
-            document.getElementById(
-                "spCount"
-            ).innerHTML = sp;
-
-
-            document.getElementById(
-                "otherCount"
-            ).innerHTML = other;
+            setText(
+                "otherCount",
+                other
+            );
 
 
             // ==================================
-            // UPDATE CHART
+            // UPDATE PARTY CHART
             // ==================================
 
             if (partyChart) {
 
-                partyChart.data.datasets[0].data = [
+                partyChart.data
+                    .datasets[0]
+                    .data = [
 
-                    bjp,
-                    congress,
-                    aap,
-                    bsp,
-                    sp,
-                    other
+                        bjp,
+                        congress,
+                        aap,
+                        bsp,
+                        sp,
+                        other
 
-                ];
+                    ];
 
                 partyChart.update();
 
             }
+
+
+            // ==================================
+            // CREATE FILTER OPTIONS
+            // ==================================
+
+            createFilterOptions(
+                villageFilter,
+                villages,
+                "All Villages"
+            );
+
+
+            createFilterOptions(
+                assemblyFilter,
+                assemblies,
+                "All Assemblies"
+            );
 
 
             // ==================================
@@ -386,7 +490,7 @@ function loadSurvey() {
             );
 
             alert(
-                "Firestore Error:\n" +
+                "Firestore Error:\n\n" +
                 error.message
             );
 
@@ -396,13 +500,112 @@ function loadSurvey() {
 
 
 // ==========================================
-// SEARCH + PARTY + DATE FILTER
+// CREATE DROPDOWN OPTIONS
+// ==========================================
+
+function createFilterOptions(
+    selectElement,
+    values,
+    defaultText
+) {
+
+    if (!selectElement) {
+
+        return;
+
+    }
+
+
+    const currentValue =
+        selectElement.value;
+
+
+    selectElement.innerHTML = "";
+
+
+    const defaultOption =
+        document.createElement(
+            "option"
+        );
+
+
+    defaultOption.value = "";
+
+    defaultOption.textContent =
+        defaultText;
+
+
+    selectElement.appendChild(
+        defaultOption
+    );
+
+
+    const sortedValues =
+        Array.from(values)
+            .sort(function (a, b) {
+
+                return a.localeCompare(
+                    b,
+                    undefined,
+                    {
+                        sensitivity:
+                            "base"
+                    }
+                );
+
+            });
+
+
+    sortedValues.forEach(
+        function (value) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value = value;
+
+            option.textContent = value;
+
+
+            selectElement.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    if (
+        Array.from(
+            selectElement.options
+        ).some(
+            function (option) {
+
+                return option.value ===
+                    currentValue;
+
+            }
+        )
+    ) {
+
+        selectElement.value =
+            currentValue;
+
+    }
+
+}
+
+
+// ==========================================
+// FILTER TABLE
 // ==========================================
 
 function filterTable() {
 
     const searchValue =
-
         searchBox
             ? searchBox.value
                 .toLowerCase()
@@ -411,7 +614,6 @@ function filterTable() {
 
 
     const selectedParty =
-
         partyFilter
             ? partyFilter.value
                 .toLowerCase()
@@ -420,9 +622,24 @@ function filterTable() {
 
 
     const selectedDate =
-
         dateFilter
             ? dateFilter.value
+            : "";
+
+
+    const selectedVillage =
+        villageFilter
+            ? villageFilter.value
+                .toLowerCase()
+                .trim()
+            : "";
+
+
+    const selectedAssembly =
+        assemblyFilter
+            ? assemblyFilter.value
+                .toLowerCase()
+                .trim()
             : "";
 
 
@@ -432,56 +649,82 @@ function filterTable() {
         );
 
 
-    const now = new Date();
+    const now =
+        new Date();
 
 
     rows.forEach(function (row) {
 
 
-        // ==================================
+        // ==============================
         // SEARCH
-        // ==================================
+        // ==============================
 
         const rowSearch =
-
             row.getAttribute(
                 "data-search"
             ) || "";
 
 
         const searchMatch =
-
             rowSearch.includes(
                 searchValue
             );
 
 
-        // ==================================
+        // ==============================
         // PARTY
-        // ==================================
+        // ==============================
 
         const rowParty =
-
             row.getAttribute(
                 "data-party"
             ) || "";
 
 
         const partyMatch =
-
             selectedParty === "" ||
             rowParty === selectedParty;
 
 
-        // ==================================
+        // ==============================
+        // VILLAGE
+        // ==============================
+
+        const rowVillage =
+            row.getAttribute(
+                "data-village"
+            ) || "";
+
+
+        const villageMatch =
+            selectedVillage === "" ||
+            rowVillage === selectedVillage;
+
+
+        // ==============================
+        // ASSEMBLY
+        // ==============================
+
+        const rowAssembly =
+            row.getAttribute(
+                "data-assembly"
+            ) || "";
+
+
+        const assemblyMatch =
+            selectedAssembly === "" ||
+            rowAssembly === selectedAssembly;
+
+
+        // ==============================
         // DATE
-        // ==================================
+        // ==============================
 
         let dateMatch = true;
 
 
         const rowDate =
-
             row.getAttribute(
                 "data-date"
             );
@@ -489,9 +732,8 @@ function filterTable() {
 
         if (
             selectedDate !== "" &&
-            rowDate !== ""
+            rowDate
         ) {
-
 
             const surveyDate =
                 new Date(rowDate);
@@ -499,21 +741,39 @@ function filterTable() {
 
             // TODAY
 
-          if (selectedDate === "today") {
+            if (
+                selectedDate === "today"
+            ) {
 
-    const startOfToday = new Date();
+                const startOfToday =
+                    new Date();
 
-    startOfToday.setHours(0, 0, 0, 0);
+                startOfToday.setHours(
+                    0,
+                    0,
+                    0,
+                    0
+                );
 
-    const endOfToday = new Date();
 
-    endOfToday.setHours(23, 59, 59, 999);
+                const endOfToday =
+                    new Date();
 
-    dateMatch =
-        surveyDate >= startOfToday &&
-        surveyDate <= endOfToday;
+                endOfToday.setHours(
+                    23,
+                    59,
+                    59,
+                    999
+                );
 
-}
+
+                dateMatch =
+                    surveyDate >=
+                        startOfToday &&
+                    surveyDate <=
+                        endOfToday;
+
+            }
 
 
             // THIS WEEK
@@ -532,7 +792,8 @@ function filterTable() {
 
 
                 dateMatch =
-                    surveyDate >= weekAgo;
+                    surveyDate >=
+                    weekAgo;
 
             }
 
@@ -544,28 +805,33 @@ function filterTable() {
             ) {
 
                 dateMatch =
-
                     surveyDate.getMonth() ===
-                    now.getMonth()
-
-                    &&
+                        now.getMonth() &&
 
                     surveyDate.getFullYear() ===
-                    now.getFullYear();
+                        now.getFullYear();
 
             }
 
         }
 
 
-        // ==================================
-        // SHOW / HIDE ROW
-        // ==================================
+        // ==============================
+        // FINAL RESULT
+        // ==============================
 
         if (
+
             searchMatch &&
+
             partyMatch &&
+
+            villageMatch &&
+
+            assemblyMatch &&
+
             dateMatch
+
         ) {
 
             row.style.display = "";
@@ -598,7 +864,7 @@ if (searchBox) {
 
 
 // ==========================================
-// PARTY FILTER EVENT
+// PARTY EVENT
 // ==========================================
 
 if (partyFilter) {
@@ -612,12 +878,40 @@ if (partyFilter) {
 
 
 // ==========================================
-// DATE FILTER EVENT
+// DATE EVENT
 // ==========================================
 
 if (dateFilter) {
 
     dateFilter.addEventListener(
+        "change",
+        filterTable
+    );
+
+}
+
+
+// ==========================================
+// VILLAGE EVENT
+// ==========================================
+
+if (villageFilter) {
+
+    villageFilter.addEventListener(
+        "change",
+        filterTable
+    );
+
+}
+
+
+// ==========================================
+// ASSEMBLY EVENT
+// ==========================================
+
+if (assemblyFilter) {
+
+    assemblyFilter.addEventListener(
         "change",
         filterTable
     );
@@ -657,6 +951,20 @@ if (resetFilters) {
             }
 
 
+            if (villageFilter) {
+
+                villageFilter.value = "";
+
+            }
+
+
+            if (assemblyFilter) {
+
+                assemblyFilter.value = "";
+
+            }
+
+
             filterTable();
 
         }
@@ -670,7 +978,9 @@ if (resetFilters) {
 // ==========================================
 
 const logoutBtn =
-    document.getElementById("logoutBtn");
+    document.getElementById(
+        "logoutBtn"
+    );
 
 
 if (logoutBtn) {
@@ -694,7 +1004,7 @@ if (logoutBtn) {
                 .catch(function (error) {
 
                     alert(
-                        "Logout Error: " +
+                        "Logout Error:\n\n" +
                         error.message
                     );
 
@@ -729,7 +1039,7 @@ if (exportExcel) {
                 .then(function (snapshot) {
 
 
-                    let data = [];
+                    const data = [];
 
 
                     snapshot.forEach(
@@ -737,6 +1047,24 @@ if (exportExcel) {
 
                             const survey =
                                 doc.data();
+
+
+                            let createdAt =
+                                "";
+
+
+                            if (
+                                survey.createdAt &&
+                                typeof survey.createdAt.toDate ===
+                                "function"
+                            ) {
+
+                                createdAt =
+                                    survey.createdAt
+                                        .toDate()
+                                        .toLocaleString();
+
+                            }
 
 
                             data.push({
@@ -772,21 +1100,23 @@ if (exportExcel) {
                                     survey.createdBy || "",
 
                                 CreatedAt:
-
-                                    survey.createdAt &&
-                                    typeof survey.createdAt.toDate ===
-                                    "function"
-
-                                        ? survey.createdAt
-                                            .toDate()
-                                            .toLocaleString()
-
-                                        : ""
+                                    createdAt
 
                             });
 
                         }
                     );
+
+
+                    if (data.length === 0) {
+
+                        alert(
+                            "No survey data available."
+                        );
+
+                        return;
+
+                    }
 
 
                     const worksheet =
@@ -823,7 +1153,7 @@ if (exportExcel) {
                 .catch(function (error) {
 
                     alert(
-                        "Export Error: " +
+                        "Export Error:\n\n" +
                         error.message
                     );
 
@@ -841,9 +1171,7 @@ if (exportExcel) {
 
 function deleteSurvey(id) {
 
-
     const confirmDelete =
-
         confirm(
             "Kya aap is survey ko delete karna chahte hain?"
         );
@@ -862,7 +1190,6 @@ function deleteSurvey(id) {
 
         .then(function () {
 
-
             alert(
                 "✅ Survey Delete Ho Gaya"
             );
@@ -875,7 +1202,7 @@ function deleteSurvey(id) {
         .catch(function (error) {
 
             alert(
-                "❌ Error: " +
+                "❌ Delete Error:\n\n" +
                 error.message
             );
 
@@ -890,7 +1217,6 @@ function deleteSurvey(id) {
 
 function editSurvey(id) {
 
-
     db.collection("surveys")
         .doc(id)
         .get()
@@ -901,7 +1227,7 @@ function editSurvey(id) {
             if (!doc.exists) {
 
                 alert(
-                    "Survey not found"
+                    "Survey not found."
                 );
 
                 return;
@@ -914,7 +1240,6 @@ function editSurvey(id) {
 
 
             const newName =
-
                 prompt(
                     "Edit Name",
                     data.name || ""
@@ -929,7 +1254,6 @@ function editSurvey(id) {
 
 
             const newMobile =
-
                 prompt(
                     "Edit Mobile",
                     data.mobile || ""
@@ -944,7 +1268,6 @@ function editSurvey(id) {
 
 
             const newAge =
-
                 prompt(
                     "Edit Age",
                     data.age || ""
@@ -958,9 +1281,92 @@ function editSurvey(id) {
             }
 
 
+            const newGender =
+                prompt(
+                    "Edit Gender",
+                    data.gender || ""
+                );
+
+
+            if (newGender === null) {
+
+                return;
+
+            }
+
+
+            const newVillage =
+                prompt(
+                    "Edit Village",
+                    data.village || ""
+                );
+
+
+            if (newVillage === null) {
+
+                return;
+
+            }
+
+
+            const newAssembly =
+                prompt(
+                    "Edit Assembly",
+                    data.assembly || ""
+                );
+
+
+            if (newAssembly === null) {
+
+                return;
+
+            }
+
+
+            const newParty =
+                prompt(
+                    "Edit Party",
+                    data.party || ""
+                );
+
+
+            if (newParty === null) {
+
+                return;
+
+            }
+
+
+            const newCandidate =
+                prompt(
+                    "Edit Candidate",
+                    data.candidate || ""
+                );
+
+
+            if (newCandidate === null) {
+
+                return;
+
+            }
+
+
+            const newFeedback =
+                prompt(
+                    "Edit Feedback",
+                    data.feedback || ""
+                );
+
+
+            if (newFeedback === null) {
+
+                return;
+
+            }
+
+
             db.collection("surveys")
                 .doc(id)
-
                 .update({
 
                     name:
@@ -970,12 +1376,29 @@ function editSurvey(id) {
                         newMobile.trim(),
 
                     age:
-                        Number(newAge)
+                        Number(newAge),
+
+                    gender:
+                        newGender.trim(),
+
+                    village:
+                        newVillage.trim(),
+
+                    assembly:
+                        newAssembly.trim(),
+
+                    party:
+                        newParty.trim(),
+
+                    candidate:
+                        newCandidate.trim(),
+
+                    feedback:
+                        newFeedback.trim()
 
                 })
 
                 .then(function () {
-
 
                     alert(
                         "✅ Survey Updated Successfully"
@@ -989,7 +1412,7 @@ function editSurvey(id) {
                 .catch(function (error) {
 
                     alert(
-                        "❌ Update Error: " +
+                        "❌ Update Error:\n\n" +
                         error.message
                     );
 
@@ -1000,10 +1423,65 @@ function editSurvey(id) {
         .catch(function (error) {
 
             alert(
-                "❌ Error: " +
+                "❌ Error:\n\n" +
                 error.message
             );
 
         });
 
 }
+
+
+// ==========================================
+// HELPER FUNCTIONS
+// ==========================================
+
+function setText(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+
+    if (element) {
+
+        element.innerHTML = value;
+
+    }
+
+}
+
+
+function escapeHTML(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+
+}
+
+
+// ==========================================
+// COMPLETE
+// ==========================================
+
+console.log(
+    "✅ Surveykshan Admin JS Ready"
+);
