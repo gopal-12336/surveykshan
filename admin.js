@@ -241,42 +241,80 @@ function loadSurvey() {
 
                     // TODAY
 
-                    if (
-                        surveyDate >=
-                        startOfToday
-                    ) {
+                   if (data.createdAt) {
 
-                        todayCount++;
+    let surveyDate = null;
 
-                    }
+    // Firebase Timestamp
+    if (
+        typeof data.createdAt.toDate === "function"
+    ) {
+        surveyDate = data.createdAt.toDate();
+    }
 
+    // JavaScript Date
+    else if (
+        data.createdAt instanceof Date
+    ) {
+        surveyDate = data.createdAt;
+    }
 
-                    // LAST 7 DAYS
-
-                    if (
-                        surveyDate >=
-                        startOfWeek
-                    ) {
-
-                        weekCount++;
-
-                    }
-
-
-                    // CURRENT MONTH
-
-                    if (
-                        surveyDate >=
-                        startOfMonth
-                    ) {
-
-                        monthCount++;
-
-                    }
-
-                }
+    // String date
+    else {
+        surveyDate = new Date(data.createdAt);
+    }
 
 
+    if (
+        surveyDate &&
+        !isNaN(surveyDate.getTime())
+    ) {
+
+        // TODAY
+        if (
+            surveyDate >= startOfToday
+        ) {
+            todayCount++;
+        }
+
+
+        // LAST 7 CALENDAR DAYS
+        const sevenDaysAgo =
+            new Date();
+
+        sevenDaysAgo.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+        sevenDaysAgo.setDate(
+            sevenDaysAgo.getDate() - 6
+        );
+
+
+        if (
+            surveyDate >= sevenDaysAgo
+        ) {
+            weekCount++;
+        }
+
+
+        // CURRENT MONTH
+        if (
+            surveyDate.getFullYear() ===
+                now.getFullYear()
+            &&
+            surveyDate.getMonth() ===
+                now.getMonth()
+        ) {
+            monthCount++;
+        }
+
+    }
+
+}
                 // ==================================
                 // PARTY COUNT
                 // ==================================
