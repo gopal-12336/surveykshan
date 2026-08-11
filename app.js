@@ -1,36 +1,144 @@
-// App Loaded
+// ===============================
+// APP LOADED
+// ===============================
+
 console.log("App Loaded");
 
-// Login Button
-document.getElementById("loginBtn").addEventListener("click", function () {
+// ===============================
+// ADMIN EMAIL
+// ===============================
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const message = document.getElementById("message");
+const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
-    message.innerHTML = "";
+// ===============================
+// LOGIN BUTTON
+// ===============================
 
-    if (email === "" || password === "") {
-        message.innerHTML = "Please enter Email and Password.";
-        return;
-    }
+document
+    .getElementById("loginBtn")
+    .addEventListener(
+        "click",
+        function () {
 
-    auth.signInWithEmailAndPassword(email, password)
+            const email =
+                document
+                    .getElementById("email")
+                    .value
+                    .trim();
 
-    .then(function () {
+            const password =
+                document
+                    .getElementById("password")
+                    .value
+                    .trim();
 
-        localStorage.setItem("userLoggedIn", "true");
-        localStorage.setItem("userEmail", email);
+            const message =
+                document.getElementById(
+                    "message"
+                );
 
-        window.location.href = "survey.html";
+            message.innerHTML = "";
 
-    })
+            // ===============================
+            // VALIDATION
+            // ===============================
 
-    .catch(function (error) {
+            if (
+                email === "" ||
+                password === ""
+            ) {
 
-        message.innerHTML = error.message;
-        console.log(error);
+                message.innerHTML =
+                    "Please enter Email and Password.";
 
-    });
+                return;
 
-});
+            }
+
+            // ===============================
+            // FIREBASE LOGIN
+            // ===============================
+
+            auth
+                .signInWithEmailAndPassword(
+                    email,
+                    password
+                )
+
+                .then(
+                    function (userCredential) {
+
+                        const user =
+                            userCredential.user;
+
+                        console.log(
+                            "Login successful:",
+                            user.email
+                        );
+
+                        // ===============================
+                        // SAVE LOGIN
+                        // ===============================
+
+                        localStorage.setItem(
+                            "userLoggedIn",
+                            "true"
+                        );
+
+                        localStorage.setItem(
+                            "userEmail",
+                            user.email
+                        );
+
+                        // ===============================
+                        // ADMIN CHECK
+                        // ===============================
+
+                        if (
+                            user.email &&
+                            user.email
+                                .toLowerCase() ===
+                            ADMIN_EMAIL.toLowerCase()
+                        ) {
+
+                            console.log(
+                                "Admin login detected."
+                            );
+
+                            window.location.href =
+                                "admin.html";
+
+                            return;
+
+                        }
+
+                        // ===============================
+                        // SURVEYOR LOGIN
+                        // ===============================
+
+                        console.log(
+                            "Surveyor login detected."
+                        );
+
+                        window.location.href =
+                            "survey.html";
+
+                    }
+                )
+
+                .catch(
+                    function (error) {
+
+                        console.error(
+                            "Login Error:",
+                            error
+                        );
+
+                        message.innerHTML =
+                            error.message;
+
+                    }
+                );
+
+        }
+    );
