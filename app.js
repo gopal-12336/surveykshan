@@ -1,67 +1,92 @@
-console.log("App Loaded");
+console.log("Login App Loaded");
 
-firebase.auth().onAuthStateChanged(function (user) {
+const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
-    if (!user) {
-        window.location.href = "index.html";
-        return;
-    }
+const loginBtn = document.getElementById("loginBtn");
 
-    // Admin ko survey form se dashboard par bhejo
-    if (user.email === "goswamivinod2305@gmail.com") {
-        window.location.href = "admin.html";
-        return;
-    }
+if (loginBtn) {
 
-    console.log("Surveyor logged in:", user.email);
-});
+    loginBtn.addEventListener("click", function () {
+
+        const email =
+            document.getElementById("email").value.trim();
+
+        const password =
+            document.getElementById("password").value.trim();
+
+        const message =
+            document.getElementById("message");
+
+        message.textContent = "";
+
+        if (!email || !password) {
+
+            message.textContent =
+                "Please enter Email and Password.";
+
+            return;
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = "Logging in...";
 
 
-// LOGIN
-document.getElementById("loginBtn").addEventListener("click", function () {
+        firebase.auth()
+            .signInWithEmailAndPassword(
+                email,
+                password
+            )
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const message = document.getElementById("message");
+            .then(function (result) {
 
-    message.innerHTML = "";
+                const user = result.user;
 
-    if (!email || !password) {
-        message.innerHTML = "Please enter Email and Password.";
-        return;
-    }
+                localStorage.setItem(
+                    "userLoggedIn",
+                    "true"
+                );
 
-    auth.signInWithEmailAndPassword(email, password)
+                localStorage.setItem(
+                    "userEmail",
+                    user.email
+                );
 
-        .then(function (result) {
 
-            const user = result.user;
+                if (
+                    user.email.toLowerCase() ===
+                    ADMIN_EMAIL.toLowerCase()
+                ) {
 
-            localStorage.setItem("userLoggedIn", "true");
-            localStorage.setItem("userEmail", user.email);
+                    window.location.replace(
+                        "admin.html"
+                    );
 
-            if (
-                user.email.toLowerCase() ===
-                "goswamivinod2305@gmail.com"
-            ) {
+                } else {
 
-                window.location.href = "admin.html";
+                    window.location.replace(
+                        "survey.html"
+                    );
 
-            } else {
+                }
 
-                window.location.href = "survey.html";
+            })
 
-            }
+            .catch(function (error) {
 
-        })
+                console.error(
+                    "Login Error:",
+                    error
+                );
 
-        .catch(function (error) {
+                message.textContent =
+                    "Login failed: " +
+                    error.message;
 
-            console.error(error);
+                loginBtn.disabled = false;
+                loginBtn.textContent = "Login";
 
-            message.innerHTML =
-                "Login failed: " + error.message;
+            });
 
-        });
+    });
 
-});
+}
