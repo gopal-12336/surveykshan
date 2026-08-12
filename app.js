@@ -1,144 +1,67 @@
-// ===============================
-// APP LOADED
-// ===============================
-
 console.log("App Loaded");
 
-// ===============================
-// ADMIN EMAIL
-// ===============================
+firebase.auth().onAuthStateChanged(function (user) {
 
-const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
+    if (!user) {
+        window.location.href = "index.html";
+        return;
+    }
 
-// ===============================
-// LOGIN BUTTON
-// ===============================
+    // Admin ko survey form se dashboard par bhejo
+    if (user.email === "goswamivinod2305@gmail.com") {
+        window.location.href = "admin.html";
+        return;
+    }
 
-document
-    .getElementById("loginBtn")
-    .addEventListener(
-        "click",
-        function () {
+    console.log("Surveyor logged in:", user.email);
+});
 
-            const email =
-                document
-                    .getElementById("email")
-                    .value
-                    .trim();
 
-            const password =
-                document
-                    .getElementById("password")
-                    .value
-                    .trim();
+// LOGIN
+document.getElementById("loginBtn").addEventListener("click", function () {
 
-            const message =
-                document.getElementById(
-                    "message"
-                );
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const message = document.getElementById("message");
 
-            message.innerHTML = "";
+    message.innerHTML = "";
 
-            // ===============================
-            // VALIDATION
-            // ===============================
+    if (!email || !password) {
+        message.innerHTML = "Please enter Email and Password.";
+        return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+
+        .then(function (result) {
+
+            const user = result.user;
+
+            localStorage.setItem("userLoggedIn", "true");
+            localStorage.setItem("userEmail", user.email);
 
             if (
-                email === "" ||
-                password === ""
+                user.email.toLowerCase() ===
+                "goswamivinod2305@gmail.com"
             ) {
 
-                message.innerHTML =
-                    "Please enter Email and Password.";
+                window.location.href = "admin.html";
 
-                return;
+            } else {
+
+                window.location.href = "survey.html";
 
             }
 
-            // ===============================
-            // FIREBASE LOGIN
-            // ===============================
+        })
 
-            auth
-                .signInWithEmailAndPassword(
-                    email,
-                    password
-                )
+        .catch(function (error) {
 
-                .then(
-                    function (userCredential) {
+            console.error(error);
 
-                        const user =
-                            userCredential.user;
+            message.innerHTML =
+                "Login failed: " + error.message;
 
-                        console.log(
-                            "Login successful:",
-                            user.email
-                        );
+        });
 
-                        // ===============================
-                        // SAVE LOGIN
-                        // ===============================
-
-                        localStorage.setItem(
-                            "userLoggedIn",
-                            "true"
-                        );
-
-                        localStorage.setItem(
-                            "userEmail",
-                            user.email
-                        );
-
-                        // ===============================
-                        // ADMIN CHECK
-                        // ===============================
-
-                        if (
-                            user.email &&
-                            user.email
-                                .toLowerCase() ===
-                            ADMIN_EMAIL.toLowerCase()
-                        ) {
-
-                            console.log(
-                                "Admin login detected."
-                            );
-
-                            window.location.href =
-                                "admin.html";
-
-                            return;
-
-                        }
-
-                        // ===============================
-                        // SURVEYOR LOGIN
-                        // ===============================
-
-                        console.log(
-                            "Surveyor login detected."
-                        );
-
-                        window.location.href =
-                            "survey.html";
-
-                    }
-                )
-
-                .catch(
-                    function (error) {
-
-                        console.error(
-                            "Login Error:",
-                            error
-                        );
-
-                        message.innerHTML =
-                            error.message;
-
-                    }
-                );
-
-        }
-    );
+});
