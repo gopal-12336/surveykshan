@@ -1,331 +1,230 @@
-// ======================================================
-// SURVEYKSHAN SURVEY JS
-// ======================================================
-
 console.log("Survey JS Loaded");
 
+const ADMIN_EMAIL =
+    "goswamivinod2305@gmail.com";
 
-// ======================================================
-// DAILY LIMIT
-// ======================================================
+const submitBtn =
+    document.getElementById("submitSurvey");
 
-const DAILY_SURVEY_LIMIT = 20;
+const message =
+    document.getElementById("message");
 
 
-// ======================================================
+// =================================
+// CHECK LOGIN
+// =================================
+
+firebase.auth().onAuthStateChanged(function (user) {
+
+    if (!user) {
+
+        window.location.replace(
+            "index.html"
+        );
+
+        return;
+    }
+
+
+    // Admin को Surveyor page पर नहीं आने देना
+    if (
+        user.email &&
+        user.email.toLowerCase() ===
+        ADMIN_EMAIL.toLowerCase()
+    ) {
+
+        window.location.replace(
+            "admin.html"
+        );
+
+        return;
+    }
+
+
+    console.log(
+        "Surveyor logged in:",
+        user.email
+    );
+
+});
+
+
+// =================================
 // SUBMIT SURVEY
-// ======================================================
+// =================================
 
-document
-    .getElementById("submitSurvey")
-    .addEventListener("click", async function () {
+if (submitBtn) {
 
-        try {
+    submitBtn.addEventListener(
+        "click",
+        function () {
 
-            // ------------------------------------------
-            // GET CURRENT USER
-            // ------------------------------------------
+            const name =
+                document.getElementById(
+                    "name"
+                ).value.trim();
 
-            const user = firebase.auth().currentUser;
+            const mobile =
+                document.getElementById(
+                    "mobile"
+                ).value.trim();
+
+            const age =
+                document.getElementById(
+                    "age"
+                ).value.trim();
+
+            const gender =
+                document.getElementById(
+                    "gender"
+                ).value;
+
+            const village =
+                document.getElementById(
+                    "village"
+                ).value.trim();
+
+            const assembly =
+                document.getElementById(
+                    "assembly"
+                ).value.trim();
+
+            const party =
+                document.getElementById(
+                    "party"
+                ).value;
+
+            const candidate =
+                document.getElementById(
+                    "candidate"
+                ).value.trim();
+
+            const feedback =
+                document.getElementById(
+                    "feedback"
+                ).value.trim();
+
+
+            // -----------------------------
+            // VALIDATION
+            // -----------------------------
+
+            if (!name) {
+                showMessage(
+                    "Please enter Name."
+                );
+                return;
+            }
+
+            if (!mobile) {
+                showMessage(
+                    "Please enter Mobile Number."
+                );
+                return;
+            }
+
+            if (!age) {
+                showMessage(
+                    "Please enter Age."
+                );
+                return;
+            }
+
+            if (!gender) {
+                showMessage(
+                    "Please select Gender."
+                );
+                return;
+            }
+
+            if (!village) {
+                showMessage(
+                    "Please enter Village / City."
+                );
+                return;
+            }
+
+            if (!assembly) {
+                showMessage(
+                    "Please enter Assembly Constituency."
+                );
+                return;
+            }
+
+            if (!party) {
+                showMessage(
+                    "Please select Political Party."
+                );
+                return;
+            }
+
+
+            // -----------------------------
+            // CHECK USER
+            // -----------------------------
+
+            const user =
+                firebase.auth().currentUser;
+
 
             if (!user) {
 
-                alert("Please login first.");
+                showMessage(
+                    "Session expired. Please login again."
+                );
 
-                window.location.href = "index.html";
+                setTimeout(function () {
+
+                    window.location.replace(
+                        "index.html"
+                    );
+
+                }, 1500);
 
                 return;
-
             }
 
 
-            // ------------------------------------------
-            // SURVEYOR EMAIL
-            // ------------------------------------------
-
-            const surveyorEmail =
-                user.email ||
-                localStorage.getItem("userEmail") ||
-                "";
-
-
-            if (!surveyorEmail) {
-
-                alert(
-                    "Surveyor information not found. Please login again."
-                );
-
-                return;
-
-            }
-
-
-            // ------------------------------------------
-            // CHECK TODAY'S SURVEY COUNT
-            // ------------------------------------------
-
-            const now = new Date();
-
-
-            const startOfToday =
-                new Date(
-                    now.getFullYear(),
-                    now.getMonth(),
-                    now.getDate()
-                );
-
-
-            const endOfToday =
-                new Date(
-                    now.getFullYear(),
-                    now.getMonth(),
-                    now.getDate() + 1
-                );
-
-
-            const startTimestamp =
-                firebase.firestore.Timestamp.fromDate(
-                    startOfToday
-                );
-
-
-            const endTimestamp =
-                firebase.firestore.Timestamp.fromDate(
-                    endOfToday
-                );
-
-
-            const todaySnapshot =
-                await db
-                    .collection("surveys")
-                    .where(
-                        "surveyorEmail",
-                        "==",
-                        surveyorEmail
-                    )
-                    .where(
-                        "createdAt",
-                        ">=",
-                        startTimestamp
-                    )
-                    .where(
-                        "createdAt",
-                        "<",
-                        endTimestamp
-                    )
-                    .get();
-
-
-            const todayCount =
-                todaySnapshot.size;
-
-
-            console.log(
-                "Today's surveys:",
-                todayCount
-            );
-
-
-            // ------------------------------------------
-            // DAILY LIMIT CHECK
-            // ------------------------------------------
-
+            // Admin cannot submit survey
             if (
-                todayCount >=
-                DAILY_SURVEY_LIMIT
+                user.email &&
+                user.email.toLowerCase() ===
+                ADMIN_EMAIL.toLowerCase()
             ) {
 
-                alert(
-                    "⚠️ Today's survey limit is 20.\n\n" +
-                    "You have already completed 20 surveys today.\n\n" +
-                    "Please continue tomorrow."
+                window.location.replace(
+                    "admin.html"
                 );
 
                 return;
-
             }
 
 
-            // ------------------------------------------
-            // GET FORM DATA
-            // ------------------------------------------
+            // -----------------------------
+            // BUTTON
+            // -----------------------------
 
-            const name =
-                document
-                    .getElementById("name")
-                    .value
-                    .trim();
+            submitBtn.disabled = true;
 
-
-            const mobile =
-                document
-                    .getElementById("mobile")
-                    .value
-                    .trim();
+            submitBtn.textContent =
+                "Submitting...";
 
 
-            const age =
-                document
-                    .getElementById("age")
-                    .value
-                    .trim();
+            message.textContent = "";
 
 
-            const gender =
-                document
-                    .getElementById("gender")
-                    .value;
+            // -----------------------------
+            // SAVE FIRESTORE
+            // -----------------------------
 
-
-            const village =
-                document
-                    .getElementById("village")
-                    .value
-                    .trim();
-
-
-            const assembly =
-                document
-                    .getElementById("assembly")
-                    .value
-                    .trim();
-
-
-            const party =
-                document
-                    .getElementById("party")
-                    .value;
-
-
-            const candidate =
-                document
-                    .getElementById("candidate")
-                    .value
-                    .trim();
-
-
-            const feedback =
-                document
-                    .getElementById("feedback")
-                    .value
-                    .trim();
-
-
-            const message =
-                document.getElementById("message");
-
-
-            if (message) {
-
-                message.innerHTML = "";
-
-            }
-
-
-            // ------------------------------------------
-            // REQUIRED FIELD CHECK
-            // ------------------------------------------
-
-            if (
-                name === "" ||
-                mobile === "" ||
-                age === "" ||
-                gender === "" ||
-                village === "" ||
-                assembly === "" ||
-                party === ""
-            ) {
-
-                if (message) {
-
-                    message.innerHTML =
-                        "Please fill all required fields.";
-
-                }
-
-                return;
-
-            }
-
-
-            // ------------------------------------------
-            // AGE VALIDATION
-            // ------------------------------------------
-
-            const ageNumber =
-                Number(age);
-
-
-            if (
-                isNaN(ageNumber) ||
-                ageNumber <= 0
-            ) {
-
-                if (message) {
-
-                    message.innerHTML =
-                        "Please enter a valid age.";
-
-                }
-
-                return;
-
-            }
-
-
-            // ------------------------------------------
-            // MOBILE VALIDATION
-            // ------------------------------------------
-
-            if (
-                mobile.length < 10
-            ) {
-
-                if (message) {
-
-                    message.innerHTML =
-                        "Please enter a valid mobile number.";
-
-                }
-
-                return;
-
-            }
-
-
-            // ------------------------------------------
-            // SUBMIT BUTTON
-            // ------------------------------------------
-
-            const submitButton =
-                document.getElementById(
-                    "submitSurvey"
-                );
-
-
-            if (submitButton) {
-
-                submitButton.disabled = true;
-
-                submitButton.innerText =
-                    "Saving...";
-
-            }
-
-
-            // ------------------------------------------
-            // SAVE SURVEY
-            // ------------------------------------------
-
-            await db
-                .collection("surveys")
+            db.collection("surveys")
                 .add({
 
                     name: name,
 
                     mobile: mobile,
 
-                    age: ageNumber,
+                    age: age,
 
                     gender: gender,
 
@@ -339,170 +238,127 @@ document
 
                     feedback: feedback,
 
-
-                    // Surveyor information
                     surveyorEmail:
-                        surveyorEmail,
+                        user.email,
 
-                    createdBy:
-                        surveyorEmail,
+                    surveyorId:
+                        user.uid,
 
-
-                    // Firebase server time
                     createdAt:
-                        firebase.firestore
-                            .FieldValue
+                        firebase.firestore.FieldValue
                             .serverTimestamp()
+
+                })
+
+                .then(function () {
+
+                    console.log(
+                        "Survey submitted successfully"
+                    );
+
+
+                    showMessage(
+                        "Survey submitted successfully!",
+                        true
+                    );
+
+
+                    // Clear form
+                    document.getElementById(
+                        "name"
+                    ).value = "";
+
+                    document.getElementById(
+                        "mobile"
+                    ).value = "";
+
+                    document.getElementById(
+                        "age"
+                    ).value = "";
+
+                    document.getElementById(
+                        "gender"
+                    ).value = "";
+
+                    document.getElementById(
+                        "village"
+                    ).value = "";
+
+                    document.getElementById(
+                        "assembly"
+                    ).value = "";
+
+                    document.getElementById(
+                        "party"
+                    ).value = "";
+
+                    document.getElementById(
+                        "candidate"
+                    ).value = "";
+
+                    document.getElementById(
+                        "feedback"
+                    ).value = "";
+
+
+                    submitBtn.disabled = false;
+
+                    submitBtn.textContent =
+                        "Submit Survey";
+
+                })
+
+                .catch(function (error) {
+
+                    console.error(
+                        "Survey Error:",
+                        error
+                    );
+
+
+                    showMessage(
+                        "Survey submit failed: " +
+                        error.message
+                    );
+
+
+                    submitBtn.disabled =
+                        false;
+
+                    submitBtn.textContent =
+                        "Submit Survey";
 
                 });
 
-
-            // ------------------------------------------
-            // SUCCESS
-            // ------------------------------------------
-
-            const newCount =
-                todayCount + 1;
-
-
-            alert(
-                "✅ Survey Submitted Successfully!\n\n" +
-                "Today's Surveys: " +
-                newCount +
-                " / " +
-                DAILY_SURVEY_LIMIT
-            );
-
-
-            // ------------------------------------------
-            // CLEAR FORM
-            // ------------------------------------------
-
-            document
-                .getElementById("name")
-                .value = "";
-
-
-            document
-                .getElementById("mobile")
-                .value = "";
-
-
-            document
-                .getElementById("age")
-                .value = "";
-
-
-            document
-                .getElementById("gender")
-                .value = "";
-
-
-            document
-                .getElementById("village")
-                .value = "";
-
-
-            document
-                .getElementById("assembly")
-                .value = "";
-
-
-            document
-                .getElementById("party")
-                .value = "";
-
-
-            document
-                .getElementById("candidate")
-                .value = "";
-
-
-            document
-                .getElementById("feedback")
-                .value = "";
-
-
-            if (message) {
-
-                message.innerHTML =
-                    "✅ Survey Saved Successfully.<br>" +
-                    "Today's Surveys: " +
-                    newCount +
-                    " / " +
-                    DAILY_SURVEY_LIMIT;
-
-            }
-
-
         }
+    );
 
-        catch (error) {
-
-            console.error(
-                "Survey Error:",
-                error
-            );
+}
 
 
-            // ------------------------------------------
-            // FIRESTORE INDEX MESSAGE
-            // ------------------------------------------
+// =================================
+// MESSAGE
+// =================================
 
-            if (
-                error.code ===
-                "failed-precondition"
-            ) {
+function showMessage(
+    text,
+    success = false
+) {
 
-                alert(
-                    "Firebase requires an index for this query.\n\n" +
-                    "Please open the link shown in the browser console and create the index."
-                );
+    if (!message) return;
 
-            }
-            else {
+    message.textContent = text;
 
-                alert(
-                    "❌ Error: " +
-                    error.message
-                );
+    if (success) {
 
-            }
+        message.style.color =
+            "green";
 
+    } else {
 
-            const message =
-                document.getElementById(
-                    "message"
-                );
+        message.style.color =
+            "red";
 
+    }
 
-            if (message) {
-
-                message.innerHTML =
-                    error.message;
-
-            }
-
-        }
-
-        finally {
-
-            const submitButton =
-                document.getElementById(
-                    "submitSurvey"
-                );
-
-
-            if (submitButton) {
-
-                submitButton.disabled =
-                    false;
-
-                submitButton.innerText =
-                    "Submit Survey";
-
-            }
-
-        }
-
-    });
+}
