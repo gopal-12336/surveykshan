@@ -1,46 +1,118 @@
 console.log("Survey JS Loaded");
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
-const DAILY_LIMIT = 20;
 
-const submitBtn = document.getElementById("submitSurvey");
-const message = document.getElementById("message");
+let DAILY_LIMIT = 20;
+
+const submitBtn =
+    document.getElementById("submitSurvey");
+
+const message =
+    document.getElementById("message");
 
 
 // =====================================
-// AUTH + SURVEYOR STATUS
+// LOAD DAILY LIMIT FROM FIRESTORE
+// =====================================
+
+function loadDailyLimit() {
+
+    return db.collection("settings")
+        .doc("config")
+        .get()
+
+        .then(function(doc) {
+
+            if (
+                doc.exists &&
+                doc.data().dailyLimit !== undefined
+            ) {
+
+                DAILY_LIMIT =
+                    Number(doc.data().dailyLimit);
+
+            }
+
+            console.log(
+                "Daily Limit:",
+                DAILY_LIMIT
+            );
+
+        })
+
+        .catch(function(error) {
+
+            console.error(
+                "Daily Limit Load Error:",
+                error
+            );
+
+            // Default limit
+            DAILY_LIMIT = 20;
+
+        });
+
+}
+
+
+// =====================================
+// AUTH
 // =====================================
 
 firebase.auth().setPersistence(
     firebase.auth.Auth.Persistence.SESSION
 )
-.then(function () {
 
-    firebase.auth().onAuthStateChanged(function (user) {
+.then(function() {
 
-        if (!user) {
-            window.location.replace("index.html");
-            return;
+    firebase.auth().onAuthStateChanged(
+        function(user) {
+
+            if (!user) {
+
+                window.location.replace(
+                    "index.html"
+                );
+
+                return;
+            }
+
+
+            // ADMIN
+            if (
+                user.email &&
+                user.email.toLowerCase() ===
+                ADMIN_EMAIL.toLowerCase()
+            ) {
+
+                window.location.replace(
+                    "admin.html"
+                );
+
+                return;
+            }
+
+
+            console.log(
+                "Surveyor:",
+                user.email
+            );
+
+
+            // Load limit first
+            loadDailyLimit()
+                .then(function() {
+
+                    checkSurveyorStatus(user);
+
+                });
+
         }
-
-        // ADMIN
-        if (
-            user.email &&
-            user.email.toLowerCase() ===
-            ADMIN_EMAIL.toLowerCase()
-        ) {
-            window.location.replace("admin.html");
-            return;
-        }
-
-        console.log("Surveyor:", user.email);
-
-        checkSurveyorStatus(user);
-
-    });
+    );
 
 })
-.catch(function (error) {
+
+.catch(function(error) {
 
     console.error(
         "Auth Persistence Error:",
@@ -51,7 +123,7 @@ firebase.auth().setPersistence(
 
 
 // =====================================
-// CHECK SURVEYOR ENABLED / DISABLED
+// CHECK SURVEYOR STATUS
 // =====================================
 
 function checkSurveyorStatus(user) {
@@ -60,7 +132,7 @@ function checkSurveyorStatus(user) {
         .doc(user.email)
         .get()
 
-        .then(function (doc) {
+        .then(function(doc) {
 
             if (!doc.exists) {
 
@@ -75,7 +147,9 @@ function checkSurveyorStatus(user) {
                 return;
             }
 
+
             const data = doc.data();
+
 
             if (data.enabled !== true) {
 
@@ -90,15 +164,12 @@ function checkSurveyorStatus(user) {
                 return;
             }
 
-            console.log(
-                "Surveyor account active."
-            );
 
             checkDailyLimit(user);
 
         })
 
-        .catch(function (error) {
+        .catch(function(error) {
 
             console.error(
                 "Surveyor Status Error:",
@@ -115,20 +186,23 @@ function checkSurveyorStatus(user) {
 
 
 // =====================================
-// CHECK DAILY LIMIT
+// GET TODAY COUNT
 // =====================================
 
-function checkDailyLimit(user) {
+function getTodayCount(user) {
 
     const todayStart =
         new Date();
 
     todayStart.setHours(
-        0, 0, 0, 0
+        0,
+        0,
+        0,
+        0
     );
 
 
-    db.collection("surveys")
+    return db.collection("surveys")
         .where(
             "surveyorEmail",
             "==",
@@ -136,15 +210,16 @@ function checkDailyLimit(user) {
         )
         .get()
 
-        .then(function (snapshot) {
+        .then(function(snapshot) {
 
             let todayCount = 0;
 
 
-            snapshot.forEach(function (doc) {
+            snapshot.forEach(function(doc) {
 
                 const data =
                     doc.data();
+
 
                 if (!data.createdAt) {
                     return;
@@ -165,6 +240,7 @@ function checkDailyLimit(user) {
                             data.createdAt.toDate();
 
                     }
+
                     else if (
                         data.createdAt.seconds
                     ) {
@@ -178,6 +254,7 @@ function checkDailyLimit(user) {
                     }
 
                 }
+
                 catch (error) {
 
                     return;
@@ -197,9 +274,28 @@ function checkDailyLimit(user) {
             });
 
 
+            return todayCount;
+
+        });
+
+}
+
+
+// =====================================
+// CHECK DAILY LIMIT
+// =====================================
+
+function checkDailyLimit(user) {
+
+    getTodayCount(user)
+
+        .then(function(todayCount) {
+
             console.log(
                 "Today's Surveys:",
-                todayCount
+                todayCount,
+                "/",
+                DAILY_LIMIT
             );
 
 
@@ -208,9 +304,8 @@ function checkDailyLimit(user) {
             ) {
 
                 showMessage(
-                    "Daily survey limit of " +
-                    DAILY_LIMIT +
-                    " reached."
+                    todayCount +
+                    " surveys completed today. Daily limit reached."
                 );
 
                 if (submitBtn) {
@@ -236,7 +331,7 @@ function checkDailyLimit(user) {
 
         })
 
-        .catch(function (error) {
+        .catch(function(error) {
 
             console.error(
                 "Daily Limit Error:",
@@ -260,7 +355,7 @@ if (submitBtn) {
 
     submitBtn.addEventListener(
         "click",
-        function () {
+        function() {
 
             const user =
                 firebase.auth().currentUser;
@@ -272,7 +367,7 @@ if (submitBtn) {
                     "Session expired. Please login again."
                 );
 
-                setTimeout(function () {
+                setTimeout(function() {
 
                     window.location.replace(
                         "index.html"
@@ -356,15 +451,15 @@ if (submitBtn) {
             submitBtn.disabled = true;
 
             submitBtn.textContent =
-                "Checking limit...";
+                "Checking...";
 
 
-            // Check status + today's count again
+            // Check account again
             db.collection("surveyors")
                 .doc(user.email)
                 .get()
 
-                .then(function (surveyorDoc) {
+                .then(function(surveyorDoc) {
 
                     if (!surveyorDoc.exists) {
 
@@ -390,87 +485,18 @@ if (submitBtn) {
                     }
 
 
-                    return db.collection("surveys")
-                        .where(
-                            "surveyorEmail",
-                            "==",
-                            user.email
-                        )
-                        .get();
+                    // Reload latest limit
+                    return loadDailyLimit();
 
                 })
 
-                .then(function (snapshot) {
+                .then(function() {
 
-                    let todayCount = 0;
+                    return getTodayCount(user);
 
+                })
 
-                    const todayStart =
-                        new Date();
-
-                    todayStart.setHours(
-                        0, 0, 0, 0
-                    );
-
-
-                    snapshot.forEach(
-                        function (doc) {
-
-                            const data =
-                                doc.data();
-
-
-                            if (!data.createdAt) {
-                                return;
-                            }
-
-
-                            let date = null;
-
-
-                            try {
-
-                                if (
-                                    typeof data.createdAt.toDate ===
-                                    "function"
-                                ) {
-
-                                    date =
-                                        data.createdAt.toDate();
-
-                                }
-                                else if (
-                                    data.createdAt.seconds
-                                ) {
-
-                                    date =
-                                        new Date(
-                                            data.createdAt.seconds *
-                                            1000
-                                        );
-
-                                }
-
-                            }
-                            catch (error) {
-
-                                return;
-
-                            }
-
-
-                            if (
-                                date &&
-                                date >= todayStart
-                            ) {
-
-                                todayCount++;
-
-                            }
-
-                        }
-                    );
-
+                .then(function(todayCount) {
 
                     if (
                         todayCount >= DAILY_LIMIT
@@ -525,7 +551,7 @@ if (submitBtn) {
 
                 })
 
-                .then(function () {
+                .then(function() {
 
                     showMessage(
                         "Survey submitted successfully!",
@@ -576,16 +602,23 @@ if (submitBtn) {
                         "Submit Survey";
 
 
-                    // Refresh counter
-                    setTimeout(function () {
+                    // Update counter
+                    setTimeout(function() {
 
-                        checkDailyLimit(user);
+                        loadDailyLimit()
+                            .then(function() {
+
+                                checkDailyLimit(
+                                    user
+                                );
+
+                            });
 
                     }, 500);
 
                 })
 
-                .catch(function (error) {
+                .catch(function(error) {
 
                     console.error(
                         "Survey Error:",
