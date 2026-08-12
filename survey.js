@@ -1,22 +1,14 @@
 console.log("Survey JS Loaded");
 
-const ADMIN_EMAIL =
-    "goswamivinod2305@gmail.com";
-
+const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 const DAILY_LIMIT = 20;
 
-const submitBtn =
-    document.getElementById("submitSurvey");
-
-const message =
-    document.getElementById("message");
-
-let currentUser = null;
-let todaySurveyCount = 0;
+const submitBtn = document.getElementById("submitSurvey");
+const message = document.getElementById("message");
 
 
 // =====================================
-// TAB SESSION AUTH
+// AUTH + SURVEYOR STATUS
 // =====================================
 
 firebase.auth().setPersistence(
@@ -24,20 +16,273 @@ firebase.auth().setPersistence(
 )
 .then(function () {
 
-    firebase.auth().onAuthStateChanged(
-        function (user) {
+    firebase.auth().onAuthStateChanged(function (user) {
 
-            if (!user) {
+        if (!user) {
+            window.location.replace("index.html");
+            return;
+        }
 
-                window.location.replace(
-                    "index.html"
+        // ADMIN
+        if (
+            user.email &&
+            user.email.toLowerCase() ===
+            ADMIN_EMAIL.toLowerCase()
+        ) {
+            window.location.replace("admin.html");
+            return;
+        }
+
+        console.log("Surveyor:", user.email);
+
+        checkSurveyorStatus(user);
+
+    });
+
+})
+.catch(function (error) {
+
+    console.error(
+        "Auth Persistence Error:",
+        error
+    );
+
+});
+
+
+// =====================================
+// CHECK SURVEYOR ENABLED / DISABLED
+// =====================================
+
+function checkSurveyorStatus(user) {
+
+    db.collection("surveyors")
+        .doc(user.email)
+        .get()
+
+        .then(function (doc) {
+
+            if (!doc.exists) {
+
+                showMessage(
+                    "Surveyor account not registered."
                 );
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                }
+
+                return;
+            }
+
+            const data = doc.data();
+
+            if (data.enabled !== true) {
+
+                showMessage(
+                    "Your surveyor account is disabled by Admin."
+                );
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                }
+
+                return;
+            }
+
+            console.log(
+                "Surveyor account active."
+            );
+
+            checkDailyLimit(user);
+
+        })
+
+        .catch(function (error) {
+
+            console.error(
+                "Surveyor Status Error:",
+                error
+            );
+
+            showMessage(
+                "Unable to check account status."
+            );
+
+        });
+
+}
+
+
+// =====================================
+// CHECK DAILY LIMIT
+// =====================================
+
+function checkDailyLimit(user) {
+
+    const todayStart =
+        new Date();
+
+    todayStart.setHours(
+        0, 0, 0, 0
+    );
+
+
+    db.collection("surveys")
+        .where(
+            "surveyorEmail",
+            "==",
+            user.email
+        )
+        .get()
+
+        .then(function (snapshot) {
+
+            let todayCount = 0;
+
+
+            snapshot.forEach(function (doc) {
+
+                const data =
+                    doc.data();
+
+                if (!data.createdAt) {
+                    return;
+                }
+
+
+                let date = null;
+
+
+                try {
+
+                    if (
+                        typeof data.createdAt.toDate ===
+                        "function"
+                    ) {
+
+                        date =
+                            data.createdAt.toDate();
+
+                    }
+                    else if (
+                        data.createdAt.seconds
+                    ) {
+
+                        date =
+                            new Date(
+                                data.createdAt.seconds *
+                                1000
+                            );
+
+                    }
+
+                }
+                catch (error) {
+
+                    return;
+
+                }
+
+
+                if (
+                    date &&
+                    date >= todayStart
+                ) {
+
+                    todayCount++;
+
+                }
+
+            });
+
+
+            console.log(
+                "Today's Surveys:",
+                todayCount
+            );
+
+
+            if (
+                todayCount >= DAILY_LIMIT
+            ) {
+
+                showMessage(
+                    "Daily survey limit of " +
+                    DAILY_LIMIT +
+                    " reached."
+                );
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                }
 
                 return;
             }
 
 
-            // Admin cannot use survey page
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+
+
+            showMessage(
+                "Today's Surveys: " +
+                todayCount +
+                " / " +
+                DAILY_LIMIT,
+                true
+            );
+
+        })
+
+        .catch(function (error) {
+
+            console.error(
+                "Daily Limit Error:",
+                error
+            );
+
+            showMessage(
+                "Unable to check today's survey count."
+            );
+
+        });
+
+}
+
+
+// =====================================
+// SUBMIT SURVEY
+// =====================================
+
+if (submitBtn) {
+
+    submitBtn.addEventListener(
+        "click",
+        function () {
+
+            const user =
+                firebase.auth().currentUser;
+
+
+            if (!user) {
+
+                showMessage(
+                    "Session expired. Please login again."
+                );
+
+                setTimeout(function () {
+
+                    window.location.replace(
+                        "index.html"
+                    );
+
+                }, 1000);
+
+                return;
+            }
+
 
             if (
                 user.email &&
@@ -53,327 +298,42 @@ firebase.auth().setPersistence(
             }
 
 
-            currentUser = user;
-
-            console.log(
-                "Surveyor logged in:",
-                user.email
-            );
-
-
-            createCounterBox();
-
-            loadTodaySurveyCount();
-
-        }
-    );
-
-})
-.catch(function (error) {
-
-    console.error(
-        "Auth Persistence Error:",
-        error
-    );
-
-});
-
-
-// =====================================
-// CREATE COUNTER BOX
-// =====================================
-
-function createCounterBox() {
-
-    if (
-        document.getElementById(
-            "todaySurveyCounter"
-        )
-    ) {
-        return;
-    }
-
-
-    const counter =
-        document.createElement("div");
-
-
-    counter.id =
-        "todaySurveyCounter";
-
-
-    counter.style.margin =
-        "10px 0";
-
-    counter.style.padding =
-        "10px";
-
-    counter.style.textAlign =
-        "center";
-
-    counter.style.borderRadius =
-        "8px";
-
-    counter.style.background =
-        "#e3f2fd";
-
-    counter.style.color =
-        "#1565c0";
-
-    counter.style.fontWeight =
-        "bold";
-
-
-    counter.textContent =
-        "Today's Surveys: Loading...";
-
-
-    if (submitBtn) {
-
-        submitBtn.parentNode.insertBefore(
-            counter,
-            submitBtn
-        );
-
-    }
-
-}
-
-
-// =====================================
-// LOAD TODAY'S SURVEY COUNT
-// =====================================
-
-function loadTodaySurveyCount() {
-
-    if (!currentUser) {
-        return;
-    }
-
-
-    const start =
-        new Date();
-
-    start.setHours(
-        0,
-        0,
-        0,
-        0
-    );
-
-
-    const end =
-        new Date();
-
-    end.setHours(
-        23,
-        59,
-        59,
-        999
-    );
-
-
-    db.collection("surveys")
-        .where(
-            "surveyorEmail",
-            "==",
-            currentUser.email
-        )
-        .get()
-
-        .then(function (snapshot) {
-
-            todaySurveyCount = 0;
-
-
-            snapshot.forEach(
-                function (doc) {
-
-                    const data =
-                        doc.data();
-
-
-                    if (!data.createdAt) {
-                        return;
-                    }
-
-
-                    let date = null;
-
-
-                    try {
-
-                        if (
-                            typeof
-                            data.createdAt.toDate ===
-                            "function"
-                        ) {
-
-                            date =
-                                data.createdAt.toDate();
-
-                        }
-                        else if (
-                            data.createdAt.seconds
-                        ) {
-
-                            date =
-                                new Date(
-                                    data.createdAt.seconds *
-                                    1000
-                                );
-
-                        }
-
-
-                    }
-                    catch (error) {
-
-                        console.error(
-                            error
-                        );
-
-                    }
-
-
-                    if (
-                        date &&
-                        date >= start &&
-                        date <= end
-                    ) {
-
-                        todaySurveyCount++;
-
-                    }
-
-                }
-            );
-
-
-            updateCounter();
-
-
-        })
-
-        .catch(function (error) {
-
-            console.error(
-                "Count Error:",
-                error
-            );
-
-            updateCounter();
-
-        });
-
-}
-
-
-// =====================================
-// UPDATE COUNTER
-// =====================================
-
-function updateCounter() {
-
-    const counter =
-        document.getElementById(
-            "todaySurveyCounter"
-        );
-
-
-    if (!counter) {
-        return;
-    }
-
-
-    counter.textContent =
-        "Today's Surveys: " +
-        todaySurveyCount +
-        " / " +
-        DAILY_LIMIT;
-
-
-    if (
-        todaySurveyCount >=
-        DAILY_LIMIT
-    ) {
-
-        counter.style.background =
-            "#ffebee";
-
-        counter.style.color =
-            "#c62828";
-
-    }
-    else {
-
-        counter.style.background =
-            "#e3f2fd";
-
-        counter.style.color =
-            "#1565c0";
-
-    }
-
-}
-
-
-// =====================================
-// SUBMIT SURVEY
-// =====================================
-
-if (submitBtn) {
-
-    submitBtn.addEventListener(
-        "click",
-        function () {
-
             const name =
                 document.getElementById("name")
                     .value.trim();
-
 
             const mobile =
                 document.getElementById("mobile")
                     .value.trim();
 
-
             const age =
                 document.getElementById("age")
                     .value.trim();
-
 
             const gender =
                 document.getElementById("gender")
                     .value;
 
-
             const village =
                 document.getElementById("village")
                     .value.trim();
-
 
             const assembly =
                 document.getElementById("assembly")
                     .value.trim();
 
-
             const party =
                 document.getElementById("party")
                     .value;
-
 
             const candidate =
                 document.getElementById("candidate")
                     .value.trim();
 
-
             const feedback =
                 document.getElementById("feedback")
                     .value.trim();
 
-
-            // REQUIRED FIELDS
 
             if (
                 !name ||
@@ -393,124 +353,179 @@ if (submitBtn) {
             }
 
 
-            const user =
-                firebase.auth().currentUser;
-
-
-            if (!user) {
-
-                showMessage(
-                    "Session expired. Please login again."
-                );
-
-
-                setTimeout(
-                    function () {
-
-                        window.location.replace(
-                            "index.html"
-                        );
-
-                    },
-                    1000
-                );
-
-                return;
-            }
-
-
-            // ADMIN BLOCK
-
-            if (
-                user.email &&
-                user.email.toLowerCase() ===
-                ADMIN_EMAIL.toLowerCase()
-            ) {
-
-                window.location.replace(
-                    "admin.html"
-                );
-
-                return;
-            }
-
-
-            // =================================
-            // DAILY LIMIT CHECK
-            // =================================
-
-            if (
-                todaySurveyCount >=
-                DAILY_LIMIT
-            ) {
-
-                showMessage(
-                    "Daily limit reached. You can submit maximum 20 surveys per day."
-                );
-
-                return;
-            }
-
-
-            submitBtn.disabled =
-                true;
+            submitBtn.disabled = true;
 
             submitBtn.textContent =
-                "Submitting...";
+                "Checking limit...";
 
 
-            message.textContent =
-                "";
+            // Check status + today's count again
+            db.collection("surveyors")
+                .doc(user.email)
+                .get()
+
+                .then(function (surveyorDoc) {
+
+                    if (!surveyorDoc.exists) {
+
+                        throw new Error(
+                            "Surveyor account not registered."
+                        );
+
+                    }
 
 
-            // =================================
-            // SAVE SURVEY
-            // =================================
-
-            db.collection("surveys")
-                .add({
-
-                    name: name,
-
-                    mobile: mobile,
-
-                    age: age,
-
-                    gender: gender,
-
-                    village: village,
-
-                    assembly: assembly,
-
-                    party: party,
-
-                    candidate: candidate,
-
-                    feedback: feedback,
+                    const surveyorData =
+                        surveyorDoc.data();
 
 
-                    surveyorEmail:
-                        user.email,
+                    if (
+                        surveyorData.enabled !== true
+                    ) {
+
+                        throw new Error(
+                            "Your surveyor account is disabled."
+                        );
+
+                    }
 
 
-                    surveyorId:
-                        user.uid,
-
-
-                    createdAt:
-                        firebase.firestore
-                            .FieldValue
-                            .serverTimestamp()
+                    return db.collection("surveys")
+                        .where(
+                            "surveyorEmail",
+                            "==",
+                            user.email
+                        )
+                        .get();
 
                 })
 
+                .then(function (snapshot) {
+
+                    let todayCount = 0;
+
+
+                    const todayStart =
+                        new Date();
+
+                    todayStart.setHours(
+                        0, 0, 0, 0
+                    );
+
+
+                    snapshot.forEach(
+                        function (doc) {
+
+                            const data =
+                                doc.data();
+
+
+                            if (!data.createdAt) {
+                                return;
+                            }
+
+
+                            let date = null;
+
+
+                            try {
+
+                                if (
+                                    typeof data.createdAt.toDate ===
+                                    "function"
+                                ) {
+
+                                    date =
+                                        data.createdAt.toDate();
+
+                                }
+                                else if (
+                                    data.createdAt.seconds
+                                ) {
+
+                                    date =
+                                        new Date(
+                                            data.createdAt.seconds *
+                                            1000
+                                        );
+
+                                }
+
+                            }
+                            catch (error) {
+
+                                return;
+
+                            }
+
+
+                            if (
+                                date &&
+                                date >= todayStart
+                            ) {
+
+                                todayCount++;
+
+                            }
+
+                        }
+                    );
+
+
+                    if (
+                        todayCount >= DAILY_LIMIT
+                    ) {
+
+                        throw new Error(
+                            "Daily limit of " +
+                            DAILY_LIMIT +
+                            " surveys reached."
+                        );
+
+                    }
+
+
+                    submitBtn.textContent =
+                        "Submitting...";
+
+
+                    return db.collection("surveys")
+                        .add({
+
+                            name: name,
+
+                            mobile: mobile,
+
+                            age: age,
+
+                            gender: gender,
+
+                            village: village,
+
+                            assembly: assembly,
+
+                            party: party,
+
+                            candidate: candidate,
+
+                            feedback: feedback,
+
+                            surveyorEmail:
+                                user.email,
+
+                            surveyorId:
+                                user.uid,
+
+                            createdAt:
+                                firebase.firestore
+                                    .FieldValue
+                                    .serverTimestamp()
+
+                        });
+
+                })
 
                 .then(function () {
-
-                    todaySurveyCount++;
-
-                    updateCounter();
-
 
                     showMessage(
                         "Survey submitted successfully!",
@@ -518,77 +533,57 @@ if (submitBtn) {
                     );
 
 
-                    // CLEAR FORM
-
                     document.getElementById(
                         "name"
                     ).value = "";
-
 
                     document.getElementById(
                         "mobile"
                     ).value = "";
 
-
                     document.getElementById(
                         "age"
                     ).value = "";
-
 
                     document.getElementById(
                         "gender"
                     ).value = "";
 
-
                     document.getElementById(
                         "village"
                     ).value = "";
-
 
                     document.getElementById(
                         "assembly"
                     ).value = "";
 
-
                     document.getElementById(
                         "party"
                     ).value = "";
 
-
                     document.getElementById(
                         "candidate"
                     ).value = "";
-
 
                     document.getElementById(
                         "feedback"
                     ).value = "";
 
 
-                    submitBtn.disabled =
-                        false;
-
+                    submitBtn.disabled = false;
 
                     submitBtn.textContent =
                         "Submit Survey";
 
 
-                    // LIMIT REACHED
+                    // Refresh counter
+                    setTimeout(function () {
 
-                    if (
-                        todaySurveyCount >=
-                        DAILY_LIMIT
-                    ) {
+                        checkDailyLimit(user);
 
-                        showMessage(
-                            "20 surveys completed today. Daily limit reached.",
-                            true
-                        );
-
-                    }
+                    }, 500);
 
                 })
-
 
                 .catch(function (error) {
 
@@ -599,14 +594,12 @@ if (submitBtn) {
 
 
                     showMessage(
-                        "Survey submit failed: " +
-                        error.message
+                        error.message ||
+                        "Survey submit failed."
                     );
 
 
-                    submitBtn.disabled =
-                        false;
-
+                    submitBtn.disabled = false;
 
                     submitBtn.textContent =
                         "Submit Survey";
@@ -628,9 +621,7 @@ function showMessage(
     success = false
 ) {
 
-    if (!message) {
-        return;
-    }
+    if (!message) return;
 
 
     message.textContent =
