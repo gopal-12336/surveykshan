@@ -6,7 +6,7 @@ const loginBtn = document.getElementById("loginBtn");
 
 if (loginBtn) {
 
-    loginBtn.addEventListener("click", function () {
+    loginBtn.addEventListener("click", async function () {
 
         const email =
             document.getElementById("email").value.trim();
@@ -20,72 +20,54 @@ if (loginBtn) {
         message.textContent = "";
 
         if (!email || !password) {
-
             message.textContent =
                 "Please enter Email and Password.";
-
             return;
         }
 
         loginBtn.disabled = true;
         loginBtn.textContent = "Logging in...";
 
+        try {
 
-        firebase.auth()
-            .signInWithEmailAndPassword(
-                email,
-                password
-            )
+            // IMPORTANT:
+            // Login session will remain ONLY in this browser tab.
+            await firebase.auth().setPersistence(
+                firebase.auth.Auth.Persistence.SESSION
+            );
 
-            .then(function (result) {
-
-                const user = result.user;
-
-                localStorage.setItem(
-                    "userLoggedIn",
-                    "true"
-                );
-
-                localStorage.setItem(
-                    "userEmail",
-                    user.email
-                );
-
-
-                if (
-                    user.email.toLowerCase() ===
-                    ADMIN_EMAIL.toLowerCase()
-                ) {
-
-                    window.location.replace(
-                        "admin.html"
+            const result =
+                await firebase.auth()
+                    .signInWithEmailAndPassword(
+                        email,
+                        password
                     );
 
-                } else {
+            const user = result.user;
 
-                    window.location.replace(
-                        "survey.html"
-                    );
+            if (
+                user.email.toLowerCase() ===
+                ADMIN_EMAIL.toLowerCase()
+            ) {
 
-                }
+                window.location.replace("admin.html");
 
-            })
+            } else {
 
-            .catch(function (error) {
+                window.location.replace("survey.html");
 
-                console.error(
-                    "Login Error:",
-                    error
-                );
+            }
 
-                message.textContent =
-                    "Login failed: " +
-                    error.message;
+        } catch (error) {
 
-                loginBtn.disabled = false;
-                loginBtn.textContent = "Login";
+            console.error("Login Error:", error);
 
-            });
+            message.textContent =
+                "Login failed: " + error.message;
+
+            loginBtn.disabled = false;
+            loginBtn.textContent = "Login";
+        }
 
     });
 
