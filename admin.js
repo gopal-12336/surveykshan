@@ -6,15 +6,10 @@ let partyChart = null;
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
-const SURVEYORS = [
-    "surveyor@gmail.com",
-    "surveyor1@gopal.com",
-    "surveyor2@gopal.com"
-];
 
-// ===============================
-// DOM
-// ===============================
+// =====================================
+// DOM ELEMENTS
+// =====================================
 
 const searchBox = document.getElementById("searchBox");
 const partyFilter = document.getElementById("partyFilter");
@@ -24,42 +19,58 @@ const assemblyFilter = document.getElementById("assemblyFilter");
 const surveyorFilter = document.getElementById("surveyorFilter");
 
 const surveyTable = document.getElementById("surveyTable");
+
 const resetFilters = document.getElementById("resetFilters");
 const exportExcel = document.getElementById("exportExcel");
 const logoutBtn = document.getElementById("logoutBtn");
 
 
-// ===============================
-// ADMIN AUTHENTICATION
-// ===============================
+// =====================================
+// AUTH
+// =====================================
 
-firebase.auth().onAuthStateChanged(function (user) {
+firebase.auth().setPersistence(
+    firebase.auth.Auth.Persistence.SESSION
+)
+.then(function () {
 
-    if (!user) {
-        console.log("No user logged in");
-        window.location.href = "index.html";
-        return;
-    }
+    firebase.auth().onAuthStateChanged(function (user) {
 
-    console.log("Logged in:", user.email);
+        if (!user) {
+            window.location.replace("index.html");
+            return;
+        }
 
-    if (
-        user.email.toLowerCase() !==
-        ADMIN_EMAIL.toLowerCase()
-    ) {
-        alert("Admin access denied.");
-        firebase.auth().signOut();
-        return;
-    }
+        if (
+            !user.email ||
+            user.email.toLowerCase() !==
+            ADMIN_EMAIL.toLowerCase()
+        ) {
 
-    loadSurveys();
-    renderSurveyorManagement();
+            alert("Admin access only.");
+
+            window.location.replace("survey.html");
+            return;
+        }
+
+        console.log("Admin logged in:", user.email);
+
+        loadSurveys();
+        loadSurveyors();
+
+    });
+
+})
+.catch(function (error) {
+
+    console.error("Auth error:", error);
+
 });
 
 
-// ===============================
+// =====================================
 // LOAD SURVEYS
-// ===============================
+// =====================================
 
 function loadSurveys() {
 
@@ -86,12 +97,12 @@ function loadSurveys() {
             );
 
             updateDashboard();
+
             populateVillageFilter();
             populateAssemblyFilter();
             populateSurveyorFilter();
 
             filterTable();
-            renderSurveyorManagement();
 
         })
 
@@ -102,7 +113,6 @@ function loadSurveys() {
                 error
             );
 
-            // Fallback
             db.collection("surveys")
                 .get()
 
@@ -119,18 +129,13 @@ function loadSurveys() {
 
                     });
 
-                    console.log(
-                        "Surveys Loaded Without OrderBy:",
-                        allSurveys.length
-                    );
-
                     updateDashboard();
+
                     populateVillageFilter();
                     populateAssemblyFilter();
                     populateSurveyorFilter();
 
                     filterTable();
-                    renderSurveyorManagement();
 
                 })
 
@@ -145,12 +150,13 @@ function loadSurveys() {
                 });
 
         });
+
 }
 
 
-// ===============================
-// DATE HELPER
-// ===============================
+// =====================================
+// DATE
+// =====================================
 
 function getSurveyDate(survey) {
 
@@ -164,7 +170,9 @@ function getSurveyDate(survey) {
             typeof survey.createdAt.toDate ===
             "function"
         ) {
+
             return survey.createdAt.toDate();
+
         }
 
         if (survey.createdAt.seconds) {
@@ -175,19 +183,23 @@ function getSurveyDate(survey) {
 
         }
 
-        return new Date(survey.createdAt);
+        return new Date(
+            survey.createdAt
+        );
 
-    } catch (error) {
+    }
+    catch (error) {
 
         return null;
 
     }
+
 }
 
 
-// ===============================
+// =====================================
 // TODAY
-// ===============================
+// =====================================
 
 function isToday(date) {
 
@@ -200,12 +212,13 @@ function isToday(date) {
         date.getMonth() === now.getMonth() &&
         date.getFullYear() === now.getFullYear()
     );
+
 }
 
 
-// ===============================
-// THIS WEEK
-// ===============================
+// =====================================
+// WEEK
+// =====================================
 
 function isThisWeek(date) {
 
@@ -213,9 +226,11 @@ function isThisWeek(date) {
 
     const now = new Date();
 
-    const startOfWeek = new Date(now);
+    const startOfWeek =
+        new Date(now);
 
-    const day = now.getDay();
+    const day =
+        now.getDay();
 
     const diff =
         day === 0 ? 6 : day - 1;
@@ -239,12 +254,13 @@ function isThisWeek(date) {
         date >= startOfWeek &&
         date < endOfWeek
     );
+
 }
 
 
-// ===============================
-// THIS MONTH
-// ===============================
+// =====================================
+// MONTH
+// =====================================
 
 function isThisMonth(date) {
 
@@ -256,12 +272,13 @@ function isThisMonth(date) {
         date.getMonth() === now.getMonth() &&
         date.getFullYear() === now.getFullYear()
     );
+
 }
 
 
-// ===============================
+// =====================================
 // DASHBOARD
-// ===============================
+// =====================================
 
 function updateDashboard() {
 
@@ -279,6 +296,7 @@ function updateDashboard() {
     let week = 0;
     let month = 0;
 
+
     allSurveys.forEach(function (survey) {
 
         const party =
@@ -288,30 +306,45 @@ function updateDashboard() {
             .trim()
             .toLowerCase();
 
+
         if (party === "bjp") {
+
             bjp++;
+
         }
         else if (
             party === "congress" ||
             party === "inc"
         ) {
+
             congress++;
+
         }
         else if (party === "aap") {
+
             aap++;
+
         }
         else if (party === "bsp") {
+
             bsp++;
+
         }
         else if (party === "sp") {
+
             sp++;
+
         }
         else if (party !== "") {
+
             other++;
+
         }
+
 
         const date =
             getSurveyDate(survey);
+
 
         if (isToday(date)) {
             today++;
@@ -326,6 +359,7 @@ function updateDashboard() {
         }
 
     });
+
 
     setText(
         "totalSurvey",
@@ -377,6 +411,7 @@ function updateDashboard() {
         month
     );
 
+
     createPartyChart(
         bjp,
         congress,
@@ -385,12 +420,13 @@ function updateDashboard() {
         sp,
         other
     );
+
 }
 
 
-// ===============================
+// =====================================
 // SAFE TEXT
-// ===============================
+// =====================================
 
 function setText(id, value) {
 
@@ -398,14 +434,18 @@ function setText(id, value) {
         document.getElementById(id);
 
     if (element) {
-        element.textContent = value;
+
+        element.textContent =
+            value;
+
     }
+
 }
 
 
-// ===============================
+// =====================================
 // PARTY CHART
-// ===============================
+// =====================================
 
 function createPartyChart(
     bjp,
@@ -423,66 +463,81 @@ function createPartyChart(
 
     if (!canvas) return;
 
+
     const ctx =
         canvas.getContext("2d");
 
+
     if (partyChart) {
+
         partyChart.destroy();
+
     }
 
-    partyChart = new Chart(
-        ctx,
-        {
-            type: "pie",
 
-            data: {
+    partyChart =
+        new Chart(
+            ctx,
+            {
 
-                labels: [
-                    "BJP",
-                    "Congress",
-                    "AAP",
-                    "BSP",
-                    "SP",
-                    "Others"
-                ],
+                type: "pie",
 
-                datasets: [{
+                data: {
 
-                    data: [
-                        bjp,
-                        congress,
-                        aap,
-                        bsp,
-                        sp,
-                        other
+                    labels: [
+                        "BJP",
+                        "Congress",
+                        "AAP",
+                        "BSP",
+                        "SP",
+                        "Others"
+                    ],
+
+                    datasets: [
+
+                        {
+
+                            data: [
+                                bjp,
+                                congress,
+                                aap,
+                                bsp,
+                                sp,
+                                other
+                            ]
+
+                        }
+
                     ]
 
-                }]
+                },
 
-            },
+                options: {
 
-            options: {
+                    responsive: true,
 
-                responsive: true,
+                    plugins: {
 
-                plugins: {
+                        legend: {
 
-                    legend: {
-                        position: "bottom"
+                            position:
+                                "bottom"
+
+                        }
+
                     }
 
                 }
 
             }
+        );
 
-        }
-    );
 }
 
 
-// ===============================
+// =====================================
 // VILLAGE FILTER
-// ===============================
+// =====================================
 
 function populateVillageFilter() {
 
@@ -491,53 +546,53 @@ function populateVillageFilter() {
     const villages =
         new Set();
 
-    allSurveys.forEach(
-        function (survey) {
 
-            if (survey.village) {
+    allSurveys.forEach(function (survey) {
 
-                villages.add(
-                    String(
-                        survey.village
-                    ).trim()
-                );
+        if (survey.village) {
 
-            }
+            villages.add(
+                String(
+                    survey.village
+                ).trim()
+            );
 
         }
-    );
+
+    });
+
 
     villageFilter.innerHTML =
         '<option value="">All Villages</option>';
 
+
     Array.from(villages)
         .sort()
-        .forEach(
-            function (village) {
+        .forEach(function (village) {
 
-                const option =
-                    document.createElement(
-                        "option"
-                    );
-
-                option.value =
-                    village;
-
-                option.textContent =
-                    village;
-
-                villageFilter.appendChild(
-                    option
+            const option =
+                document.createElement(
+                    "option"
                 );
 
-            }
-        );
+            option.value =
+                village;
+
+            option.textContent =
+                village;
+
+            villageFilter.appendChild(
+                option
+            );
+
+        });
+
 }
 
 
-// ===============================
+// =====================================
 // ASSEMBLY FILTER
-// ===============================
+// =====================================
 
 function populateAssemblyFilter() {
 
@@ -546,53 +601,53 @@ function populateAssemblyFilter() {
     const assemblies =
         new Set();
 
-    allSurveys.forEach(
-        function (survey) {
 
-            if (survey.assembly) {
+    allSurveys.forEach(function (survey) {
 
-                assemblies.add(
-                    String(
-                        survey.assembly
-                    ).trim()
-                );
+        if (survey.assembly) {
 
-            }
+            assemblies.add(
+                String(
+                    survey.assembly
+                ).trim()
+            );
 
         }
-    );
+
+    });
+
 
     assemblyFilter.innerHTML =
         '<option value="">All Assemblies</option>';
 
+
     Array.from(assemblies)
         .sort()
-        .forEach(
-            function (assembly) {
+        .forEach(function (assembly) {
 
-                const option =
-                    document.createElement(
-                        "option"
-                    );
-
-                option.value =
-                    assembly;
-
-                option.textContent =
-                    assembly;
-
-                assemblyFilter.appendChild(
-                    option
+            const option =
+                document.createElement(
+                    "option"
                 );
 
-            }
-        );
+            option.value =
+                assembly;
+
+            option.textContent =
+                assembly;
+
+            assemblyFilter.appendChild(
+                option
+            );
+
+        });
+
 }
 
 
-// ===============================
+// =====================================
 // SURVEYOR FILTER
-// ===============================
+// =====================================
 
 function populateSurveyorFilter() {
 
@@ -601,170 +656,60 @@ function populateSurveyorFilter() {
     const surveyors =
         new Set();
 
-    SURVEYORS.forEach(
-        function (email) {
-            surveyors.add(email);
-        }
-    );
 
-    allSurveys.forEach(
-        function (survey) {
+    allSurveys.forEach(function (survey) {
 
-            const surveyor =
-                survey.surveyorEmail ||
-                survey.surveyorId ||
-                survey.createdBy ||
-                "";
+        const surveyor =
+            survey.surveyorEmail ||
+            survey.surveyorId ||
+            survey.createdBy ||
+            "";
 
-            if (surveyor) {
-                surveyors.add(
-                    String(surveyor).trim()
-                );
-            }
+
+        if (surveyor) {
+
+            surveyors.add(
+                String(
+                    surveyor
+                ).trim()
+            );
 
         }
-    );
+
+    });
+
 
     surveyorFilter.innerHTML =
         '<option value="">All Surveyors</option>';
 
+
     Array.from(surveyors)
         .sort()
-        .forEach(
-            function (surveyor) {
+        .forEach(function (surveyor) {
 
-                const option =
-                    document.createElement(
-                        "option"
-                    );
-
-                option.value =
-                    surveyor;
-
-                option.textContent =
-                    surveyor;
-
-                surveyorFilter.appendChild(
-                    option
+            const option =
+                document.createElement(
+                    "option"
                 );
 
-            }
-        );
-}
+            option.value =
+                surveyor;
 
+            option.textContent =
+                surveyor;
 
-// ===============================
-// SURVEYOR MANAGEMENT
-// ===============================
-
-function renderSurveyorManagement() {
-
-    const table =
-        document.getElementById(
-            "surveyorManagementTable"
-        );
-
-    if (!table) return;
-
-    table.innerHTML = "";
-
-    SURVEYORS.forEach(
-        function (email) {
-
-            let total = 0;
-            let today = 0;
-            let week = 0;
-            let month = 0;
-
-            allSurveys.forEach(
-                function (survey) {
-
-                    const surveyor =
-                        String(
-                            survey.surveyorEmail ||
-                            survey.surveyorId ||
-                            survey.createdBy ||
-                            ""
-                        )
-                        .trim()
-                        .toLowerCase();
-
-                    if (
-                        surveyor ===
-                        email.toLowerCase()
-                    ) {
-
-                        total++;
-
-                        const date =
-                            getSurveyDate(
-                                survey
-                            );
-
-                        if (isToday(date)) {
-                            today++;
-                        }
-
-                        if (isThisWeek(date)) {
-                            week++;
-                        }
-
-                        if (isThisMonth(date)) {
-                            month++;
-                        }
-
-                    }
-
-                }
+            surveyorFilter.appendChild(
+                option
             );
 
-            const row =
-                document.createElement(
-                    "tr"
-                );
+        });
 
-            row.innerHTML = `
-
-                <td>
-                    ${safe(email)}
-                </td>
-
-                <td>
-                    <strong>
-                        ${total}
-                    </strong>
-                </td>
-
-                <td>
-                    ${today}
-                </td>
-
-                <td>
-                    ${week}
-                </td>
-
-                <td>
-                    ${month}
-                </td>
-
-                <td>
-                    <span class="status-active">
-                        🟢 Active
-                    </span>
-                </td>
-
-            `;
-
-            table.appendChild(row);
-
-        }
-    );
 }
 
 
-// ===============================
+// =====================================
 // FILTER TABLE
-// ===============================
+// =====================================
 
 function filterTable() {
 
@@ -775,12 +720,14 @@ function filterTable() {
                 .trim()
             : "";
 
+
     const selectedParty =
         partyFilter
             ? partyFilter.value
                 .toLowerCase()
                 .trim()
             : "";
+
 
     const selectedDate =
         dateFilter
@@ -789,6 +736,7 @@ function filterTable() {
                 .trim()
             : "";
 
+
     const selectedVillage =
         villageFilter
             ? villageFilter.value
@@ -796,12 +744,14 @@ function filterTable() {
                 .trim()
             : "";
 
+
     const selectedAssembly =
         assemblyFilter
             ? assemblyFilter.value
                 .toLowerCase()
                 .trim()
             : "";
+
 
     const selectedSurveyor =
         surveyorFilter
@@ -818,27 +768,37 @@ function filterTable() {
                 const name =
                     String(
                         survey.name || ""
-                    ).toLowerCase();
+                    )
+                    .toLowerCase();
+
 
                 const mobile =
                     String(
                         survey.mobile || ""
-                    ).toLowerCase();
+                    )
+                    .toLowerCase();
+
 
                 const village =
                     String(
                         survey.village || ""
-                    ).toLowerCase();
+                    )
+                    .toLowerCase();
+
 
                 const assembly =
                     String(
                         survey.assembly || ""
-                    ).toLowerCase();
+                    )
+                    .toLowerCase();
+
 
                 const party =
                     String(
                         survey.party || ""
-                    ).toLowerCase();
+                    )
+                    .toLowerCase();
+
 
                 const surveyor =
                     String(
@@ -846,7 +806,8 @@ function filterTable() {
                         survey.surveyorId ||
                         survey.createdBy ||
                         ""
-                    ).toLowerCase();
+                    )
+                    .toLowerCase();
 
 
                 const searchMatch =
@@ -890,6 +851,7 @@ function filterTable() {
 
 
                 let dateMatch = true;
+
 
                 const date =
                     getSurveyDate(
@@ -940,28 +902,35 @@ function filterTable() {
 
 
     renderTable();
+
     updateFilteredCounts();
+
 }
 
 
-// ===============================
-// RENDER TABLE
-// ===============================
+// =====================================
+// RENDER SURVEY TABLE
+// =====================================
 
 function renderTable() {
 
     if (!surveyTable) return;
 
-    surveyTable.innerHTML = "";
+
+    surveyTable.innerHTML =
+        "";
+
 
     if (
-        filteredSurveys.length === 0
+        filteredSurveys.length ===
+        0
     ) {
 
         surveyTable.innerHTML =
             '<tr><td colspan="9">No survey found.</td></tr>';
 
         return;
+
     }
 
 
@@ -973,10 +942,12 @@ function renderTable() {
                     "tr"
                 );
 
+
             const surveyDate =
                 getSurveyDate(
                     survey
                 );
+
 
             row.innerHTML = `
 
@@ -1015,7 +986,7 @@ function renderTable() {
                 <td>
 
                     <button
-                        onclick="editSurvey('${safeAttr(survey.id)}')"
+                        onclick="editSurvey('${survey.id}')"
                         style="
                             background:#1565c0;
                             color:white;
@@ -1026,7 +997,7 @@ function renderTable() {
                     </button>
 
                     <button
-                        onclick="deleteSurvey('${safeAttr(survey.id)}')"
+                        onclick="deleteSurvey('${survey.id}')"
                         style="
                             background:#c62828;
                             color:white;
@@ -1063,27 +1034,31 @@ function renderTable() {
 
             `;
 
+
             surveyTable.appendChild(
                 row
             );
 
         }
     );
+
 }
 
 
-// ===============================
+// =====================================
 // FILTERED COUNTS
-// ===============================
+// =====================================
 
 function updateFilteredCounts() {
 
     const total =
         filteredSurveys.length;
 
+
     let today = 0;
     let week = 0;
     let month = 0;
+
 
     filteredSurveys.forEach(
         function (survey) {
@@ -1093,13 +1068,16 @@ function updateFilteredCounts() {
                     survey
                 );
 
+
             if (isToday(date)) {
                 today++;
             }
 
+
             if (isThisWeek(date)) {
                 week++;
             }
+
 
             if (isThisMonth(date)) {
                 month++;
@@ -1108,31 +1086,18 @@ function updateFilteredCounts() {
         }
     );
 
+
     setText(
         "filteredSurvey",
         total
     );
 
-    setText(
-        "todaySurvey",
-        today
-    );
-
-    setText(
-        "weekSurvey",
-        week
-    );
-
-    setText(
-        "monthSurvey",
-        month
-    );
 }
 
 
-// ===============================
+// =====================================
 // SURVEYOR PERFORMANCE
-// ===============================
+// =====================================
 
 function updateSurveyorPerformance() {
 
@@ -1141,25 +1106,13 @@ function updateSurveyorPerformance() {
             "surveyorPerformanceTable"
         );
 
+
     if (!performanceTable) {
         return;
     }
 
+
     const performance = {};
-
-
-    SURVEYORS.forEach(
-        function (email) {
-
-            performance[email] = {
-                total: 0,
-                today: 0,
-                week: 0,
-                month: 0
-            };
-
-        }
-    );
 
 
     allSurveys.forEach(
@@ -1171,22 +1124,22 @@ function updateSurveyorPerformance() {
                 survey.createdBy ||
                 "Unknown";
 
-            if (
-                !performance[surveyor]
-            ) {
+
+            if (!performance[surveyor]) {
 
                 performance[surveyor] = {
+
                     total: 0,
                     today: 0,
                     week: 0,
                     month: 0
+
                 };
 
             }
 
-            performance[
-                surveyor
-            ].total++;
+
+            performance[surveyor].total++;
 
 
             const date =
@@ -1196,202 +1149,496 @@ function updateSurveyorPerformance() {
 
 
             if (isToday(date)) {
-                performance[
-                    surveyor
-                ].today++;
+                performance[surveyor].today++;
             }
 
 
             if (isThisWeek(date)) {
-                performance[
-                    surveyor
-                ].week++;
+                performance[surveyor].week++;
             }
 
 
             if (isThisMonth(date)) {
-                performance[
-                    surveyor
-                ].month++;
+                performance[surveyor].month++;
             }
 
         }
     );
 
 
-    performanceTable.innerHTML = "";
+    performanceTable.innerHTML =
+        "";
 
 
-    Object.keys(performance)
-        .sort()
-        .forEach(
-            function (surveyor) {
+    const surveyors =
+        Object.keys(
+            performance
+        ).sort();
 
-                const p =
-                    performance[
-                        surveyor
-                    ];
-
-                const row =
-                    document.createElement(
-                        "tr"
-                    );
-
-                row.innerHTML = `
-
-                    <td>
-                        ${safe(surveyor)}
-                    </td>
-
-                    <td>
-                        <strong>
-                            ${p.total}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${p.today}
-                    </td>
-
-                    <td>
-                        ${p.week}
-                    </td>
-
-                    <td>
-                        ${p.month}
-                    </td>
-
-                `;
-
-                performanceTable.appendChild(
-                    row
-                );
-
-            }
-        );
-}
-
-
-// ===============================
-// SAFE HTML
-// ===============================
-
-function safe(value) {
 
     if (
-        value === null ||
-        value === undefined
+        surveyors.length ===
+        0
     ) {
-        return "";
-    }
 
-    return String(value)
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-}
-
-
-function safeAttr(value) {
-
-    return String(
-        value || ""
-    )
-    .replace(
-        /'/g,
-        "\\'"
-    );
-}
-
-
-// ===============================
-// EDIT SURVEY
-// ===============================
-
-window.editSurvey =
-function (id) {
-
-    const survey =
-        allSurveys.find(
-            function (item) {
-                return item.id === id;
-            }
-        );
-
-
-    if (!survey) {
-
-        alert(
-            "Survey not found."
-        );
+        performanceTable.innerHTML =
+            `
+            <tr>
+                <td colspan="5">
+                    No surveyor data found.
+                </td>
+            </tr>
+            `;
 
         return;
+
     }
 
 
-    const name =
-        prompt(
-            "Enter Name:",
-            survey.name || ""
+    surveyors.forEach(
+        function (surveyor) {
+
+            const p =
+                performance[
+                    surveyor
+                ];
+
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${safe(surveyor)}
+                </td>
+
+                <td>
+                    <strong>
+                        ${p.total}
+                    </strong>
+                </td>
+
+                <td>
+                    ${p.today}
+                </td>
+
+                <td>
+                    ${p.week}
+                </td>
+
+                <td>
+                    ${p.month}
+                </td>
+
+            `;
+
+
+            performanceTable.appendChild(
+                row
+            );
+
+        }
+    );
+
+}
+
+
+// =====================================
+// LOAD SURVEYORS
+// =====================================
+
+function loadSurveyors() {
+
+    const table =
+        document.getElementById(
+            "surveyorManagementTable"
         );
 
 
-    if (name === null) return;
+    if (!table) return;
 
 
-    const village =
-        prompt(
-            "Enter Village:",
-            survey.village || ""
-        );
+    db.collection("surveyors")
+        .get()
+
+        .then(function (snapshot) {
+
+            table.innerHTML =
+                "";
 
 
-    if (village === null) return;
+            if (
+                snapshot.empty
+            ) {
+
+                table.innerHTML =
+                    `
+                    <tr>
+                        <td colspan="6">
+                            No surveyors found.
+                        </td>
+                    </tr>
+                    `;
+
+                return;
+
+            }
 
 
-    const party =
-        prompt(
-            "Enter Party:",
-            survey.party || ""
-        );
+            snapshot.forEach(
+                function (doc) {
+
+                    const data =
+                        doc.data();
 
 
-    if (party === null) return;
+                    const email =
+                        data.email ||
+                        doc.id;
 
 
-    db.collection("surveys")
-        .doc(id)
-        .update({
+                    const enabled =
+                        data.enabled ===
+                        true;
 
-            name: name.trim(),
 
-            village:
-                village.trim(),
+                    const surveyCount =
+                        allSurveys.filter(
+                            function (survey) {
 
-            party:
-                party.trim()
+                                return (
+                                    String(
+                                        survey.surveyorEmail ||
+                                        ""
+                                    )
+                                    .toLowerCase() ===
+                                    String(
+                                        email
+                                    )
+                                    .toLowerCase()
+                                );
+
+                            }
+                        );
+
+
+                    const todayCount =
+                        surveyCount.filter(
+                            function (survey) {
+
+                                return isToday(
+                                    getSurveyDate(
+                                        survey
+                                    )
+                                );
+
+                            }
+                        ).length;
+
+
+                    const weekCount =
+                        surveyCount.filter(
+                            function (survey) {
+
+                                return isThisWeek(
+                                    getSurveyDate(
+                                        survey
+                                    )
+                                );
+
+                            }
+                        ).length;
+
+
+                    const monthCount =
+                        surveyCount.filter(
+                            function (survey) {
+
+                                return isThisMonth(
+                                    getSurveyDate(
+                                        survey
+                                    )
+                                );
+
+                            }
+                        ).length;
+
+
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+
+
+                    row.innerHTML = `
+
+                        <td>
+                            ${safe(email)}
+                        </td>
+
+                        <td>
+                            ${surveyCount.length}
+                        </td>
+
+                        <td>
+                            ${todayCount}
+                        </td>
+
+                        <td>
+                            ${weekCount}
+                        </td>
+
+                        <td>
+                            ${monthCount}
+                        </td>
+
+                        <td>
+
+                            <span
+                                style="
+                                    display:inline-block;
+                                    padding:5px 10px;
+                                    border-radius:15px;
+                                    background:
+                                    ${
+                                        enabled
+                                        ? "#e8f5e9"
+                                        : "#ffebee"
+                                    };
+                                    color:
+                                    ${
+                                        enabled
+                                        ? "#2e7d32"
+                                        : "#c62828"
+                                    };
+                                    font-weight:bold;
+                                "
+                            >
+                                ${
+                                    enabled
+                                    ? "🟢 Active"
+                                    : "🔴 Disabled"
+                                }
+                            </span>
+
+                            <br>
+
+                            <button
+                                onclick="
+                                    toggleSurveyor(
+                                        '${doc.id}',
+                                        ${enabled}
+                                    )
+                                "
+                                style="
+                                    background:
+                                    ${
+                                        enabled
+                                        ? "#c62828"
+                                        : "#2e7d32"
+                                    };
+                                    color:white;
+                                    margin-top:6px;
+                                "
+                            >
+                                ${
+                                    enabled
+                                    ? "Disable"
+                                    : "Enable"
+                                }
+                            </button>
+
+                        </td>
+
+                    `;
+
+
+                    table.appendChild(
+                        row
+                    );
+
+                }
+            );
 
         })
 
-        .then(
-            function () {
+        .catch(function (error) {
+
+            console.error(
+                "Surveyor Load Error:",
+                error
+            );
+
+
+            table.innerHTML =
+                `
+                <tr>
+                    <td colspan="6">
+                        Unable to load surveyors.
+                    </td>
+                </tr>
+                `;
+
+        });
+
+}
+
+
+// =====================================
+// ENABLE / DISABLE SURVEYOR
+// =====================================
+
+window.toggleSurveyor =
+    function (
+        documentId,
+        currentStatus
+    ) {
+
+        const newStatus =
+            !currentStatus;
+
+
+        const action =
+            newStatus
+                ? "enable"
+                : "disable";
+
+
+        const confirmAction =
+            confirm(
+                "Are you sure you want to " +
+                action +
+                " this surveyor?"
+            );
+
+
+        if (!confirmAction) {
+            return;
+        }
+
+
+        db.collection("surveyors")
+            .doc(documentId)
+            .update({
+
+                enabled:
+                    newStatus
+
+            })
+
+            .then(function () {
+
+                alert(
+                    "Surveyor " +
+                    (
+                        newStatus
+                            ? "enabled"
+                            : "disabled"
+                    ) +
+                    " successfully."
+                );
+
+
+                loadSurveyors();
+
+            })
+
+            .catch(function (error) {
+
+                console.error(
+                    "Status Update Error:",
+                    error
+                );
+
+
+                alert(
+                    "Unable to change status: " +
+                    error.message
+                );
+
+            });
+
+    };
+
+
+// =====================================
+// EDIT SURVEY
+// =====================================
+
+window.editSurvey =
+    function (id) {
+
+        const survey =
+            allSurveys.find(
+                function (item) {
+
+                    return item.id === id;
+
+                }
+            );
+
+
+        if (!survey) {
+
+            alert(
+                "Survey not found."
+            );
+
+            return;
+
+        }
+
+
+        const name =
+            prompt(
+                "Enter Name:",
+                survey.name || ""
+            );
+
+
+        if (name === null) return;
+
+
+        const village =
+            prompt(
+                "Enter Village:",
+                survey.village || ""
+            );
+
+
+        if (village === null) return;
+
+
+        const party =
+            prompt(
+                "Enter Party:",
+                survey.party || ""
+            );
+
+
+        if (party === null) return;
+
+
+        db.collection("surveys")
+            .doc(id)
+            .update({
+
+                name:
+                    name.trim(),
+
+                village:
+                    village.trim(),
+
+                party:
+                    party.trim()
+
+            })
+
+            .then(function () {
 
                 alert(
                     "Survey updated successfully."
@@ -1399,11 +1646,9 @@ function (id) {
 
                 loadSurveys();
 
-            }
-        )
+            })
 
-        .catch(
-            function (error) {
+            .catch(function (error) {
 
                 console.error(error);
 
@@ -1412,33 +1657,34 @@ function (id) {
                     error.message
                 );
 
-            }
-        );
-};
+            });
+
+    };
 
 
-// ===============================
+// =====================================
 // DELETE SURVEY
-// ===============================
+// =====================================
 
 window.deleteSurvey =
-function (id) {
+    function (id) {
 
-    const confirmDelete =
-        confirm(
-            "Are you sure you want to delete this survey?"
-        );
-
-
-    if (!confirmDelete) return;
+        const confirmDelete =
+            confirm(
+                "Are you sure you want to delete this survey?"
+            );
 
 
-    db.collection("surveys")
-        .doc(id)
-        .delete()
+        if (!confirmDelete) {
+            return;
+        }
 
-        .then(
-            function () {
+
+        db.collection("surveys")
+            .doc(id)
+            .delete()
+
+            .then(function () {
 
                 alert(
                     "Survey deleted successfully."
@@ -1446,11 +1692,9 @@ function (id) {
 
                 loadSurveys();
 
-            }
-        )
+            })
 
-        .catch(
-            function (error) {
+            .catch(function (error) {
 
                 console.error(error);
 
@@ -1459,14 +1703,14 @@ function (id) {
                     error.message
                 );
 
-            }
-        );
-};
+            });
+
+    };
 
 
-// ===============================
-// SEARCH EVENTS
-// ===============================
+// =====================================
+// EVENTS
+// =====================================
 
 if (searchBox) {
 
@@ -1477,6 +1721,7 @@ if (searchBox) {
 
 }
 
+
 if (partyFilter) {
 
     partyFilter.addEventListener(
@@ -1485,6 +1730,7 @@ if (partyFilter) {
     );
 
 }
+
 
 if (dateFilter) {
 
@@ -1495,6 +1741,7 @@ if (dateFilter) {
 
 }
 
+
 if (villageFilter) {
 
     villageFilter.addEventListener(
@@ -1504,6 +1751,7 @@ if (villageFilter) {
 
 }
 
+
 if (assemblyFilter) {
 
     assemblyFilter.addEventListener(
@@ -1512,6 +1760,7 @@ if (assemblyFilter) {
     );
 
 }
+
 
 if (surveyorFilter) {
 
@@ -1523,9 +1772,9 @@ if (surveyorFilter) {
 }
 
 
-// ===============================
-// RESET FILTERS
-// ===============================
+// =====================================
+// RESET
+// =====================================
 
 if (resetFilters) {
 
@@ -1561,12 +1810,13 @@ if (resetFilters) {
 
         }
     );
+
 }
 
 
-// ===============================
+// =====================================
 // EXPORT EXCEL
-// ===============================
+// =====================================
 
 if (exportExcel) {
 
@@ -1584,11 +1834,13 @@ if (exportExcel) {
                 );
 
                 return;
+
             }
 
 
             if (
-                filteredSurveys.length === 0
+                filteredSurveys.length ===
+                0
             ) {
 
                 alert(
@@ -1596,6 +1848,7 @@ if (exportExcel) {
                 );
 
                 return;
+
             }
 
 
@@ -1607,6 +1860,7 @@ if (exportExcel) {
                             getSurveyDate(
                                 survey
                             );
+
 
                         return {
 
@@ -1680,12 +1934,13 @@ if (exportExcel) {
 
         }
     );
+
 }
 
 
-// ===============================
+// =====================================
 // LOGOUT
-// ===============================
+// =====================================
 
 if (logoutBtn) {
 
@@ -1696,40 +1951,69 @@ if (logoutBtn) {
             firebase.auth()
                 .signOut()
 
-                .then(
-                    function () {
+                .then(function () {
 
-                        window.location.href =
-                            "index.html";
+                    window.location.replace(
+                        "index.html"
+                    );
 
-                    }
-                )
+                })
 
-                .catch(
-                    function (error) {
+                .catch(function (error) {
 
-                        console.error(
-                            error
-                        );
+                    console.error(
+                        error
+                    );
 
-                    }
-                );
+                });
 
         }
     );
+
 }
 
 
-// ===============================
-// INITIAL PERFORMANCE UPDATE
-// ===============================
+// =====================================
+// SAFE HTML
+// =====================================
 
-setTimeout(
-    function () {
+function safe(value) {
 
-        updateSurveyorPerformance();
-        renderSurveyorManagement();
+    if (
+        value === null ||
+        value === undefined
+    ) {
 
-    },
-    1000
-);
+        return "";
+
+    }
+
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
