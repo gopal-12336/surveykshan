@@ -29,6 +29,13 @@
             font-weight: bold;
         }
 
+        .admin-info {
+            text-align: center;
+            color: #555;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
         .dashboard {
             display: grid;
             grid-template-columns:
@@ -59,6 +66,20 @@
 
         .container {
             padding: 20px;
+        }
+
+        .section-title {
+            background: white;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow:
+                0 2px 8px rgba(0,0,0,.1);
+        }
+
+        .section-title h2 {
+            margin: 0;
+            color: #1565c0;
         }
 
         .filters {
@@ -132,25 +153,13 @@
             display: block;
         }
 
-        .section-title {
-            background: white;
-            padding: 15px;
-            margin-top: 20px;
-            border-radius: 8px;
-            box-shadow:
-                0 2px 8px rgba(0,0,0,.1);
-        }
-
-        .section-title h2 {
-            margin: 0;
-            color: #1565c0;
-        }
-
-        .admin-info {
-            text-align: center;
-            color: #555;
-            font-size: 14px;
-            margin-bottom: 10px;
+        .status-active {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: bold;
         }
 
         @media (max-width: 768px) {
@@ -187,6 +196,7 @@
             #partyChart {
                 max-width: 100%;
             }
+
         }
 
     </style>
@@ -202,144 +212,85 @@
 <!-- ========================= -->
 
 <div class="header">
-
     Surveykshan Admin Dashboard
-
 </div>
 
 
 <div class="admin-info">
-
     Admin Panel • Survey Management System
-
 </div>
 
 
 <!-- ========================= -->
-<!-- DASHBOARD CARDS -->
+<!-- DASHBOARD -->
 <!-- ========================= -->
 
 <div class="dashboard">
 
 
     <div class="card">
-
         <h4>Total Surveys</h4>
-
-        <h2 id="totalSurvey">
-            0
-        </h2>
-
+        <h2 id="totalSurvey">0</h2>
     </div>
 
 
     <div class="card">
-
         <h4>BJP</h4>
-
-        <h2 id="bjpCount">
-            0
-        </h2>
-
+        <h2 id="bjpCount">0</h2>
     </div>
 
 
     <div class="card">
-
         <h4>Congress</h4>
-
-        <h2 id="congressCount">
-            0
-        </h2>
-
+        <h2 id="congressCount">0</h2>
     </div>
 
 
     <div class="card">
-
         <h4>AAP</h4>
-
-        <h2 id="aapCount">
-            0
-        </h2>
-
+        <h2 id="aapCount">0</h2>
     </div>
 
 
     <div class="card">
-
         <h4>BSP</h4>
-
-        <h2 id="bspCount">
-            0
-        </h2>
-
+        <h2 id="bspCount">0</h2>
     </div>
 
 
     <div class="card">
-
         <h4>SP</h4>
-
-        <h2 id="spCount">
-            0
-        </h2>
-
+        <h2 id="spCount">0</h2>
     </div>
 
 
     <div class="card">
-
         <h4>Others</h4>
-
-        <h2 id="otherCount">
-            0
-        </h2>
-
+        <h2 id="otherCount">0</h2>
     </div>
 
 
     <div class="card">
-
         <h4>Today's Surveys</h4>
-
-        <h2 id="todaySurvey">
-            0
-        </h2>
-
+        <h2 id="todaySurvey">0</h2>
     </div>
 
 
     <div class="card">
-
         <h4>This Week</h4>
-
-        <h2 id="weekSurvey">
-            0
-        </h2>
-
+        <h2 id="weekSurvey">0</h2>
     </div>
 
 
     <div class="card">
-
         <h4>This Month</h4>
-
-        <h2 id="monthSurvey">
-            0
-        </h2>
-
+        <h2 id="monthSurvey">0</h2>
     </div>
 
 
     <div class="card">
-
         <h4>Filtered Surveys</h4>
-
-        <h2 id="filteredSurvey">
-            0
-        </h2>
-
+        <h2 id="filteredSurvey">0</h2>
     </div>
 
 
@@ -347,7 +298,7 @@
 
 
 <!-- ========================= -->
-<!-- MAIN CONTAINER -->
+<!-- MAIN -->
 <!-- ========================= -->
 
 <div class="container">
@@ -369,15 +320,11 @@
     <div class="filters">
 
 
-        <!-- SEARCH -->
-
         <input
             type="text"
             id="searchBox"
             placeholder="Search Name, Mobile, Village">
 
-
-        <!-- PARTY -->
 
         <select id="partyFilter">
 
@@ -412,8 +359,6 @@
         </select>
 
 
-        <!-- DATE -->
-
         <select id="dateFilter">
 
             <option value="">
@@ -435,8 +380,6 @@
         </select>
 
 
-        <!-- VILLAGE -->
-
         <select id="villageFilter">
 
             <option value="">
@@ -445,8 +388,6 @@
 
         </select>
 
-
-        <!-- ASSEMBLY -->
 
         <select id="assemblyFilter">
 
@@ -457,8 +398,6 @@
         </select>
 
 
-        <!-- SURVEYOR -->
-
         <select id="surveyorFilter">
 
             <option value="">
@@ -468,30 +407,18 @@
         </select>
 
 
-        <!-- RESET -->
-
         <button id="resetFilters">
-
             🔄 Reset
-
         </button>
 
-
-        <!-- EXPORT -->
 
         <button id="exportExcel">
-
             📥 Export Excel
-
         </button>
 
 
-        <!-- LOGOUT -->
-
         <button id="logoutBtn">
-
             🚪 Logout
-
         </button>
 
 
@@ -535,12 +462,57 @@
 
                 <tr>
 
+                    <th>Surveyor</th>
+
+                    <th>Total Surveys</th>
+
+                    <th>Today</th>
+
+                    <th>This Week</th>
+
+                    <th>This Month</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="surveyorPerformanceTable">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- SURVEYOR MANAGEMENT -->
+    <!-- ========================= -->
+
+    <div class="section-title">
+
+        <h2>
+            👥 Surveyor Management
+        </h2>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
                     <th>
-                        Surveyor
+                        Surveyor Email
                     </th>
 
                     <th>
-                        Total Surveys
+                        Total
                     </th>
 
                     <th>
@@ -555,13 +527,17 @@
                         This Month
                     </th>
 
+                    <th>
+                        Status
+                    </th>
+
                 </tr>
 
             </thead>
 
 
             <tbody
-                id="surveyorPerformanceTable">
+                id="surveyorManagementTable">
 
             </tbody>
 
@@ -571,7 +547,7 @@
 
 
     <!-- ========================= -->
-    <!-- SURVEY TABLE -->
+    <!-- SURVEY RECORDS -->
     <!-- ========================= -->
 
     <div class="section-title">
@@ -591,49 +567,30 @@
 
                 <tr>
 
-                    <th>
-                        Name
-                    </th>
+                    <th>Name</th>
 
-                    <th>
-                        Mobile
-                    </th>
+                    <th>Mobile</th>
 
-                    <th>
-                        Age
-                    </th>
+                    <th>Age</th>
 
-                    <th>
-                        Gender
-                    </th>
+                    <th>Gender</th>
 
-                    <th>
-                        Village
-                    </th>
+                    <th>Village</th>
 
-                    <th>
-                        Party
-                    </th>
+                    <th>Party</th>
 
-                    <th>
-                        Candidate
-                    </th>
+                    <th>Candidate</th>
 
-                    <th>
-                        Feedback
-                    </th>
+                    <th>Feedback</th>
 
-                    <th>
-                        Action
-                    </th>
+                    <th>Action</th>
 
                 </tr>
 
             </thead>
 
 
-            <tbody
-                id="surveyTable">
+            <tbody id="surveyTable">
 
             </tbody>
 
@@ -661,33 +618,25 @@
 </script>
 
 
-<!-- ========================= -->
 <!-- FIREBASE CONFIG -->
-<!-- ========================= -->
 
 <script src="firebase.js">
 </script>
 
 
-<!-- ========================= -->
 <!-- EXCEL -->
-<!-- ========================= -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
 </script>
 
 
-<!-- ========================= -->
-<!-- CHART.JS -->
-<!-- ========================= -->
+<!-- CHART -->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js">
 </script>
 
 
-<!-- ========================= -->
 <!-- ADMIN JS -->
-<!-- ========================= -->
 
 <script src="admin.js">
 </script>
