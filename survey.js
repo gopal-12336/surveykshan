@@ -10,48 +10,55 @@ const message =
     document.getElementById("message");
 
 
-// =================================
-// CHECK LOGIN
-// =================================
+// =====================================
+// TAB SESSION AUTH
+// =====================================
 
-firebase.auth().onAuthStateChanged(function (user) {
+firebase.auth().setPersistence(
+    firebase.auth.Auth.Persistence.SESSION
+)
+.then(function () {
 
-    if (!user) {
+    firebase.auth().onAuthStateChanged(function (user) {
 
-        window.location.replace(
-            "index.html"
+        if (!user) {
+
+            window.location.replace("index.html");
+            return;
+        }
+
+        // Admin cannot use survey page
+        if (
+            user.email &&
+            user.email.toLowerCase() ===
+            ADMIN_EMAIL.toLowerCase()
+        ) {
+
+            window.location.replace("admin.html");
+            return;
+        }
+
+        console.log(
+            "Surveyor logged in:",
+            user.email
         );
 
-        return;
-    }
+    });
 
+})
+.catch(function (error) {
 
-    // Admin को Surveyor page पर नहीं आने देना
-    if (
-        user.email &&
-        user.email.toLowerCase() ===
-        ADMIN_EMAIL.toLowerCase()
-    ) {
-
-        window.location.replace(
-            "admin.html"
-        );
-
-        return;
-    }
-
-
-    console.log(
-        "Surveyor logged in:",
-        user.email
+    console.error(
+        "Auth Persistence Error:",
+        error
     );
 
 });
 
 
-// =================================
+// =====================================
 // SUBMIT SURVEY
-// =================================
+// =====================================
 
 if (submitBtn) {
 
@@ -60,108 +67,57 @@ if (submitBtn) {
         function () {
 
             const name =
-                document.getElementById(
-                    "name"
-                ).value.trim();
+                document.getElementById("name")
+                    .value.trim();
 
             const mobile =
-                document.getElementById(
-                    "mobile"
-                ).value.trim();
+                document.getElementById("mobile")
+                    .value.trim();
 
             const age =
-                document.getElementById(
-                    "age"
-                ).value.trim();
+                document.getElementById("age")
+                    .value.trim();
 
             const gender =
-                document.getElementById(
-                    "gender"
-                ).value;
+                document.getElementById("gender")
+                    .value;
 
             const village =
-                document.getElementById(
-                    "village"
-                ).value.trim();
+                document.getElementById("village")
+                    .value.trim();
 
             const assembly =
-                document.getElementById(
-                    "assembly"
-                ).value.trim();
+                document.getElementById("assembly")
+                    .value.trim();
 
             const party =
-                document.getElementById(
-                    "party"
-                ).value;
+                document.getElementById("party")
+                    .value;
 
             const candidate =
-                document.getElementById(
-                    "candidate"
-                ).value.trim();
+                document.getElementById("candidate")
+                    .value.trim();
 
             const feedback =
-                document.getElementById(
-                    "feedback"
-                ).value.trim();
+                document.getElementById("feedback")
+                    .value.trim();
 
 
-            // -----------------------------
-            // VALIDATION
-            // -----------------------------
+            if (!name ||
+                !mobile ||
+                !age ||
+                !gender ||
+                !village ||
+                !assembly ||
+                !party) {
 
-            if (!name) {
                 showMessage(
-                    "Please enter Name."
+                    "Please fill all required fields."
                 );
+
                 return;
             }
 
-            if (!mobile) {
-                showMessage(
-                    "Please enter Mobile Number."
-                );
-                return;
-            }
-
-            if (!age) {
-                showMessage(
-                    "Please enter Age."
-                );
-                return;
-            }
-
-            if (!gender) {
-                showMessage(
-                    "Please select Gender."
-                );
-                return;
-            }
-
-            if (!village) {
-                showMessage(
-                    "Please enter Village / City."
-                );
-                return;
-            }
-
-            if (!assembly) {
-                showMessage(
-                    "Please enter Assembly Constituency."
-                );
-                return;
-            }
-
-            if (!party) {
-                showMessage(
-                    "Please select Political Party."
-                );
-                return;
-            }
-
-
-            // -----------------------------
-            // CHECK USER
-            // -----------------------------
 
             const user =
                 firebase.auth().currentUser;
@@ -179,15 +135,13 @@ if (submitBtn) {
                         "index.html"
                     );
 
-                }, 1500);
+                }, 1000);
 
                 return;
             }
 
 
-            // Admin cannot submit survey
             if (
-                user.email &&
                 user.email.toLowerCase() ===
                 ADMIN_EMAIL.toLowerCase()
             ) {
@@ -200,42 +154,24 @@ if (submitBtn) {
             }
 
 
-            // -----------------------------
-            // BUTTON
-            // -----------------------------
-
             submitBtn.disabled = true;
-
             submitBtn.textContent =
                 "Submitting...";
 
-
             message.textContent = "";
 
-
-            // -----------------------------
-            // SAVE FIRESTORE
-            // -----------------------------
 
             db.collection("surveys")
                 .add({
 
                     name: name,
-
                     mobile: mobile,
-
                     age: age,
-
                     gender: gender,
-
                     village: village,
-
                     assembly: assembly,
-
                     party: party,
-
                     candidate: candidate,
-
                     feedback: feedback,
 
                     surveyorEmail:
@@ -245,64 +181,30 @@ if (submitBtn) {
                         user.uid,
 
                     createdAt:
-                        firebase.firestore.FieldValue
+                        firebase.firestore
+                            .FieldValue
                             .serverTimestamp()
 
                 })
 
                 .then(function () {
 
-                    console.log(
-                        "Survey submitted successfully"
-                    );
-
-
                     showMessage(
                         "Survey submitted successfully!",
                         true
                     );
 
-
-                    // Clear form
-                    document.getElementById(
-                        "name"
-                    ).value = "";
-
-                    document.getElementById(
-                        "mobile"
-                    ).value = "";
-
-                    document.getElementById(
-                        "age"
-                    ).value = "";
-
-                    document.getElementById(
-                        "gender"
-                    ).value = "";
-
-                    document.getElementById(
-                        "village"
-                    ).value = "";
-
-                    document.getElementById(
-                        "assembly"
-                    ).value = "";
-
-                    document.getElementById(
-                        "party"
-                    ).value = "";
-
-                    document.getElementById(
-                        "candidate"
-                    ).value = "";
-
-                    document.getElementById(
-                        "feedback"
-                    ).value = "";
-
+                    document.getElementById("name").value = "";
+                    document.getElementById("mobile").value = "";
+                    document.getElementById("age").value = "";
+                    document.getElementById("gender").value = "";
+                    document.getElementById("village").value = "";
+                    document.getElementById("assembly").value = "";
+                    document.getElementById("party").value = "";
+                    document.getElementById("candidate").value = "";
+                    document.getElementById("feedback").value = "";
 
                     submitBtn.disabled = false;
-
                     submitBtn.textContent =
                         "Submit Survey";
 
@@ -315,16 +217,12 @@ if (submitBtn) {
                         error
                     );
 
-
                     showMessage(
                         "Survey submit failed: " +
                         error.message
                     );
 
-
-                    submitBtn.disabled =
-                        false;
-
+                    submitBtn.disabled = false;
                     submitBtn.textContent =
                         "Submit Survey";
 
@@ -336,29 +234,16 @@ if (submitBtn) {
 }
 
 
-// =================================
+// =====================================
 // MESSAGE
-// =================================
+// =====================================
 
-function showMessage(
-    text,
-    success = false
-) {
+function showMessage(text, success = false) {
 
     if (!message) return;
 
     message.textContent = text;
 
-    if (success) {
-
-        message.style.color =
-            "green";
-
-    } else {
-
-        message.style.color =
-            "red";
-
-    }
-
+    message.style.color =
+        success ? "green" : "red";
 }
