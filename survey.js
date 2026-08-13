@@ -1,6 +1,8 @@
+```javascript
 console.log("Survey JS Loaded");
 
-const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
+const ADMIN_EMAIL =
+    "goswamivinod2305@gmail.com";
 
 let DAILY_LIMIT = 20;
 
@@ -9,6 +11,256 @@ const submitBtn =
 
 const message =
     document.getElementById("message");
+
+
+// =====================================
+// DAILY PROGRESS UI
+// =====================================
+
+function createProgressUI() {
+
+    if (
+        document.getElementById(
+            "dailyProgressBox"
+        )
+    ) {
+        return;
+    }
+
+
+    const box =
+        document.createElement("div");
+
+    box.id =
+        "dailyProgressBox";
+
+
+    box.innerHTML = `
+
+        <div style="
+            background:#ffffff;
+            border:1px solid #e0e0e0;
+            border-radius:12px;
+            padding:15px;
+            margin:15px 0;
+            box-shadow:0 2px 8px rgba(0,0,0,.08);
+        ">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:10px;
+                margin-bottom:8px;
+                font-size:15px;
+                font-weight:bold;
+            ">
+
+                <span>
+                    📊 Today's Progress
+                </span>
+
+                <span id="dailyProgressText">
+                    0 / 20
+                </span>
+
+            </div>
+
+
+            <div style="
+                width:100%;
+                height:12px;
+                background:#eeeeee;
+                border-radius:20px;
+                overflow:hidden;
+            ">
+
+                <div
+                    id="dailyProgressBar"
+                    style="
+                        width:0%;
+                        height:100%;
+                        background:#1565c0;
+                        border-radius:20px;
+                        transition:width .4s ease;
+                    ">
+                </div>
+
+            </div>
+
+
+            <div
+                id="dailyRemainingText"
+                style="
+                    margin-top:8px;
+                    font-size:13px;
+                    color:#555;
+                "
+            >
+                Remaining today: 20
+            </div>
+
+        </div>
+
+    `;
+
+
+    /*
+        Insert progress box before
+        the login/form box if possible.
+    */
+
+    const formBox =
+        document.querySelector(
+            ".login-box"
+        );
+
+
+    if (formBox) {
+
+        formBox.parentNode.insertBefore(
+            box,
+            formBox
+        );
+
+    }
+    else {
+
+        document.body.insertBefore(
+            box,
+            document.body.firstChild
+        );
+
+    }
+
+}
+
+
+// =====================================
+// UPDATE DAILY PROGRESS UI
+// =====================================
+
+function updateDailyProgress(
+    todayCount
+) {
+
+    createProgressUI();
+
+
+    const progressText =
+        document.getElementById(
+            "dailyProgressText"
+        );
+
+
+    const remainingText =
+        document.getElementById(
+            "dailyRemainingText"
+        );
+
+
+    const progressBar =
+        document.getElementById(
+            "dailyProgressBar"
+        );
+
+
+    if (
+        !progressText ||
+        !remainingText ||
+        !progressBar
+    ) {
+        return;
+    }
+
+
+    const limit =
+        Number(DAILY_LIMIT) || 20;
+
+
+    const count =
+        Number(todayCount) || 0;
+
+
+    const remaining =
+        Math.max(
+            limit - count,
+            0
+        );
+
+
+    const percentage =
+        limit > 0
+
+            ? Math.min(
+                (count / limit) * 100,
+                100
+            )
+
+            : 100;
+
+
+    progressText.textContent =
+        count +
+        " / " +
+        limit;
+
+
+    remainingText.textContent =
+        remaining > 0
+
+            ? "Remaining today: " +
+              remaining
+
+            : "Daily limit reached";
+
+
+    progressBar.style.width =
+        percentage + "%";
+
+
+    if (count >= limit) {
+
+        progressBar.style.background =
+            "#c62828";
+
+        progressText.style.color =
+            "#c62828";
+
+        remainingText.style.color =
+            "#c62828";
+
+    }
+
+    else if (
+        percentage >= 80
+    ) {
+
+        progressBar.style.background =
+            "#ef6c00";
+
+        progressText.style.color =
+            "#ef6c00";
+
+        remainingText.style.color =
+            "#555";
+
+    }
+
+    else {
+
+        progressBar.style.background =
+            "#1565c0";
+
+        progressText.style.color =
+            "#1565c0";
+
+        remainingText.style.color =
+            "#555";
+
+    }
+
+}
 
 
 // =====================================
@@ -25,13 +277,30 @@ function loadDailyLimit() {
 
             if (
                 doc.exists &&
-                doc.data().dailyLimit !== undefined
+                doc.data().dailyLimit !==
+                undefined
             ) {
 
-                DAILY_LIMIT =
-                    Number(doc.data().dailyLimit);
+                const newLimit =
+                    Number(
+                        doc.data().dailyLimit
+                    );
+
+
+                if (
+                    Number.isFinite(
+                        newLimit
+                    ) &&
+                    newLimit > 0
+                ) {
+
+                    DAILY_LIMIT =
+                        newLimit;
+
+                }
 
             }
+
 
             console.log(
                 "Daily Limit:",
@@ -46,6 +315,7 @@ function loadDailyLimit() {
                 "Daily Limit Load Error:",
                 error
             );
+
 
             // Default limit
             DAILY_LIMIT = 20;
@@ -75,6 +345,7 @@ firebase.auth().setPersistence(
                 );
 
                 return;
+
             }
 
 
@@ -90,6 +361,7 @@ firebase.auth().setPersistence(
                 );
 
                 return;
+
             }
 
 
@@ -99,11 +371,18 @@ firebase.auth().setPersistence(
             );
 
 
+            // Create progress UI
+            createProgressUI();
+
+
             // Load limit first
             loadDailyLimit()
+
                 .then(function() {
 
-                    checkSurveyorStatus(user);
+                    checkSurveyorStatus(
+                        user
+                    );
 
                 });
 
@@ -140,28 +419,41 @@ function checkSurveyorStatus(user) {
                     "Surveyor account not registered."
                 );
 
+
                 if (submitBtn) {
-                    submitBtn.disabled = true;
+
+                    submitBtn.disabled =
+                        true;
+
                 }
 
                 return;
+
             }
 
 
-            const data = doc.data();
+            const data =
+                doc.data();
 
 
-            if (data.enabled !== true) {
+            if (
+                data.enabled !== true
+            ) {
 
                 showMessage(
                     "Your surveyor account is disabled by Admin."
                 );
 
+
                 if (submitBtn) {
-                    submitBtn.disabled = true;
+
+                    submitBtn.disabled =
+                        true;
+
                 }
 
                 return;
+
             }
 
 
@@ -175,6 +467,7 @@ function checkSurveyorStatus(user) {
                 "Surveyor Status Error:",
                 error
             );
+
 
             showMessage(
                 "Unable to check account status."
@@ -193,6 +486,7 @@ function getTodayCount(user) {
 
     const todayStart =
         new Date();
+
 
     todayStart.setHours(
         0,
@@ -222,7 +516,9 @@ function getTodayCount(user) {
 
 
                 if (!data.createdAt) {
+
                     return;
+
                 }
 
 
@@ -299,8 +595,15 @@ function checkDailyLimit(user) {
             );
 
 
+            // Update progress
+            updateDailyProgress(
+                todayCount
+            );
+
+
             if (
-                todayCount >= DAILY_LIMIT
+                todayCount >=
+                DAILY_LIMIT
             ) {
 
                 showMessage(
@@ -308,16 +611,31 @@ function checkDailyLimit(user) {
                     " surveys completed today. Daily limit reached."
                 );
 
+
                 if (submitBtn) {
-                    submitBtn.disabled = true;
+
+                    submitBtn.disabled =
+                        true;
+
+                    submitBtn.textContent =
+                        "Daily Limit Reached";
+
                 }
 
+
                 return;
+
             }
 
 
             if (submitBtn) {
-                submitBtn.disabled = false;
+
+                submitBtn.disabled =
+                    false;
+
+                submitBtn.textContent =
+                    "Submit Survey";
+
             }
 
 
@@ -337,6 +655,7 @@ function checkDailyLimit(user) {
                 "Daily Limit Error:",
                 error
             );
+
 
             showMessage(
                 "Unable to check today's survey count."
@@ -367,6 +686,7 @@ if (submitBtn) {
                     "Session expired. Please login again."
                 );
 
+
                 setTimeout(function() {
 
                     window.location.replace(
@@ -375,7 +695,9 @@ if (submitBtn) {
 
                 }, 1000);
 
+
                 return;
+
             }
 
 
@@ -390,6 +712,7 @@ if (submitBtn) {
                 );
 
                 return;
+
             }
 
 
@@ -397,33 +720,41 @@ if (submitBtn) {
                 document.getElementById("name")
                     .value.trim();
 
+
             const mobile =
                 document.getElementById("mobile")
                     .value.trim();
+
 
             const age =
                 document.getElementById("age")
                     .value.trim();
 
+
             const gender =
                 document.getElementById("gender")
                     .value;
+
 
             const village =
                 document.getElementById("village")
                     .value.trim();
 
+
             const assembly =
                 document.getElementById("assembly")
                     .value.trim();
+
 
             const party =
                 document.getElementById("party")
                     .value;
 
+
             const candidate =
                 document.getElementById("candidate")
                     .value.trim();
+
 
             const feedback =
                 document.getElementById("feedback")
@@ -445,10 +776,13 @@ if (submitBtn) {
                 );
 
                 return;
+
             }
 
 
-            submitBtn.disabled = true;
+            submitBtn.disabled =
+                true;
+
 
             submitBtn.textContent =
                 "Checking...";
@@ -461,7 +795,9 @@ if (submitBtn) {
 
                 .then(function(surveyorDoc) {
 
-                    if (!surveyorDoc.exists) {
+                    if (
+                        !surveyorDoc.exists
+                    ) {
 
                         throw new Error(
                             "Surveyor account not registered."
@@ -475,7 +811,8 @@ if (submitBtn) {
 
 
                     if (
-                        surveyorData.enabled !== true
+                        surveyorData.enabled !==
+                        true
                     ) {
 
                         throw new Error(
@@ -492,14 +829,23 @@ if (submitBtn) {
 
                 .then(function() {
 
-                    return getTodayCount(user);
+                    return getTodayCount(
+                        user
+                    );
 
                 })
 
                 .then(function(todayCount) {
 
+                    // Update progress before submit
+                    updateDailyProgress(
+                        todayCount
+                    );
+
+
                     if (
-                        todayCount >= DAILY_LIMIT
+                        todayCount >=
+                        DAILY_LIMIT
                     ) {
 
                         throw new Error(
@@ -518,23 +864,32 @@ if (submitBtn) {
                     return db.collection("surveys")
                         .add({
 
-                            name: name,
+                            name:
+                                name,
 
-                            mobile: mobile,
+                            mobile:
+                                mobile,
 
-                            age: age,
+                            age:
+                                age,
 
-                            gender: gender,
+                            gender:
+                                gender,
 
-                            village: village,
+                            village:
+                                village,
 
-                            assembly: assembly,
+                            assembly:
+                                assembly,
 
-                            party: party,
+                            party:
+                                party,
 
-                            candidate: candidate,
+                            candidate:
+                                candidate,
 
-                            feedback: feedback,
+                            feedback:
+                                feedback,
 
                             surveyorEmail:
                                 user.email,
@@ -563,58 +918,101 @@ if (submitBtn) {
                         "name"
                     ).value = "";
 
+
                     document.getElementById(
                         "mobile"
                     ).value = "";
+
 
                     document.getElementById(
                         "age"
                     ).value = "";
 
+
                     document.getElementById(
                         "gender"
                     ).value = "";
+
 
                     document.getElementById(
                         "village"
                     ).value = "";
 
+
                     document.getElementById(
                         "assembly"
                     ).value = "";
+
 
                     document.getElementById(
                         "party"
                     ).value = "";
 
+
                     document.getElementById(
                         "candidate"
                     ).value = "";
+
 
                     document.getElementById(
                         "feedback"
                     ).value = "";
 
 
-                    submitBtn.disabled = false;
+                    /*
+                        Get fresh count immediately
+                        after successful submission.
+                    */
 
-                    submitBtn.textContent =
-                        "Submit Survey";
+                    return loadDailyLimit()
+
+                        .then(function() {
+
+                            return getTodayCount(
+                                user
+                            );
+
+                        })
+
+                        .then(function(newCount) {
+
+                            updateDailyProgress(
+                                newCount
+                            );
 
 
-                    // Update counter
-                    setTimeout(function() {
+                            if (
+                                newCount >=
+                                DAILY_LIMIT
+                            ) {
 
-                        loadDailyLimit()
-                            .then(function() {
+                                submitBtn.disabled =
+                                    true;
 
-                                checkDailyLimit(
-                                    user
+                                submitBtn.textContent =
+                                    "Daily Limit Reached";
+
+                                showMessage(
+                                    "Daily limit reached: " +
+                                    newCount +
+                                    " / " +
+                                    DAILY_LIMIT,
+                                    true
                                 );
 
-                            });
+                            }
 
-                    }, 500);
+                            else {
+
+                                submitBtn.disabled =
+                                    false;
+
+                                submitBtn.textContent =
+                                    "Submit Survey";
+
+                            }
+
+                        });
 
                 })
 
@@ -632,10 +1030,22 @@ if (submitBtn) {
                     );
 
 
-                    submitBtn.disabled = false;
+                    submitBtn.disabled =
+                        false;
+
 
                     submitBtn.textContent =
                         "Submit Survey";
+
+
+                    /*
+                        Refresh progress even
+                        when submission fails.
+                    */
+
+                    checkDailyLimit(
+                        user
+                    );
 
                 });
 
@@ -667,3 +1077,4 @@ function showMessage(
             : "red";
 
 }
+```
