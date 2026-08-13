@@ -5,8 +5,26 @@ const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
 let DAILY_LIMIT = 20;
 
-const submitBtn = document.getElementById("submitSurvey");
-const message = document.getElementById("message");
+let submitBtn = null;
+let message = null;
+
+
+// =====================================
+// INITIALIZE
+// =====================================
+
+function initializeSurveyPage() {
+
+    submitBtn =
+        document.getElementById("submitSurvey");
+
+    message =
+        document.getElementById("message");
+
+    createProgressUI();
+
+    startAuthentication();
+}
 
 
 // =====================================
@@ -15,80 +33,196 @@ const message = document.getElementById("message");
 
 function createProgressUI() {
 
-    if (document.getElementById("dailyProgressBox")) {
+    if (
+        document.getElementById(
+            "dailyProgressBox"
+        )
+    ) {
         return;
     }
 
-    const box = document.createElement("div");
 
-    box.id = "dailyProgressBox";
+    var box =
+        document.createElement("div");
 
-    box.innerHTML = `
-        <div style="
-            background:#ffffff;
-            border:1px solid #e0e0e0;
-            border-radius:12px;
-            padding:15px;
-            margin:15px 0;
-            box-shadow:0 2px 8px rgba(0,0,0,.08);
-        ">
+    box.id =
+        "dailyProgressBox";
 
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                align-items:center;
-                margin-bottom:8px;
-                font-size:15px;
-                font-weight:bold;
-            ">
-                <span>📊 Today's Progress</span>
 
-                <span id="dailyProgressText">
-                    0 / 20
-                </span>
-            </div>
+    box.style.backgroundColor =
+        "#ffffff";
 
-            <div style="
-                width:100%;
-                height:12px;
-                background:#eeeeee;
-                border-radius:20px;
-                overflow:hidden;
-            ">
-                <div
-                    id="dailyProgressBar"
-                    style="
-                        width:0%;
-                        height:100%;
-                        background:#1565c0;
-                        border-radius:20px;
-                        transition:width .4s ease;
-                    ">
-                </div>
-            </div>
+    box.style.border =
+        "1px solid #e0e0e0";
 
-            <div
-                id="dailyRemainingText"
-                style="
-                    margin-top:8px;
-                    font-size:13px;
-                    color:#555;
-                "
-            >
-                Remaining today: 20
-            </div>
+    box.style.borderRadius =
+        "12px";
 
-        </div>
-    `;
+    box.style.padding =
+        "15px";
 
-    const formBox = document.querySelector(".login-box");
+    box.style.margin =
+        "15px 0";
+
+    box.style.boxShadow =
+        "0 2px 8px rgba(0,0,0,0.08)";
+
+
+    // TITLE ROW
+
+    var titleRow =
+        document.createElement("div");
+
+    titleRow.style.display =
+        "flex";
+
+    titleRow.style.justifyContent =
+        "space-between";
+
+    titleRow.style.alignItems =
+        "center";
+
+    titleRow.style.marginBottom =
+        "8px";
+
+    titleRow.style.fontSize =
+        "15px";
+
+    titleRow.style.fontWeight =
+        "bold";
+
+
+    var title =
+        document.createElement("span");
+
+    title.textContent =
+        "📊 Today's Progress";
+
+
+    var progressText =
+        document.createElement("span");
+
+    progressText.id =
+        "dailyProgressText";
+
+    progressText.textContent =
+        "0 / 20";
+
+
+    titleRow.appendChild(title);
+
+    titleRow.appendChild(
+        progressText
+    );
+
+
+    // PROGRESS BACKGROUND
+
+    var progressBackground =
+        document.createElement("div");
+
+    progressBackground.style.width =
+        "100%";
+
+    progressBackground.style.height =
+        "12px";
+
+    progressBackground.style.backgroundColor =
+        "#eeeeee";
+
+    progressBackground.style.borderRadius =
+        "20px";
+
+    progressBackground.style.overflow =
+        "hidden";
+
+
+    // PROGRESS BAR
+
+    var progressBar =
+        document.createElement("div");
+
+    progressBar.id =
+        "dailyProgressBar";
+
+    progressBar.style.width =
+        "0%";
+
+    progressBar.style.height =
+        "100%";
+
+    progressBar.style.backgroundColor =
+        "#1565c0";
+
+    progressBar.style.borderRadius =
+        "20px";
+
+    progressBar.style.transition =
+        "width 0.4s ease";
+
+
+    progressBackground.appendChild(
+        progressBar
+    );
+
+
+    // REMAINING TEXT
+
+    var remainingText =
+        document.createElement("div");
+
+    remainingText.id =
+        "dailyRemainingText";
+
+    remainingText.textContent =
+        "Remaining today: 20";
+
+    remainingText.style.marginTop =
+        "8px";
+
+    remainingText.style.fontSize =
+        "13px";
+
+    remainingText.style.color =
+        "#555555";
+
+
+    // ADD EVERYTHING
+
+    box.appendChild(titleRow);
+
+    box.appendChild(
+        progressBackground
+    );
+
+    box.appendChild(
+        remainingText
+    );
+
+
+    // INSERT INTO PAGE
+
+    var formBox =
+        document.querySelector(
+            ".login-box"
+        );
+
 
     if (formBox) {
-        formBox.parentNode.insertBefore(box, formBox);
+
+        formBox.parentNode.insertBefore(
+            box,
+            formBox
+        );
+
     } else {
+
+        var firstChild =
+            document.body.firstChild;
+
         document.body.insertBefore(
             box,
-            document.body.firstChild
+            firstChild
         );
     }
 }
@@ -98,18 +232,28 @@ function createProgressUI() {
 // UPDATE DAILY PROGRESS
 // =====================================
 
-function updateDailyProgress(todayCount) {
+function updateDailyProgress(
+    todayCount
+) {
 
     createProgressUI();
 
-    const progressText =
-        document.getElementById("dailyProgressText");
 
-    const remainingText =
-        document.getElementById("dailyRemainingText");
+    var progressText =
+        document.getElementById(
+            "dailyProgressText"
+        );
 
-    const progressBar =
-        document.getElementById("dailyProgressBar");
+    var remainingText =
+        document.getElementById(
+            "dailyRemainingText"
+        );
+
+    var progressBar =
+        document.getElementById(
+            "dailyProgressBar"
+        );
+
 
     if (
         !progressText ||
@@ -119,50 +263,110 @@ function updateDailyProgress(todayCount) {
         return;
     }
 
-    const limit = Number(DAILY_LIMIT) || 20;
-    const count = Number(todayCount) || 0;
 
-    const remaining = Math.max(
-        limit - count,
-        0
-    );
+    var limit =
+        Number(DAILY_LIMIT);
 
-    const percentage =
-        limit > 0
-            ? Math.min(
+
+    if (
+        !Number.isFinite(limit) ||
+        limit <= 0
+    ) {
+
+        limit = 20;
+    }
+
+
+    var count =
+        Number(todayCount);
+
+
+    if (
+        !Number.isFinite(count) ||
+        count < 0
+    ) {
+
+        count = 0;
+    }
+
+
+    var remaining =
+        Math.max(
+            limit - count,
+            0
+        );
+
+
+    var percentage = 0;
+
+
+    if (limit > 0) {
+
+        percentage =
+            Math.min(
                 (count / limit) * 100,
                 100
-            )
-            : 100;
+            );
+    }
+
 
     progressText.textContent =
-        count + " / " + limit;
+        count +
+        " / " +
+        limit;
 
-    remainingText.textContent =
-        remaining > 0
-            ? "Remaining today: " + remaining
-            : "Daily limit reached";
+
+    if (remaining > 0) {
+
+        remainingText.textContent =
+            "Remaining today: " +
+            remaining;
+
+    } else {
+
+        remainingText.textContent =
+            "Daily limit reached";
+    }
+
 
     progressBar.style.width =
         percentage + "%";
 
+
     if (count >= limit) {
 
-        progressBar.style.background = "#c62828";
-        progressText.style.color = "#c62828";
-        remainingText.style.color = "#c62828";
+        progressBar.style.backgroundColor =
+            "#c62828";
 
-    } else if (percentage >= 80) {
+        progressText.style.color =
+            "#c62828";
 
-        progressBar.style.background = "#ef6c00";
-        progressText.style.color = "#ef6c00";
-        remainingText.style.color = "#555";
+        remainingText.style.color =
+            "#c62828";
+
+    } else if (
+        percentage >= 80
+    ) {
+
+        progressBar.style.backgroundColor =
+            "#ef6c00";
+
+        progressText.style.color =
+            "#ef6c00";
+
+        remainingText.style.color =
+            "#555555";
 
     } else {
 
-        progressBar.style.background = "#1565c0";
-        progressText.style.color = "#1565c0";
-        remainingText.style.color = "#555";
+        progressBar.style.backgroundColor =
+            "#1565c0";
+
+        progressText.style.color =
+            "#1565c0";
+
+        remainingText.style.color =
+            "#555555";
     }
 }
 
@@ -180,21 +384,28 @@ function loadDailyLimit() {
         .then(function(doc) {
 
             if (
-                doc.exists &&
-                doc.data().dailyLimit !== undefined
+                doc.exists
             ) {
 
-                const newLimit =
-                    Number(doc.data().dailyLimit);
+                var data =
+                    doc.data();
+
+                var value =
+                    Number(
+                        data.dailyLimit
+                    );
+
 
                 if (
-                    Number.isFinite(newLimit) &&
-                    newLimit > 0
+                    Number.isFinite(value) &&
+                    value > 0
                 ) {
 
-                    DAILY_LIMIT = newLimit;
+                    DAILY_LIMIT =
+                        value;
                 }
             }
+
 
             console.log(
                 "Daily Limit:",
@@ -210,83 +421,108 @@ function loadDailyLimit() {
                 error
             );
 
-            DAILY_LIMIT = 20;
+
+            /*
+             * Keep current value if
+             * Firestore read fails.
+             */
+
+            if (
+                !DAILY_LIMIT ||
+                DAILY_LIMIT <= 0
+            ) {
+
+                DAILY_LIMIT = 20;
+            }
         });
 }
 
 
 // =====================================
-// AUTH
+// AUTHENTICATION
 // =====================================
 
-firebase.auth().setPersistence(
-    firebase.auth.Auth.Persistence.SESSION
-)
+function startAuthentication() {
 
-.then(function() {
+    firebase.auth()
+        .setPersistence(
+            firebase.auth.Auth.Persistence.SESSION
+        )
 
-    firebase.auth().onAuthStateChanged(
-        function(user) {
+        .then(function() {
 
-            if (!user) {
+            firebase.auth()
+                .onAuthStateChanged(
+                    function(user) {
 
-                window.location.replace(
-                    "index.html"
+                        if (!user) {
+
+                            window.location.replace(
+                                "index.html"
+                            );
+
+                            return;
+                        }
+
+
+                        // ADMIN
+
+                        if (
+                            user.email &&
+                            user.email
+                                .toLowerCase() ===
+                            ADMIN_EMAIL.toLowerCase()
+                        ) {
+
+                            window.location.replace(
+                                "admin.html"
+                            );
+
+                            return;
+                        }
+
+
+                        console.log(
+                            "Surveyor logged in:",
+                            user.email
+                        );
+
+
+                        loadDailyLimit()
+
+                            .then(function() {
+
+                                checkDailyLimit(
+                                    user
+                                );
+
+                            });
+
+                    }
                 );
 
-                return;
-            }
+        })
 
-            // ADMIN
-            if (
-                user.email &&
-                user.email.toLowerCase() ===
-                ADMIN_EMAIL.toLowerCase()
-            ) {
+        .catch(function(error) {
 
-                window.location.replace(
-                    "admin.html"
-                );
-
-                return;
-            }
-
-            console.log(
-                "Surveyor logged in:",
-                user.email
+            console.error(
+                "Auth Persistence Error:",
+                error
             );
 
-            createProgressUI();
-
-            loadDailyLimit()
-                .then(function() {
-
-                    checkDailyLimit(user);
-
-                });
-
-        }
-    );
-
-})
-
-.catch(function(error) {
-
-    console.error(
-        "Auth Persistence Error:",
-        error
-    );
-
-});
+        });
+}
 
 
 // =====================================
-// GET TODAY COUNT
+// GET TODAY'S SURVEY COUNT
 // =====================================
 
 function getTodayCount(user) {
 
-    const todayStart = new Date();
+    var todayStart =
+        new Date();
+
 
     todayStart.setHours(
         0,
@@ -294,6 +530,7 @@ function getTodayCount(user) {
         0,
         0
     );
+
 
     return db.collection("surveys")
         .where(
@@ -305,52 +542,73 @@ function getTodayCount(user) {
 
         .then(function(snapshot) {
 
-            let todayCount = 0;
+            var todayCount = 0;
 
-            snapshot.forEach(function(doc) {
 
-                const data = doc.data();
+            snapshot.forEach(
+                function(doc) {
 
-                if (!data.createdAt) {
-                    return;
-                }
+                    var data =
+                        doc.data();
 
-                let date = null;
-
-                try {
 
                     if (
-                        typeof data.createdAt.toDate ===
-                        "function"
+                        !data.createdAt
                     ) {
 
-                        date =
-                            data.createdAt.toDate();
-
-                    } else if (
-                        data.createdAt.seconds
-                    ) {
-
-                        date =
-                            new Date(
-                                data.createdAt.seconds * 1000
-                            );
+                        return;
                     }
 
-                } catch (error) {
 
-                    return;
+                    var date =
+                        null;
+
+
+                    try {
+
+                        if (
+                            typeof data
+                                .createdAt
+                                .toDate ===
+                            "function"
+                        ) {
+
+                            date =
+                                data.createdAt
+                                    .toDate();
+
+                        } else if (
+                            data.createdAt
+                                .seconds
+                        ) {
+
+                            date =
+                                new Date(
+                                    data.createdAt
+                                        .seconds *
+                                    1000
+                                );
+                        }
+
+                    } catch (
+                        error
+                    ) {
+
+                        return;
+                    }
+
+
+                    if (
+                        date &&
+                        date >= todayStart
+                    ) {
+
+                        todayCount++;
+                    }
+
                 }
+            );
 
-                if (
-                    date &&
-                    date >= todayStart
-                ) {
-
-                    todayCount++;
-                }
-
-            });
 
             return todayCount;
 
@@ -375,12 +633,15 @@ function checkDailyLimit(user) {
                 DAILY_LIMIT
             );
 
+
             updateDailyProgress(
                 todayCount
             );
 
+
             if (
-                todayCount >= DAILY_LIMIT
+                todayCount >=
+                DAILY_LIMIT
             ) {
 
                 showMessage(
@@ -388,24 +649,30 @@ function checkDailyLimit(user) {
                     " surveys completed today. Daily limit reached."
                 );
 
+
                 if (submitBtn) {
 
-                    submitBtn.disabled = true;
+                    submitBtn.disabled =
+                        true;
 
                     submitBtn.textContent =
                         "Daily Limit Reached";
                 }
 
+
                 return;
             }
 
+
             if (submitBtn) {
 
-                submitBtn.disabled = false;
+                submitBtn.disabled =
+                    false;
 
                 submitBtn.textContent =
                     "Submit Survey";
             }
+
 
             showMessage(
                 "Today's Surveys: " +
@@ -424,19 +691,22 @@ function checkDailyLimit(user) {
                 error
             );
 
+
             /*
-             * Important:
-             * If count checking fails, don't
-             * permanently disable the button.
+             * Do not permanently disable
+             * the submit button if the
+             * count check fails.
              */
 
             if (submitBtn) {
 
-                submitBtn.disabled = false;
+                submitBtn.disabled =
+                    false;
 
                 submitBtn.textContent =
                     "Submit Survey";
             }
+
 
             showMessage(
                 "Unable to check today's survey count."
@@ -450,14 +720,28 @@ function checkDailyLimit(user) {
 // SUBMIT SURVEY
 // =====================================
 
-if (submitBtn) {
+function setupSubmitButton() {
+
+    if (!submitBtn) {
+
+        console.error(
+            "Submit button not found."
+        );
+
+        return;
+    }
+
 
     submitBtn.addEventListener(
         "click",
         function() {
 
-            const user =
-                firebase.auth().currentUser;
+            var user =
+                firebase.auth()
+                    .currentUser;
+
+
+            // LOGIN CHECK
 
             if (!user) {
 
@@ -465,21 +749,29 @@ if (submitBtn) {
                     "Session expired. Please login again."
                 );
 
-                setTimeout(function() {
 
-                    window.location.replace(
-                        "index.html"
-                    );
+                setTimeout(
+                    function() {
 
-                }, 1000);
+                        window.location.replace(
+                            "index.html"
+                        );
+
+                    },
+                    1000
+                );
+
 
                 return;
             }
 
-            // ADMIN
+
+            // ADMIN CHECK
+
             if (
                 user.email &&
-                user.email.toLowerCase() ===
+                user.email
+                    .toLowerCase() ===
                 ADMIN_EMAIL.toLowerCase()
             ) {
 
@@ -492,48 +784,65 @@ if (submitBtn) {
 
 
             // =================================
-            // FORM VALUES
+            // GET FORM VALUES
             // =================================
 
-            const name =
-                document.getElementById("name")
-                    .value.trim();
+            var name =
+                document.getElementById(
+                    "name"
+                ).value.trim();
 
-            const mobile =
-                document.getElementById("mobile")
-                    .value.trim();
 
-            const age =
-                document.getElementById("age")
-                    .value.trim();
+            var mobile =
+                document.getElementById(
+                    "mobile"
+                ).value.trim();
 
-            const gender =
-                document.getElementById("gender")
-                    .value;
 
-            const village =
-                document.getElementById("village")
-                    .value.trim();
+            var age =
+                document.getElementById(
+                    "age"
+                ).value.trim();
 
-            const assembly =
-                document.getElementById("assembly")
-                    .value.trim();
 
-            const party =
-                document.getElementById("party")
-                    .value;
+            var gender =
+                document.getElementById(
+                    "gender"
+                ).value;
 
-            const candidate =
-                document.getElementById("candidate")
-                    .value.trim();
 
-            const feedback =
-                document.getElementById("feedback")
-                    .value.trim();
+            var village =
+                document.getElementById(
+                    "village"
+                ).value.trim();
+
+
+            var assembly =
+                document.getElementById(
+                    "assembly"
+                ).value.trim();
+
+
+            var party =
+                document.getElementById(
+                    "party"
+                ).value;
+
+
+            var candidate =
+                document.getElementById(
+                    "candidate"
+                ).value.trim();
+
+
+            var feedback =
+                document.getElementById(
+                    "feedback"
+                ).value.trim();
 
 
             // =================================
-            // VALIDATION
+            // REQUIRED FIELD CHECK
             // =================================
 
             if (
@@ -554,21 +863,24 @@ if (submitBtn) {
             }
 
 
-            submitBtn.disabled = true;
+            submitBtn.disabled =
+                true;
 
             submitBtn.textContent =
                 "Checking...";
 
 
             // =================================
-            // LOAD LATEST DAILY LIMIT
+            // LOAD LATEST LIMIT
             // =================================
 
             loadDailyLimit()
 
                 .then(function() {
 
-                    return getTodayCount(user);
+                    return getTodayCount(
+                        user
+                    );
 
                 })
 
@@ -600,48 +912,49 @@ if (submitBtn) {
                     // SAVE SURVEY
                     // =================================
 
-                    return db.collection("surveys")
-                        .add({
+                    return db.collection(
+                        "surveys"
+                    ).add({
 
-                            name:
-                                name,
+                        name:
+                            name,
 
-                            mobile:
-                                mobile,
+                        mobile:
+                            mobile,
 
-                            age:
-                                age,
+                        age:
+                            age,
 
-                            gender:
-                                gender,
+                        gender:
+                            gender,
 
-                            village:
-                                village,
+                        village:
+                            village,
 
-                            assembly:
-                                assembly,
+                        assembly:
+                            assembly,
 
-                            party:
-                                party,
+                        party:
+                            party,
 
-                            candidate:
-                                candidate,
+                        candidate:
+                            candidate,
 
-                            feedback:
-                                feedback,
+                        feedback:
+                            feedback,
 
-                            surveyorEmail:
-                                user.email,
+                        surveyorEmail:
+                            user.email,
 
-                            surveyorId:
-                                user.uid,
+                        surveyorId:
+                            user.uid,
 
-                            createdAt:
-                                firebase.firestore
-                                    .FieldValue
-                                    .serverTimestamp()
+                        createdAt:
+                            firebase.firestore
+                                .FieldValue
+                                .serverTimestamp()
 
-                        });
+                    });
 
                 })
 
@@ -657,48 +970,96 @@ if (submitBtn) {
                     // CLEAR FORM
                     // =================================
 
-                    document.getElementById(
-                        "name"
-                    ).value = "";
+                    var nameInput =
+                        document.getElementById(
+                            "name"
+                        );
 
-                    document.getElementById(
-                        "mobile"
-                    ).value = "";
+                    var mobileInput =
+                        document.getElementById(
+                            "mobile"
+                        );
 
-                    document.getElementById(
-                        "age"
-                    ).value = "";
+                    var ageInput =
+                        document.getElementById(
+                            "age"
+                        );
 
-                    document.getElementById(
-                        "gender"
-                    ).value = "";
+                    var genderInput =
+                        document.getElementById(
+                            "gender"
+                        );
 
-                    document.getElementById(
-                        "village"
-                    ).value = "";
+                    var villageInput =
+                        document.getElementById(
+                            "village"
+                        );
 
-                    document.getElementById(
-                        "assembly"
-                    ).value = "";
+                    var assemblyInput =
+                        document.getElementById(
+                            "assembly"
+                        );
 
-                    document.getElementById(
-                        "party"
-                    ).value = "";
+                    var partyInput =
+                        document.getElementById(
+                            "party"
+                        );
 
-                    document.getElementById(
-                        "candidate"
-                    ).value = "";
+                    var candidateInput =
+                        document.getElementById(
+                            "candidate"
+                        );
 
-                    document.getElementById(
-                        "feedback"
-                    ).value = "";
+                    var feedbackInput =
+                        document.getElementById(
+                            "feedback"
+                        );
+
+
+                    if (nameInput) {
+                        nameInput.value = "";
+                    }
+
+                    if (mobileInput) {
+                        mobileInput.value = "";
+                    }
+
+                    if (ageInput) {
+                        ageInput.value = "";
+                    }
+
+                    if (genderInput) {
+                        genderInput.value = "";
+                    }
+
+                    if (villageInput) {
+                        villageInput.value = "";
+                    }
+
+                    if (assemblyInput) {
+                        assemblyInput.value = "";
+                    }
+
+                    if (partyInput) {
+                        partyInput.value = "";
+                    }
+
+                    if (candidateInput) {
+                        candidateInput.value = "";
+                    }
+
+                    if (feedbackInput) {
+                        feedbackInput.value = "";
+                    }
 
 
                     // =================================
-                    // REFRESH PROGRESS
+                    // REFRESH COUNT
                     // =================================
 
-                    return getTodayCount(user);
+                    return getTodayCount(
+                        user
+                    );
 
                 })
 
@@ -720,6 +1081,15 @@ if (submitBtn) {
                         submitBtn.textContent =
                             "Daily Limit Reached";
 
+
+                        showMessage(
+                            "Daily limit reached: " +
+                            newCount +
+                            " / " +
+                            DAILY_LIMIT,
+                            true
+                        );
+
                     } else {
 
                         submitBtn.disabled =
@@ -738,6 +1108,7 @@ if (submitBtn) {
                         error
                     );
 
+
                     showMessage(
                         error.message ||
                         "Survey submit failed."
@@ -751,14 +1122,18 @@ if (submitBtn) {
                         "Submit Survey";
 
 
-                    // Refresh progress
-                    checkDailyLimit(user);
+                    /*
+                     * Refresh progress.
+                     */
+
+                    checkDailyLimit(
+                        user
+                    );
 
                 });
 
         }
     );
-
 }
 
 
@@ -768,19 +1143,55 @@ if (submitBtn) {
 
 function showMessage(
     text,
-    success = false
+    success
 ) {
 
     if (!message) {
         return;
     }
 
+
     message.textContent =
         text;
 
-    message.style.color =
-        success
-            ? "green"
-            : "red";
+
+    if (success === true) {
+
+        message.style.color =
+            "green";
+
+    } else {
+
+        message.style.color =
+            "red";
+    }
+}
+
+
+// =====================================
+// START
+// =====================================
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
+
+            initializeSurveyPage();
+
+            setupSubmitButton();
+
+        }
+    );
+
+} else {
+
+    initializeSurveyPage();
+
+    setupSubmitButton();
 }
 ```
