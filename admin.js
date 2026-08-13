@@ -52,8 +52,20 @@ firebase.auth().setPersistence(
 
 
 // =====================================
-// HELPER - DATE
+// HELPER
 // =====================================
+
+function setText(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+    if (element) {
+        element.textContent = value;
+    }
+
+}
+
 
 function getDate(value) {
 
@@ -68,9 +80,11 @@ function getDate(value) {
         }
 
         if (value.seconds) {
+
             return new Date(
                 value.seconds * 1000
             );
+
         }
 
         if (value instanceof Date) {
@@ -79,16 +93,37 @@ function getDate(value) {
 
         return new Date(value);
 
-    } catch (error) {
+    }
+    catch (error) {
 
         return null;
 
     }
+
+}
+
+
+function escapeHTML(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
 }
 
 
 // =====================================
-// DATE CHECKS
+// DATE FUNCTIONS
 // =====================================
 
 function isToday(date) {
@@ -102,6 +137,7 @@ function isToday(date) {
         date.getMonth() === now.getMonth() &&
         date.getFullYear() === now.getFullYear()
     );
+
 }
 
 
@@ -174,6 +210,7 @@ function loadSurveys() {
             populateFilters();
             renderSurveys(allSurveys);
             renderSurveyorPerformance();
+            renderSurveyorManagement();
             renderPartyChart();
 
         })
@@ -222,8 +259,8 @@ function loadSurveyors() {
                 allSurveyors.length
             );
 
-            renderSurveyorManagement();
             populateSurveyorFilter();
+            renderSurveyorManagement();
             renderSurveyorPerformance();
 
         })
@@ -241,7 +278,7 @@ function loadSurveyors() {
 
 
 // =====================================
-// DASHBOARD COUNTERS
+// DASHBOARD
 // =====================================
 
 function updateDashboard() {
@@ -265,7 +302,9 @@ function updateDashboard() {
         const party =
             String(
                 survey.party || ""
-            ).toLowerCase();
+            )
+            .trim()
+            .toLowerCase();
 
 
         if (party === "bjp") {
@@ -289,7 +328,9 @@ function updateDashboard() {
 
 
         const date =
-            getDate(survey.createdAt);
+            getDate(
+                survey.createdAt
+            );
 
 
         if (isToday(date)) {
@@ -365,18 +406,6 @@ function updateDashboard() {
 }
 
 
-function setText(id, value) {
-
-    const element =
-        document.getElementById(id);
-
-    if (element) {
-        element.textContent = value;
-    }
-
-}
-
-
 // =====================================
 // FILTER OPTIONS
 // =====================================
@@ -386,14 +415,19 @@ function populateFilters() {
     const villages = new Set();
     const assemblies = new Set();
 
+
     allSurveys.forEach(function (survey) {
 
         if (survey.village) {
-            villages.add(survey.village);
+            villages.add(
+                survey.village
+            );
         }
 
         if (survey.assembly) {
-            assemblies.add(survey.assembly);
+            assemblies.add(
+                survey.assembly
+            );
         }
 
     });
@@ -403,6 +437,7 @@ function populateFilters() {
         document.getElementById(
             "villageFilter"
         );
+
 
     const assemblyFilter =
         document.getElementById(
@@ -414,6 +449,7 @@ function populateFilters() {
 
         villageFilter.innerHTML =
             '<option value="">All Villages</option>';
+
 
         [...villages]
             .sort()
@@ -434,6 +470,7 @@ function populateFilters() {
         assemblyFilter.innerHTML =
             '<option value="">All Assemblies</option>';
 
+
         [...assemblies]
             .sort()
             .forEach(function (assembly) {
@@ -450,12 +487,17 @@ function populateFilters() {
 }
 
 
+// =====================================
+// SURVEYOR FILTER
+// =====================================
+
 function populateSurveyorFilter() {
 
     const filter =
         document.getElementById(
             "surveyorFilter"
         );
+
 
     if (!filter) return;
 
@@ -464,20 +506,49 @@ function populateSurveyorFilter() {
         '<option value="">All Surveyors</option>';
 
 
-    allSurveyors
-        .sort(function (a, b) {
+    const emails = new Set();
 
-            return String(a.email || a.id)
-                .localeCompare(
-                    String(b.email || b.id)
-                );
 
-        })
-        .forEach(function (surveyor) {
+    allSurveyors.forEach(function (surveyor) {
 
-            const email =
+        const email =
+            String(
                 surveyor.email ||
-                surveyor.id;
+                surveyor.id ||
+                ""
+            )
+            .trim()
+            .toLowerCase();
+
+
+        if (email) {
+            emails.add(email);
+        }
+
+    });
+
+
+    allSurveys.forEach(function (survey) {
+
+        const email =
+            String(
+                survey.surveyorEmail ||
+                ""
+            )
+            .trim()
+            .toLowerCase();
+
+
+        if (email) {
+            emails.add(email);
+        }
+
+    });
+
+
+    [...emails]
+        .sort()
+        .forEach(function (email) {
 
             filter.innerHTML +=
                 `<option value="${escapeHTML(email)}">
@@ -511,7 +582,7 @@ function applyFilters() {
         )?.value || "";
 
 
-    const date =
+    const dateFilter =
         document.getElementById(
             "dateFilter"
         )?.value || "";
@@ -562,7 +633,8 @@ function applyFilters() {
                     survey.assembly || ""
                 )
 
-            ).toLowerCase();
+            )
+            .toLowerCase();
 
 
             if (
@@ -599,7 +671,12 @@ function applyFilters() {
 
             if (
                 surveyor &&
-                survey.surveyorEmail !== surveyor
+                String(
+                    survey.surveyorEmail || ""
+                )
+                .trim()
+                .toLowerCase() !==
+                surveyor.toLowerCase()
             ) {
                 return false;
             }
@@ -612,7 +689,7 @@ function applyFilters() {
 
 
             if (
-                date === "today" &&
+                dateFilter === "today" &&
                 !isToday(created)
             ) {
                 return false;
@@ -620,7 +697,7 @@ function applyFilters() {
 
 
             if (
-                date === "week" &&
+                dateFilter === "week" &&
                 !isThisWeek(created)
             ) {
                 return false;
@@ -628,7 +705,7 @@ function applyFilters() {
 
 
             if (
-                date === "month" &&
+                dateFilter === "month" &&
                 !isThisMonth(created)
             ) {
                 return false;
@@ -658,12 +735,14 @@ function applyFilters() {
 function resetFilters() {
 
     const ids = [
+
         "searchBox",
         "partyFilter",
         "dateFilter",
         "villageFilter",
         "assemblyFilter",
         "surveyorFilter"
+
     ];
 
 
@@ -679,7 +758,10 @@ function resetFilters() {
     });
 
 
-    renderSurveys(allSurveys);
+    renderSurveys(
+        allSurveys
+    );
+
 
     setText(
         "filteredSurvey",
@@ -690,7 +772,7 @@ function resetFilters() {
 
 
 // =====================================
-// RENDER SURVEYS
+// RENDER SURVEY RECORDS
 // =====================================
 
 function renderSurveys(surveys) {
@@ -700,6 +782,7 @@ function renderSurveys(surveys) {
             "surveyTable"
         );
 
+
     if (!table) return;
 
 
@@ -708,12 +791,13 @@ function renderSurveys(surveys) {
 
     if (surveys.length === 0) {
 
-        table.innerHTML =
-            `<tr>
+        table.innerHTML = `
+            <tr>
                 <td colspan="9">
                     No surveys found.
                 </td>
-            </tr>`;
+            </tr>
+        `;
 
         return;
 
@@ -728,21 +812,37 @@ function renderSurveys(surveys) {
 
         row.innerHTML = `
 
-            <td>${escapeHTML(survey.name)}</td>
+            <td>
+                ${escapeHTML(survey.name)}
+            </td>
 
-            <td>${escapeHTML(survey.mobile)}</td>
+            <td>
+                ${escapeHTML(survey.mobile)}
+            </td>
 
-            <td>${escapeHTML(survey.age)}</td>
+            <td>
+                ${escapeHTML(survey.age)}
+            </td>
 
-            <td>${escapeHTML(survey.gender)}</td>
+            <td>
+                ${escapeHTML(survey.gender)}
+            </td>
 
-            <td>${escapeHTML(survey.village)}</td>
+            <td>
+                ${escapeHTML(survey.village)}
+            </td>
 
-            <td>${escapeHTML(survey.party)}</td>
+            <td>
+                ${escapeHTML(survey.party)}
+            </td>
 
-            <td>${escapeHTML(survey.candidate)}</td>
+            <td>
+                ${escapeHTML(survey.candidate)}
+            </td>
 
-            <td>${escapeHTML(survey.feedback)}</td>
+            <td>
+                ${escapeHTML(survey.feedback)}
+            </td>
 
             <td>
 
@@ -785,8 +885,13 @@ window.editSurvey = function (id) {
 
 
     if (!survey) {
-        alert("Survey not found.");
+
+        alert(
+            "Survey not found."
+        );
+
         return;
+
     }
 
 
@@ -795,6 +900,7 @@ window.editSurvey = function (id) {
             "Name:",
             survey.name || ""
         );
+
 
     if (name === null) return;
 
@@ -805,6 +911,7 @@ window.editSurvey = function (id) {
             survey.mobile || ""
         );
 
+
     if (mobile === null) return;
 
 
@@ -813,6 +920,7 @@ window.editSurvey = function (id) {
             "Age:",
             survey.age || ""
         );
+
 
     if (age === null) return;
 
@@ -823,6 +931,7 @@ window.editSurvey = function (id) {
             survey.village || ""
         );
 
+
     if (village === null) return;
 
 
@@ -831,6 +940,7 @@ window.editSurvey = function (id) {
             "Assembly:",
             survey.assembly || ""
         );
+
 
     if (assembly === null) return;
 
@@ -841,6 +951,7 @@ window.editSurvey = function (id) {
             survey.party || ""
         );
 
+
     if (party === null) return;
 
 
@@ -849,6 +960,7 @@ window.editSurvey = function (id) {
             "Candidate:",
             survey.candidate || ""
         );
+
 
     if (candidate === null) return;
 
@@ -859,6 +971,7 @@ window.editSurvey = function (id) {
             survey.feedback || ""
         );
 
+
     if (feedback === null) return;
 
 
@@ -866,21 +979,29 @@ window.editSurvey = function (id) {
         .doc(id)
         .update({
 
-            name: name.trim(),
+            name:
+                name.trim(),
 
-            mobile: mobile.trim(),
+            mobile:
+                mobile.trim(),
 
-            age: age.trim(),
+            age:
+                age.trim(),
 
-            village: village.trim(),
+            village:
+                village.trim(),
 
-            assembly: assembly.trim(),
+            assembly:
+                assembly.trim(),
 
-            party: party.trim(),
+            party:
+                party.trim(),
 
-            candidate: candidate.trim(),
+            candidate:
+                candidate.trim(),
 
-            feedback: feedback.trim()
+            feedback:
+                feedback.trim()
 
         })
 
@@ -968,6 +1089,7 @@ function renderSurveyorPerformance() {
             "surveyorPerformanceTable"
         );
 
+
     if (!table) return;
 
 
@@ -979,22 +1101,36 @@ function renderSurveyorPerformance() {
 
     allSurveyors.forEach(function (surveyor) {
 
-        emails.add(
-            surveyor.email ||
-            surveyor.id
-        );
+        const email =
+            String(
+                surveyor.email ||
+                surveyor.id ||
+                ""
+            )
+            .trim()
+            .toLowerCase();
+
+
+        if (email) {
+            emails.add(email);
+        }
 
     });
 
 
     allSurveys.forEach(function (survey) {
 
-        if (survey.surveyorEmail) {
+        const email =
+            String(
+                survey.surveyorEmail ||
+                ""
+            )
+            .trim()
+            .toLowerCase();
 
-            emails.add(
-                survey.surveyorEmail
-            );
 
+        if (email) {
+            emails.add(email);
         }
 
     });
@@ -1012,8 +1148,17 @@ function renderSurveyorPerformance() {
 
             allSurveys.forEach(function (survey) {
 
+                const surveyEmail =
+                    String(
+                        survey.surveyorEmail ||
+                        ""
+                    )
+                    .trim()
+                    .toLowerCase();
+
+
                 if (
-                    survey.surveyorEmail !==
+                    surveyEmail !==
                     email
                 ) {
                     return;
@@ -1033,9 +1178,11 @@ function renderSurveyorPerformance() {
                     today++;
                 }
 
+
                 if (isThisWeek(date)) {
                     week++;
                 }
+
 
                 if (isThisMonth(date)) {
                     month++;
@@ -1052,13 +1199,21 @@ function renderSurveyorPerformance() {
                         ${escapeHTML(email)}
                     </td>
 
-                    <td>${total}</td>
+                    <td>
+                        ${total}
+                    </td>
 
-                    <td>${today}</td>
+                    <td>
+                        ${today}
+                    </td>
 
-                    <td>${week}</td>
+                    <td>
+                        ${week}
+                    </td>
 
-                    <td>${month}</td>
+                    <td>
+                        ${month}
+                    </td>
 
                 </tr>
 
@@ -1080,27 +1235,106 @@ function renderSurveyorManagement() {
             "surveyorManagementTable"
         );
 
+
     if (!table) return;
 
 
     table.innerHTML = "";
 
 
-    allSurveyors
+    /*
+        IMPORTANT:
+
+        We create one combined list from:
+
+        1. surveyors collection
+        2. actual survey records
+
+        This prevents the 0-count problem
+        when email field/document ID differs.
+    */
+
+
+    const surveyorMap = {};
+
+
+    // ---------------------------------
+    // SURVEYORS COLLECTION
+    // ---------------------------------
+
+    allSurveyors.forEach(function (surveyor) {
+
+        const email =
+            String(
+                surveyor.email ||
+                surveyor.id ||
+                ""
+            )
+            .trim()
+            .toLowerCase();
+
+
+        if (!email) return;
+
+
+        surveyorMap[email] = {
+
+            email: email,
+
+            enabled:
+                surveyor.enabled !== false
+
+        };
+
+    });
+
+
+    // ---------------------------------
+    // ACTUAL SURVEYS
+    // ---------------------------------
+
+    allSurveys.forEach(function (survey) {
+
+        const email =
+            String(
+                survey.surveyorEmail ||
+                ""
+            )
+            .trim()
+            .toLowerCase();
+
+
+        if (!email) return;
+
+
+        if (!surveyorMap[email]) {
+
+            surveyorMap[email] = {
+
+                email: email,
+
+                enabled: true
+
+            };
+
+        }
+
+    });
+
+
+    // ---------------------------------
+    // RENDER
+    // ---------------------------------
+
+    Object.values(surveyorMap)
         .sort(function (a, b) {
 
-            return String(a.email || a.id)
-                .localeCompare(
-                    String(b.email || b.id)
-                );
+            return a.email.localeCompare(
+                b.email
+            );
 
         })
         .forEach(function (surveyor) {
-
-            const email =
-                surveyor.email ||
-                surveyor.id;
-
 
             let total = 0;
             let today = 0;
@@ -1110,9 +1344,18 @@ function renderSurveyorManagement() {
 
             allSurveys.forEach(function (survey) {
 
+                const surveyEmail =
+                    String(
+                        survey.surveyorEmail ||
+                        ""
+                    )
+                    .trim()
+                    .toLowerCase();
+
+
                 if (
-                    survey.surveyorEmail !==
-                    email
+                    surveyEmail !==
+                    surveyor.email
                 ) {
                     return;
                 }
@@ -1131,9 +1374,11 @@ function renderSurveyorManagement() {
                     today++;
                 }
 
+
                 if (isThisWeek(date)) {
                     week++;
                 }
+
 
                 if (isThisMonth(date)) {
                     month++;
@@ -1142,12 +1387,8 @@ function renderSurveyorManagement() {
             });
 
 
-            const enabled =
-                surveyor.enabled === true;
-
-
             const status =
-                enabled
+                surveyor.enabled
 
                     ? `<span class="status-active">
                         🟢 Active
@@ -1159,17 +1400,17 @@ function renderSurveyorManagement() {
 
 
             const action =
-                enabled
+                surveyor.enabled
 
                     ? `<button
                         class="action-btn disable-btn"
-                        onclick="toggleSurveyor('${escapeHTML(email)}', false)">
+                        onclick="toggleSurveyor('${escapeHTML(surveyor.email)}', false)">
                         Disable
                        </button>`
 
                     : `<button
                         class="action-btn enable-btn"
-                        onclick="toggleSurveyor('${escapeHTML(email)}', true)">
+                        onclick="toggleSurveyor('${escapeHTML(surveyor.email)}', true)">
                         Enable
                        </button>`;
 
@@ -1179,16 +1420,26 @@ function renderSurveyorManagement() {
                 <tr>
 
                     <td>
-                        ${escapeHTML(email)}
+                        ${escapeHTML(
+                            surveyor.email
+                        )}
                     </td>
 
-                    <td>${total}</td>
+                    <td>
+                        ${total}
+                    </td>
 
-                    <td>${today}</td>
+                    <td>
+                        ${today}
+                    </td>
 
-                    <td>${week}</td>
+                    <td>
+                        ${week}
+                    </td>
 
-                    <td>${month}</td>
+                    <td>
+                        ${month}
+                    </td>
 
                     <td>
 
@@ -1204,6 +1455,27 @@ function renderSurveyorManagement() {
 
         });
 
+
+    if (
+        Object.keys(
+            surveyorMap
+        ).length === 0
+    ) {
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td colspan="6">
+                    No surveyors found.
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
 }
 
 
@@ -1216,11 +1488,17 @@ window.toggleSurveyor = function (
     enabled
 ) {
 
+    /*
+        IMPORTANT:
+        Firestore document ID may be email.
+    */
+
     db.collection("surveyors")
         .doc(email)
         .update({
 
-            enabled: enabled
+            enabled:
+                enabled
 
         })
 
@@ -1232,6 +1510,7 @@ window.toggleSurveyor = function (
                     : "Surveyor disabled."
             );
 
+
             loadSurveyors();
 
         })
@@ -1242,6 +1521,7 @@ window.toggleSurveyor = function (
                 "Surveyor Status Error:",
                 error
             );
+
 
             alert(
                 "Status update failed: " +
@@ -1264,6 +1544,7 @@ function renderPartyChart() {
             "partyChart"
         );
 
+
     if (!canvas) return;
 
 
@@ -1277,11 +1558,15 @@ function renderPartyChart() {
 
     allSurveys.forEach(function (survey) {
 
-        switch (
+        const party =
             String(
                 survey.party || ""
-            ).toLowerCase()
-        ) {
+            )
+            .trim()
+            .toLowerCase();
+
+
+        switch (party) {
 
             case "bjp":
                 bjp++;
@@ -1329,12 +1614,14 @@ function renderPartyChart() {
                 data: {
 
                     labels: [
+
                         "BJP",
                         "Congress",
                         "AAP",
                         "BSP",
                         "SP",
                         "Other"
+
                     ],
 
                     datasets: [
@@ -1345,12 +1632,14 @@ function renderPartyChart() {
                                 "Surveys",
 
                             data: [
+
                                 bjp,
                                 congress,
                                 aap,
                                 bsp,
                                 sp,
                                 other
+
                             ]
 
                         }
@@ -1363,16 +1652,21 @@ function renderPartyChart() {
 
                     responsive: true,
 
-                    maintainAspectRatio: true,
+                    maintainAspectRatio:
+                        true,
 
                     scales: {
 
                         y: {
 
-                            beginAtZero: true,
+                            beginAtZero:
+                                true,
 
                             ticks: {
-                                precision: 0
+
+                                precision:
+                                    0
+
                             }
 
                         }
@@ -1382,13 +1676,14 @@ function renderPartyChart() {
                 }
 
             }
+
         );
 
 }
 
 
 // =====================================
-// DAILY LIMIT
+// DAILY LIMIT - LOAD
 // =====================================
 
 function loadDailyLimit() {
@@ -1398,11 +1693,15 @@ function loadDailyLimit() {
             "dailyLimitInput"
         );
 
+
     if (!input) {
+
         console.error(
             "Daily limit input not found."
         );
+
         return;
+
     }
 
 
@@ -1443,7 +1742,9 @@ function loadDailyLimit() {
 }
 
 
-// SAVE DAILY LIMIT
+// =====================================
+// DAILY LIMIT - SAVE
+// =====================================
 
 function saveDailyLimit() {
 
@@ -1452,10 +1753,12 @@ function saveDailyLimit() {
             "dailyLimitInput"
         );
 
+
     const button =
         document.getElementById(
             "saveDailyLimit"
         );
+
 
     const message =
         document.getElementById(
@@ -1475,7 +1778,9 @@ function saveDailyLimit() {
 
 
     const limit =
-        Number(input.value);
+        Number(
+            input.value
+        );
 
 
     if (
@@ -1520,6 +1825,7 @@ function saveDailyLimit() {
 
 
     if (
+        !user.email ||
         user.email.toLowerCase() !==
         ADMIN_EMAIL.toLowerCase()
     ) {
@@ -1554,7 +1860,8 @@ function saveDailyLimit() {
         .doc("config")
         .set({
 
-            dailyLimit: limit,
+            dailyLimit:
+                limit,
 
             updatedAt:
                 firebase.firestore
@@ -1562,7 +1869,9 @@ function saveDailyLimit() {
                     .serverTimestamp()
 
         }, {
+
             merge: true
+
         })
 
         .then(function () {
@@ -1623,21 +1932,26 @@ function saveDailyLimit() {
 
 
 // =====================================
-// FILTER EVENT LISTENERS
+// EVENT LISTENERS
 // =====================================
 
-[
+const filterIds = [
+
     "searchBox",
     "partyFilter",
     "dateFilter",
     "villageFilter",
     "assemblyFilter",
     "surveyorFilter"
-]
-.forEach(function (id) {
+
+];
+
+
+filterIds.forEach(function (id) {
 
     const element =
         document.getElementById(id);
+
 
     if (!element) return;
 
@@ -1647,6 +1961,7 @@ function saveDailyLimit() {
         applyFilters
     );
 
+
     element.addEventListener(
         "change",
         applyFilters
@@ -1655,12 +1970,15 @@ function saveDailyLimit() {
 });
 
 
+// =====================================
 // RESET
+// =====================================
 
 const resetBtn =
     document.getElementById(
         "resetFilters"
     );
+
 
 if (resetBtn) {
 
@@ -1672,12 +1990,15 @@ if (resetBtn) {
 }
 
 
-// SAVE LIMIT
+// =====================================
+// SAVE DAILY LIMIT
+// =====================================
 
 const saveLimitBtn =
     document.getElementById(
         "saveDailyLimit"
     );
+
 
 if (saveLimitBtn) {
 
@@ -1690,7 +2011,7 @@ if (saveLimitBtn) {
 
 
 // =====================================
-// EXCEL EXPORT
+// EXPORT EXCEL
 // =====================================
 
 const exportBtn =
@@ -1722,6 +2043,12 @@ if (exportBtn) {
             const rows =
                 allSurveys.map(
                     function (survey) {
+
+                        const date =
+                            getDate(
+                                survey.createdAt
+                            );
+
 
                         return {
 
@@ -1756,10 +2083,9 @@ if (exportBtn) {
                                 survey.surveyorEmail || "",
 
                             Date:
-                                getDate(
-                                    survey.createdAt
-                                )
-                                    ?.toLocaleString() || ""
+                                date
+                                    ? date.toLocaleString()
+                                    : ""
 
                         };
 
@@ -1833,44 +2159,5 @@ if (logoutBtn) {
 
         }
     );
-
-}
-
-
-// =====================================
-// HTML ESCAPE
-// =====================================
-
-function escapeHTML(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-        return "";
-    }
-
-
-    return String(value)
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
 
 }
