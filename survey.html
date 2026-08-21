@@ -9,81 +9,498 @@
 
 <link rel="stylesheet" href="style.css">
 
+<style>
+
+body {
+    background: #f4f6f9;
+}
+
+.survey-container {
+    max-width: 650px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.login-box {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+}
+
+.survey-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.survey-header h1 {
+    color: #1565c0;
+    margin-bottom: 5px;
+}
+
+.survey-header p {
+    color: #666;
+    margin-top: 0;
+}
+
+/* =========================
+   PROGRESS
+========================= */
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #1565c0;
+}
+
+.progress-background {
+    width: 100%;
+    height: 10px;
+    background: #e0e0e0;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 25px;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background: #1565c0;
+    transition: width 0.3s ease;
+}
+
+/* =========================
+   STEPS
+========================= */
+
+.survey-step {
+    display: none;
+}
+
+.survey-step.active {
+    display: block;
+}
+
+.step-title {
+    color: #1565c0;
+    margin-bottom: 18px;
+    font-size: 20px;
+}
+
+/* =========================
+   QUESTION
+========================= */
+
+.question-number {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.question-text {
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.question-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.option-label {
+    display: block;
+    padding: 14px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #fff;
+    transition: 0.2s;
+}
+
+.option-label:hover {
+    border-color: #1565c0;
+    background: #f5f9ff;
+}
+
+.option-label input {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+.option-label.selected {
+    border-color: #1565c0;
+    background: #eaf3ff;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.navigation-buttons button {
+    flex: 1;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#previousButton {
+    background: #757575;
+    color: white;
+}
+
+#nextButton {
+    background: #1565c0;
+    color: white;
+}
+
+#submitSurvey {
+    background: #2e7d32;
+    color: white;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 17px;
+    cursor: pointer;
+    margin-top: 25px;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =========================
+   DAILY PROGRESS
+========================= */
+
+#dailyProgressBox {
+    margin-bottom: 20px;
+}
+
+/* =========================
+   MESSAGE
+========================= */
+
+#message {
+    text-align: center;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+
+    .survey-container {
+        margin: 10px auto;
+        padding: 10px;
+    }
+
+    .login-box {
+        padding: 18px;
+    }
+
+    .question-text {
+        font-size: 18px;
+    }
+
+}
+
+</style>
+
 </head>
 
 <body>
 
+<div class="survey-container">
+
 <div class="login-box">
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<div class="survey-header">
 
 <h1>Surveykshan</h1>
 
 <p>Political Survey Form</p>
 
+</div>
+
+
+<!-- =========================
+     DAILY PROGRESS
+========================= -->
+
+<div id="dailyProgressBox"></div>
+
+
+<!-- =========================
+     QUESTION PROGRESS
+========================= -->
+
+<div class="progress-info">
+
+<span id="stepTitle">
+Respondent Details
+</span>
+
+<span id="questionProgress">
+Basic Details
+</span>
+
+</div>
+
+<div class="progress-background">
+
+<div
+id="surveyProgressBar"
+class="progress-bar">
+</div>
+
+</div>
+
+
+<!-- =================================================
+     STEP 1 - BASIC RESPONDENT DETAILS
+================================================= -->
+
+<div
+id="basicDetailsStep"
+class="survey-step active">
+
+<h2 class="step-title">
+Respondent Basic Details
+</h2>
+
+
 <input
 type="text"
 id="name"
-placeholder="Full Name">
+placeholder="Full Name"
+autocomplete="off">
+
 
 <input
 type="text"
 id="mobile"
-placeholder="Mobile Number">
+placeholder="Mobile Number"
+autocomplete="off">
+
 
 <input
 type="number"
 id="age"
 placeholder="Age">
 
+
 <select id="gender">
-<option value="">Select Gender</option>
-<option value="Male">Male</option>
-<option value="Female">Female</option>
-<option value="Other">Other</option>
+
+<option value="">
+Select Gender
+</option>
+
+<option value="Male">
+Male
+</option>
+
+<option value="Female">
+Female
+</option>
+
+<option value="Other">
+Other
+</option>
+
 </select>
+
 
 <input
 type="text"
 id="village"
-placeholder="Village / City">
+placeholder="Village / City"
+autocomplete="off">
+
 
 <input
 type="text"
 id="assembly"
-placeholder="Assembly Constituency">
+placeholder="Assembly Constituency"
+autocomplete="off">
+
 
 <select id="party">
-<option value="">Select Political Party</option>
-<option value="BJP">BJP</option>
-<option value="Congress">Congress</option>
-<option value="AAP">AAP</option>
-<option value="BSP">BSP</option>
-<option value="SP">SP</option>
-<option value="Other">Other</option>
+
+<option value="">
+Select Political Party
+</option>
+
+<option value="BJP">
+BJP
+</option>
+
+<option value="Congress">
+Congress
+</option>
+
+<option value="AAP">
+AAP
+</option>
+
+<option value="BSP">
+BSP
+</option>
+
+<option value="SP">
+SP
+</option>
+
+<option value="Other">
+Other
+</option>
+
 </select>
+
 
 <input
 type="text"
 id="candidate"
-placeholder="Candidate Name">
+placeholder="Candidate Name"
+autocomplete="off">
+
 
 <textarea
 id="feedback"
-placeholder="Write your Feedback"></textarea>
+placeholder="Additional Feedback"
+style="display:none;"></textarea>
 
-<button id="submitSurvey">
-Submit Survey
+
+<div class="navigation-buttons">
+
+<button
+type="button"
+id="basicNextButton">
+Next →
 </button>
-
-<p id="message"></p>
 
 </div>
 
+</div>
+
+
+<!-- =================================================
+     STEP 2 - QUESTIONS
+================================================= -->
+
+<div
+id="questionStep"
+class="survey-step">
+
+<div
+class="question-number"
+id="questionNumber">
+Question 1
+</div>
+
+
+<div
+class="question-text"
+id="questionText">
+Loading question...
+</div>
+
+
+<div
+class="question-options"
+id="questionOptions">
+</div>
+
+
+<div class="navigation-buttons">
+
+<button
+type="button"
+id="previousButton">
+← Previous
+</button>
+
+
+<button
+type="button"
+id="nextButton">
+Next →
+</button>
+
+</div>
+
+
+<button
+type="button"
+id="submitSurvey"
+style="display:none;">
+Submit Survey
+</button>
+
+</div>
+
+
+<!-- =========================
+     MESSAGE
+========================= -->
+
+<p id="message"></p>
+
+
+</div>
+
+</div>
+
+
+<!-- =================================================
+     FIREBASE
+================================================= -->
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
+
+<!-- FIREBASE CONFIG -->
+
 <script src="firebase.js"></script>
+
+
+<!-- QUESTIONS -->
+
+<script src="questions.js"></script>
+
+
+<!-- SURVEY JS -->
+
 <script src="survey.js"></script>
 
+
 </body>
+
 </html>
