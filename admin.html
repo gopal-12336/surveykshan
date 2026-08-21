@@ -1,437 +1,723 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surveykshan Admin Panel</title>
-    <link rel="stylesheet" href="style.css">
 
-    <style>
-        body {
-            background: #f4f6f9;
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        .header {
-            background: #1565c0;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-        }
+<title>Surveykshan Admin Panel</title>
 
-        .admin-info {
-            text-align: center;
-            color: #555;
-            font-size: 14px;
-            margin: 10px 0;
-        }
+<link rel="stylesheet" href="style.css">
 
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            padding: 20px;
-        }
+<style>
 
-        .card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,.15);
-        }
+body {
+    background: #f4f6f9;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
 
-        .card h4 {
-            margin: 5px 0;
-            color: #444;
-        }
+.header {
+    background: #1565c0;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
 
-        .card h2 {
-            color: #1565c0;
-            font-size: 30px;
-            margin: 10px 0 0;
-        }
+.admin-info {
+    text-align: center;
+    color: #555;
+    font-size: 14px;
+    margin: 10px 0;
+}
 
-        .container {
-            padding: 20px;
-        }
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
 
-        .section-title {
-            background: white;
-            padding: 15px;
-            margin-top: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.1);
-        }
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,.15);
+}
 
-        .section-title h2 {
-            margin: 0;
-            color: #1565c0;
-        }
+.card h4 {
+    margin: 5px 0;
+    color: #444;
+}
 
-        .limit-box {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
+.card h2 {
+    color: #1565c0;
+    font-size: 30px;
+    margin: 10px 0 0;
+}
 
-        .limit-box input {
-            padding: 11px;
-            width: 180px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
+.container {
+    padding: 20px;
+}
 
-        #saveDailyLimit {
-            background: #1565c0;
-            color: white;
-        }
+.section-title {
+    background: white;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
 
-        #limitMessage {
-            font-weight: bold;
-            margin-left: 5px;
-        }
+.section-title h2 {
+    margin: 0;
+    color: #1565c0;
+}
 
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-            margin-top: 15px;
-        }
+/* DAILY LIMIT */
 
-        .filters input,
-        .filters select {
-            padding: 10px;
-            min-width: 170px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            background: white;
-        }
+.limit-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
 
-        button {
-            padding: 9px 14px;
-            margin: 2px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+.limit-box input {
+    padding: 11px;
+    width: 180px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
 
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+#saveDailyLimit {
+    background: #1565c0;
+    color: white;
+}
 
-        #exportExcel {
-            background: #2e7d32;
-            color: white;
-        }
+#questionManagementBtn {
+    background: #7b1fa2;
+    color: white;
+}
 
-        #logoutBtn {
-            background: #c62828;
-            color: white;
-        }
+#limitMessage {
+    font-weight: bold;
+    margin-left: 5px;
+}
 
-        #resetFilters {
-            background: #757575;
-            color: white;
-        }
+/* FILTERS */
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    margin-top: 15px;
+}
 
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
+.filters input,
+.filters select {
+    padding: 10px;
+    min-width: 170px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background: white;
+}
 
-        th {
-            background: #1565c0;
-            color: white;
-        }
+button {
+    padding: 9px 14px;
+    margin: 2px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
 
-        .table-wrapper {
-            overflow-x: auto;
-            background: white;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 
-        #partyChart {
-            max-width: 700px;
-            max-height: 450px;
-            margin: 20px auto;
-            display: block;
-        }
+#exportExcel {
+    background: #2e7d32;
+    color: white;
+}
 
-        .status-active {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 15px;
-            background: #e8f5e9;
-            color: #2e7d32;
-            font-weight: bold;
-        }
+#logoutBtn {
+    background: #c62828;
+    color: white;
+}
 
-        .status-disabled {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 15px;
-            background: #ffebee;
-            color: #c62828;
-            font-weight: bold;
-        }
+#resetFilters {
+    background: #757575;
+    color: white;
+}
 
-        .action-btn {
-            padding: 6px 10px;
-            margin: 2px;
-        }
+/* TABLE */
 
-        .edit-btn {
-            background: #1565c0;
-            color: white;
-        }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
 
-        .delete-btn {
-            background: #c62828;
-            color: white;
-        }
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
 
-        .enable-btn {
-            background: #2e7d32;
-            color: white;
-        }
+th {
+    background: #1565c0;
+    color: white;
+}
 
-        .disable-btn {
-            background: #ef6c00;
-            color: white;
-        }
+.table-wrapper {
+    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    margin-top: 15px;
+}
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
+/* CHART */
 
-            .dashboard {
-                padding: 10px;
-                grid-template-columns: repeat(2, 1fr);
-            }
+#partyChart {
+    max-width: 700px;
+    max-height: 450px;
+    margin: 20px auto;
+    display: block;
+}
 
-            .header {
-                font-size: 20px;
-            }
+/* STATUS */
 
-            .filters {
-                flex-direction: column;
-            }
+.status-active {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-weight: bold;
+}
 
-            .filters input,
-            .filters select,
-            .filters button {
-                width: 100%;
-            }
+.status-disabled {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    background: #ffebee;
+    color: #c62828;
+    font-weight: bold;
+}
 
-            .limit-box {
-                flex-direction: column;
-                align-items: stretch;
-            }
+.action-btn {
+    padding: 6px 10px;
+    margin: 2px;
+}
 
-            .limit-box input,
-            .limit-box button {
-                width: 100%;
-            }
+.edit-btn {
+    background: #1565c0;
+    color: white;
+}
 
-            #limitMessage {
-                margin-left: 0;
-                margin-top: 5px;
-            }
+.delete-btn {
+    background: #c62828;
+    color: white;
+}
 
-            th, td {
-                white-space: nowrap;
-            }
+.enable-btn {
+    background: #2e7d32;
+    color: white;
+}
 
-            #partyChart {
-                max-width: 100%;
-            }
-        }
-    </style>
+.disable-btn {
+    background: #ef6c00;
+    color: white;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+
+    .container {
+        padding: 10px;
+    }
+
+    .dashboard {
+        padding: 10px;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .header {
+        font-size: 20px;
+    }
+
+    .filters {
+        flex-direction: column;
+    }
+
+    .filters input,
+    .filters select,
+    .filters button {
+        width: 100%;
+    }
+
+    .limit-box {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .limit-box input,
+    .limit-box button {
+        width: 100%;
+    }
+
+    #limitMessage {
+        margin-left: 0;
+        margin-top: 5px;
+    }
+
+    th,
+    td {
+        white-space: nowrap;
+    }
+
+    #partyChart {
+        max-width: 100%;
+    }
+
+}
+
+</style>
+
 </head>
 
 <body>
 
-<div class="header">Surveykshan Admin Dashboard</div>
+<!-- HEADER -->
+
+<div class="header">
+    Surveykshan Admin Dashboard
+</div>
 
 <div class="admin-info">
     Admin Panel • Survey Management System
 </div>
 
+
+<!-- DASHBOARD -->
+
 <div class="dashboard">
-    <div class="card"><h4>Total Surveys</h4><h2 id="totalSurvey">0</h2></div>
-    <div class="card"><h4>BJP</h4><h2 id="bjpCount">0</h2></div>
-    <div class="card"><h4>Congress</h4><h2 id="congressCount">0</h2></div>
-    <div class="card"><h4>AAP</h4><h2 id="aapCount">0</h2></div>
-    <div class="card"><h4>BSP</h4><h2 id="bspCount">0</h2></div>
-    <div class="card"><h4>SP</h4><h2 id="spCount">0</h2></div>
-    <div class="card"><h4>Others</h4><h2 id="otherCount">0</h2></div>
-    <div class="card"><h4>Today's Surveys</h4><h2 id="todaySurvey">0</h2></div>
-    <div class="card"><h4>This Week</h4><h2 id="weekSurvey">0</h2></div>
-    <div class="card"><h4>This Month</h4><h2 id="monthSurvey">0</h2></div>
-    <div class="card"><h4>Filtered Surveys</h4><h2 id="filteredSurvey">0</h2></div>
+
+    <div class="card">
+        <h4>Total Surveys</h4>
+        <h2 id="totalSurvey">0</h2>
+    </div>
+
+    <div class="card">
+        <h4>BJP</h4>
+        <h2 id="bjpCount">0</h2>
+    </div>
+
+    <div class="card">
+        <h4>Congress</h4>
+        <h2 id="congressCount">0</h2>
+    </div>
+
+    <div class="card">
+        <h4>AAP</h4>
+        <h2 id="aapCount">0</h2>
+    </div>
+
+    <div class="card">
+        <h4>BSP</h4>
+        <h2 id="bspCount">0</h2>
+    </div>
+
+    <div class="card">
+        <h4>SP</h4>
+        <h2 id="spCount">0</h2>
+    </div>
+
+    <div class="card">
+        <h4>Others</h4>
+        <h2 id="otherCount">0</h2>
+    </div>
+
+    <div class="card">
+        <h4>Today's Surveys</h4>
+        <h2 id="todaySurvey">0</h2>
+    </div>
+
+    <div class="card">
+        <h4>This Week</h4>
+        <h2 id="weekSurvey">0</h2>
+    </div>
+
+    <div class="card">
+        <h4>This Month</h4>
+        <h2 id="monthSurvey">0</h2>
+    </div>
+
+    <div class="card">
+        <h4>Filtered Surveys</h4>
+        <h2 id="filteredSurvey">0</h2>
+    </div>
+
 </div>
+
 
 <div class="container">
 
-    <div class="section-title">
-        <h2>⚙️ Daily Survey Limit</h2>
 
-        <div class="limit-box">
-            <input
-                type="number"
-                id="dailyLimitInput"
-                min="1"
-                value="20"
-                placeholder="Daily Limit">
+<!-- DAILY SURVEY LIMIT -->
 
-            <button id="saveDailyLimit">💾 Save Limit</button>
+<div class="section-title">
 
-            <span id="limitMessage"></span>
-        </div>
-    </div>
+    <h2>
+        ⚙️ Daily Survey Limit
+    </h2>
 
-    <div class="section-title">
-        <h2>🔎 Survey Filters</h2>
-    </div>
+    <div class="limit-box">
 
-    <div class="filters">
-        <input type="text" id="searchBox" placeholder="Search Name, Mobile, Village">
+        <input
+            type="number"
+            id="dailyLimitInput"
+            min="1"
+            value="20"
+            placeholder="Daily Limit">
 
-        <select id="partyFilter">
-            <option value="">All Parties</option>
-            <option value="BJP">BJP</option>
-            <option value="Congress">Congress</option>
-            <option value="AAP">AAP</option>
-            <option value="BSP">BSP</option>
-            <option value="SP">SP</option>
-            <option value="Other">Other</option>
-        </select>
+        <button
+            id="saveDailyLimit">
+            💾 Save Limit
+        </button>
 
-        <select id="dateFilter">
-            <option value="">All Dates</option>
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-        </select>
+        <button
+            type="button"
+            id="questionManagementBtn"
+            onclick="window.location.href='questions.html'">
+            ⚙️ Question Management
+        </button>
 
-        <select id="villageFilter">
-            <option value="">All Villages</option>
-        </select>
+        <span id="limitMessage"></span>
 
-        <select id="assemblyFilter">
-            <option value="">All Assemblies</option>
-        </select>
-
-        <select id="surveyorFilter">
-            <option value="">All Surveyors</option>
-        </select>
-
-        <button id="resetFilters">🔄 Reset</button>
-        <button id="exportExcel">📥 Export Excel</button>
-        <button id="logoutBtn">🚪 Logout</button>
-    </div>
-
-    <div class="section-title">
-        <h2>📊 Party Survey Distribution</h2>
-    </div>
-
-    <canvas id="partyChart"></canvas>
-
-    <div class="section-title">
-        <h2>👨‍💼 Surveyor Performance</h2>
-    </div>
-
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Surveyor</th>
-                    <th>Total Surveys</th>
-                    <th>Today</th>
-                    <th>This Week</th>
-                    <th>This Month</th>
-                </tr>
-            </thead>
-            <tbody id="surveyorPerformanceTable"></tbody>
-        </table>
-    </div>
-
-    <div class="section-title">
-        <h2>👥 Surveyor Management</h2>
-    </div>
-
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Surveyor Email</th>
-                    <th>Total</th>
-                    <th>Today</th>
-                    <th>This Week</th>
-                    <th>This Month</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="surveyorManagementTable"></tbody>
-        </table>
-    </div>
-
-    <div class="section-title">
-        <h2>📋 Survey Records</h2>
-    </div>
-
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Mobile</th>
-                    <th>Age</th>
-                    <th>Gender</th>
-                    <th>Village</th>
-                    <th>Party</th>
-                    <th>Candidate</th>
-                    <th>Feedback</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="surveyTable"></tbody>
-        </table>
     </div>
 
 </div>
 
+
+<!-- FILTERS -->
+
+<div class="section-title">
+
+    <h2>
+        🔎 Survey Filters
+    </h2>
+
+</div>
+
+
+<div class="filters">
+
+    <input
+        type="text"
+        id="searchBox"
+        placeholder="Search Name, Mobile, Village">
+
+    <select id="partyFilter">
+
+        <option value="">
+            All Parties
+        </option>
+
+        <option value="BJP">
+            BJP
+        </option>
+
+        <option value="Congress">
+            Congress
+        </option>
+
+        <option value="AAP">
+            AAP
+        </option>
+
+        <option value="BSP">
+            BSP
+        </option>
+
+        <option value="SP">
+            SP
+        </option>
+
+        <option value="Other">
+            Other
+        </option>
+
+    </select>
+
+
+    <select id="dateFilter">
+
+        <option value="">
+            All Dates
+        </option>
+
+        <option value="today">
+            Today
+        </option>
+
+        <option value="week">
+            This Week
+        </option>
+
+        <option value="month">
+            This Month
+        </option>
+
+    </select>
+
+
+    <select id="villageFilter">
+
+        <option value="">
+            All Villages
+        </option>
+
+    </select>
+
+
+    <select id="assemblyFilter">
+
+        <option value="">
+            All Assemblies
+        </option>
+
+    </select>
+
+
+    <select id="surveyorFilter">
+
+        <option value="">
+            All Surveyors
+        </option>
+
+    </select>
+
+
+    <button id="resetFilters">
+        🔄 Reset
+    </button>
+
+
+    <button id="exportExcel">
+        📥 Export Excel
+    </button>
+
+
+    <button id="logoutBtn">
+        🚪 Logout
+    </button>
+
+</div>
+
+
+<!-- PARTY CHART -->
+
+<div class="section-title">
+
+    <h2>
+        📊 Party Survey Distribution
+    </h2>
+
+</div>
+
+
+<canvas id="partyChart"></canvas>
+
+
+<!-- SURVEYOR PERFORMANCE -->
+
+<div class="section-title">
+
+    <h2>
+        👨‍💼 Surveyor Performance
+    </h2>
+
+</div>
+
+
+<div class="table-wrapper">
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>
+                    Surveyor
+                </th>
+
+                <th>
+                    Total Surveys
+                </th>
+
+                <th>
+                    Today
+                </th>
+
+                <th>
+                    This Week
+                </th>
+
+                <th>
+                    This Month
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="surveyorPerformanceTable"></tbody>
+
+    </table>
+
+</div>
+
+
+<!-- SURVEYOR MANAGEMENT -->
+
+<div class="section-title">
+
+    <h2>
+        👥 Surveyor Management
+    </h2>
+
+</div>
+
+
+<div class="table-wrapper">
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>
+                    Surveyor Email
+                </th>
+
+                <th>
+                    Total
+                </th>
+
+                <th>
+                    Today
+                </th>
+
+                <th>
+                    This Week
+                </th>
+
+                <th>
+                    This Month
+                </th>
+
+                <th>
+                    Status
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="surveyorManagementTable"></tbody>
+
+    </table>
+
+</div>
+
+
+<!-- SURVEY RECORDS -->
+
+<div class="section-title">
+
+    <h2>
+        📋 Survey Records
+    </h2>
+
+</div>
+
+
+<div class="table-wrapper">
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Village</th>
+                <th>Party</th>
+                <th>Candidate</th>
+                <th>Feedback</th>
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="surveyTable"></tbody>
+
+    </table>
+
+</div>
+
+
+</div>
+
+
+<!-- FIREBASE -->
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+
+<!-- FIREBASE CONFIG -->
 
 <script src="firebase.js"></script>
 
+
+<!-- EXCEL -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+<!-- CHART -->
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<!-- ADMIN JS -->
 
 <script src="admin.js"></script>
 
+
 </body>
+
 </html>
