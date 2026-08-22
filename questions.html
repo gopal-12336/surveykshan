@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 
 <meta charset="UTF-8">
@@ -12,9 +11,9 @@
 
 <style>
 
-/* ==============================
-   BASIC
-============================== */
+/* =========================
+   PAGE
+========================= */
 
 *{
     box-sizing:border-box;
@@ -24,223 +23,228 @@ body{
     margin:0;
     padding:0;
     background:#f4f6f9;
-    font-family:Arial, sans-serif;
+    font-family:Arial,sans-serif;
     color:#222;
 }
 
 .container{
     width:100%;
-    max-width:1000px;
-    margin:0 auto;
-    padding:20px;
+    max-width:900px;
+    margin:25px auto;
+    padding:15px;
 }
-
-
-/* ==============================
-   BOX
-============================== */
 
 .box{
-    background:#ffffff;
+    background:#fff;
     padding:22px;
-    margin-bottom:22px;
-    border-radius:14px;
-    box-shadow:0 3px 15px rgba(0,0,0,0.10);
+    margin-bottom:20px;
+    border-radius:12px;
+    box-shadow:0 3px 12px rgba(0,0,0,0.10);
 }
 
-
-/* ==============================
-   HEADINGS
-============================== */
-
 h1{
-    margin:0 0 5px 0;
+    margin:0;
     color:#1565c0;
     font-size:28px;
 }
 
 h2{
     color:#1565c0;
-    margin-top:10px;
+    margin-top:8px;
 }
 
 h3{
     margin-bottom:10px;
 }
 
+/* =========================
+   NORMAL INPUTS
+========================= */
 
-/* ==============================
-   LABEL
-============================== */
-
-label{
+#questionText,
+#questionType{
     display:block;
-    margin-top:12px;
-    margin-bottom:5px;
-    font-weight:bold;
-}
-
-
-/* ==============================
-   GENERAL INPUT
-============================== */
-
-input,
-select,
-textarea{
     width:100%;
-    padding:12px;
-    margin:5px 0;
-    border:1px solid #cfcfcf;
+    height:48px;
+    padding:10px 12px;
+    margin:7px 0 15px;
+    border:1px solid #bbb;
     border-radius:7px;
-    font-size:15px;
     background:#fff;
     color:#222;
+    font-size:16px;
 }
 
-input:focus,
-select:focus,
-textarea:focus{
-    outline:none;
-    border:2px solid #1565c0;
-}
-
-#questionText{
-    height:45px;
-}
-
-
-/* ==============================
-   TYPE INFO
-============================== */
-
-.type-info{
-    margin-top:10px;
-    padding:12px;
-    background:#e3f2fd;
-    color:#1565c0;
-    border-radius:7px;
-    font-size:14px;
-}
-
-
-/* ==============================
+/* =========================
    OPTIONS
-============================== */
+========================= */
 
 #optionsSection{
-    margin-top:15px;
+    width:100%;
 }
 
 #optionsBox{
     width:100%;
 }
 
-
-/* IMPORTANT OPTION ROW */
-
 .option-row{
-    display:flex !important;
-    align-items:center !important;
-    gap:10px !important;
-    width:100% !important;
-    margin-bottom:10px !important;
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
 }
 
+/* IMPORTANT:
+   Only the option text input gets flex:1
+*/
 
-/* OPTION INPUT */
-
-.option-row .optionInput{
-    flex:1 1 auto !important;
+.option-text{
+    flex:1 !important;
     width:auto !important;
-    min-width:0 !important;
-
-    height:44px !important;
-
-    padding:10px 12px !important;
+    min-width:0;
+    height:46px !important;
+    padding:10px 14px !important;
     margin:0 !important;
 
-    background:#ffffff !important;
-    color:#222222 !important;
-
-    border:1px solid #cccccc !important;
+    border:2px solid #ccc !important;
     border-radius:7px !important;
 
-    font-size:15px !important;
+    background:#fff !important;
+    color:#111 !important;
+
+    font-size:16px !important;
+    outline:none;
 }
 
+.option-text:focus{
+    border-color:#1565c0 !important;
+    box-shadow:0 0 4px rgba(21,101,192,.25);
+}
 
 /* DELETE BUTTON */
 
-.option-row .remove-option{
-    flex:0 0 44px !important;
+.remove-option{
+    flex:0 0 45px !important;
+    width:45px !important;
+    min-width:45px !important;
+    max-width:45px !important;
 
-    width:44px !important;
-    min-width:44px !important;
+    height:45px !important;
 
-    height:44px !important;
-
-    padding:0 !important;
     margin:0 !important;
+    padding:0 !important;
 
     border:none !important;
     border-radius:7px !important;
 
-    background:#c62828 !important;
-    color:#ffffff !important;
+    background:#d32f2f !important;
+    color:#fff !important;
 
-    font-size:22px !important;
-    font-weight:bold !important;
+    font-size:24px !important;
+    font-weight:bold;
 
-    cursor:pointer !important;
-}
-
-.option-row .remove-option:hover{
-    background:#a71919 !important;
-}
-
-
-/* ==============================
-   BUTTONS
-============================== */
-
-button{
-    border:none;
-    border-radius:7px;
-    padding:11px 17px;
-    font-size:15px;
     cursor:pointer;
 }
 
-button:hover{
-    opacity:.9;
+.remove-option:hover{
+    background:#b71c1c !important;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+button{
+    cursor:pointer;
+    font-family:Arial,sans-serif;
 }
 
 .add{
     width:100%;
-    margin-top:5px;
     background:#757575;
-    color:#fff;
+    color:white;
+    border:none;
+    padding:13px;
+    border-radius:7px;
+    font-size:16px;
+    margin-top:5px;
+}
+
+.add:hover{
+    background:#616161;
 }
 
 .save{
     width:100%;
-    margin-top:10px;
     background:#2e7d32;
-    color:#fff;
+    color:white;
+    border:none;
+    padding:13px;
+    border-radius:7px;
     font-size:16px;
+    margin-top:10px;
+}
+
+.save:hover{
+    background:#1b5e20;
 }
 
 .back{
+    width:100%;
     background:#555;
-    color:#fff;
-    margin-top:10px;
+    color:white;
+    border:none;
+    padding:12px;
+    border-radius:7px;
+    font-size:15px;
+    margin-top:8px;
 }
 
+/* =========================
+   INFO
+========================= */
 
-/* ==============================
+.type-info{
+    background:#e3f2fd;
+    color:#1565c0;
+    padding:12px;
+    border-radius:7px;
+    margin:5px 0 15px;
+    font-size:14px;
+}
+
+/* =========================
+   QUESTION CARDS
+========================= */
+
+.question-card{
+    background:#fafafa;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:15px;
+    margin-top:15px;
+}
+
+.question-card button{
+    padding:9px 14px;
+    border:none;
+    border-radius:6px;
+    color:white;
+    margin-top:8px;
+}
+
+.edit{
+    background:#ef6c00;
+}
+
+.delete{
+    background:#c62828;
+}
+
+/* =========================
    MESSAGE
-============================== */
+========================= */
 
 #message{
     text-align:center;
@@ -248,51 +252,15 @@ button:hover{
     margin-top:15px;
 }
 
-
-/* ==============================
-   EXISTING QUESTIONS
-============================== */
-
-.question-card{
-    background:#fafafa;
-    border:1px solid #ddd;
-    border-radius:9px;
-    padding:16px;
-    margin-top:14px;
-}
-
-.question-card strong{
-    color:#1565c0;
-}
-
-.question-card ol{
-    margin-top:8px;
-}
-
-.question-card button{
-    margin-top:10px;
-    margin-right:6px;
-}
-
-.edit{
-    background:#ef6c00;
-    color:#fff;
-}
-
-.delete{
-    background:#c62828;
-    color:#fff;
-}
-
-
-/* ==============================
+/* =========================
    MOBILE
-============================== */
+========================= */
 
 @media(max-width:600px){
 
     .container{
-        padding:10px;
+        padding:8px;
+        margin:10px auto;
     }
 
     .box{
@@ -300,40 +268,38 @@ button:hover{
     }
 
     h1{
-        font-size:23px;
+        font-size:24px;
     }
 
     .option-row{
-        gap:7px !important;
+        gap:7px;
     }
 
-    .option-row .optionInput{
-        height:42px !important;
-        font-size:14px !important;
+    .option-text{
+        height:44px !important;
+        font-size:15px !important;
     }
 
-    .option-row .remove-option{
+    .remove-option{
+        flex-basis:42px !important;
         width:42px !important;
         min-width:42px !important;
+        max-width:42px !important;
         height:42px !important;
     }
-
 }
 
 </style>
 
 </head>
 
-
 <body>
-
 
 <div class="container">
 
-
-<!-- =====================================
+<!-- =========================
      QUESTION CREATOR
-===================================== -->
+========================= -->
 
 <div class="box">
 
@@ -343,55 +309,49 @@ button:hover{
 यहाँ से आप अपने survey के questions बना सकते हैं।
 </p>
 
-
-<!-- QUESTION -->
-
-<label for="questionText">
-Question
+<label>
+<strong>Question</strong>
 </label>
 
 <input
     type="text"
     id="questionText"
-    placeholder="Enter your question"
->
+    placeholder="Enter your question">
 
 
-<!-- QUESTION TYPE -->
-
-<label for="questionType">
-Question Type
+<label>
+<strong>Question Type</strong>
 </label>
 
 <select id="questionType">
 
-    <option value="radio">
-        Single Choice
-    </option>
+<option value="radio">
+Single Choice — Select One
+</option>
 
-    <option value="checkbox">
-        Multiple Choice
-    </option>
+<option value="checkbox">
+Multiple Choice — Select Multiple
+</option>
 
-    <option value="text">
-        Text Answer
-    </option>
+<option value="text">
+Text Answer
+</option>
 
 </select>
 
-
-<!-- TYPE INFORMATION -->
 
 <div
     class="type-info"
     id="typeInfo">
 
-    Single Choice: Respondent can select only one option.
+Single Choice: Respondent can select only one option.
 
 </div>
 
 
-<!-- OPTIONS -->
+<!-- =========================
+     OPTIONS
+========================= -->
 
 <div id="optionsSection">
 
@@ -399,124 +359,70 @@ Question Type
 
 <div id="optionsBox">
 
-
-<!-- OPTION 1 -->
-
 <div class="option-row">
 
 <input
-    class="optionInput"
     type="text"
-    placeholder="Enter option 1"
->
+    class="option-text"
+    placeholder="Enter Option 1">
 
 <button
     type="button"
     class="remove-option"
     onclick="removeOption(this)">
-    ×
+×
 </button>
 
 </div>
 
 
-<!-- OPTION 2 -->
-
 <div class="option-row">
 
 <input
-    class="optionInput"
     type="text"
-    placeholder="Enter option 2"
->
+    class="option-text"
+    placeholder="Enter Option 2">
 
 <button
     type="button"
     class="remove-option"
     onclick="removeOption(this)">
-    ×
+×
 </button>
 
 </div>
 
-
-<!-- OPTION 3 -->
-
-<div class="option-row">
-
-<input
-    class="optionInput"
-    type="text"
-    placeholder="Enter option 3"
->
-
-<button
-    type="button"
-    class="remove-option"
-    onclick="removeOption(this)">
-    ×
-</button>
-
 </div>
 
-
-<!-- OPTION 4 -->
-
-<div class="option-row">
-
-<input
-    class="optionInput"
-    type="text"
-    placeholder="Enter option 4"
->
-
-<button
-    type="button"
-    class="remove-option"
-    onclick="removeOption(this)">
-    ×
-</button>
-
-</div>
-
-
-</div>
-
-
-<!-- ADD OPTION -->
 
 <button
     type="button"
     class="add"
     onclick="addOption()">
 
-    + Add Option
+＋ Add Option
 
 </button>
 
 </div>
 
 
-<!-- SAVE -->
-
 <button
     type="button"
     class="save"
     id="saveQuestion">
 
-    💾 Save Question
+💾 Save Question
 
 </button>
 
-
-<!-- BACK -->
 
 <button
     type="button"
     class="back"
     onclick="window.location.href='admin.html'">
 
-    ← Admin Dashboard
+← Admin Dashboard
 
 </button>
 
@@ -526,31 +432,26 @@ Question Type
 </div>
 
 
-
-<!-- =====================================
+<!-- =========================
      EXISTING QUESTIONS
-===================================== -->
+========================= -->
 
 <div class="box">
 
-<h2>📋 Existing Questions</h2>
+<h2>📋 Survey Questions</h2>
 
 <div id="questionsList">
-
 Loading questions...
-
 </div>
 
 </div>
 
-
 </div>
 
 
-
-<!-- =====================================
+<!-- =========================
      FIREBASE
-===================================== -->
+========================= -->
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 
@@ -561,24 +462,21 @@ Loading questions...
 <script src="firebase.js"></script>
 
 
-
 <script>
 
-
-/* =====================================
-   ADMIN EMAIL
-===================================== */
+/* =========================
+   ADMIN
+========================= */
 
 const ADMIN_EMAIL =
 "goswamivinod2305@gmail.com";
 
-
 let editingId = null;
 
 
-/* =====================================
-   AUTHENTICATION
-===================================== */
+/* =========================
+   AUTH
+========================= */
 
 firebase.auth().onAuthStateChanged(function(user){
 
@@ -587,9 +485,7 @@ firebase.auth().onAuthStateChanged(function(user){
         window.location.href="index.html";
 
         return;
-
     }
-
 
     if(
         !user.email ||
@@ -600,19 +496,16 @@ firebase.auth().onAuthStateChanged(function(user){
         window.location.href="survey.html";
 
         return;
-
     }
-
 
     loadQuestions();
 
 });
 
 
-
-/* =====================================
-   QUESTION TYPE CHANGE
-===================================== */
+/* =========================
+   QUESTION TYPE
+========================= */
 
 document
 .getElementById("questionType")
@@ -620,10 +513,10 @@ document
 
     const type=this.value;
 
-    const optionsSection =
+    const optionsSection=
         document.getElementById("optionsSection");
 
-    const typeInfo =
+    const typeInfo=
         document.getElementById("typeInfo");
 
 
@@ -631,62 +524,55 @@ document
 
         optionsSection.style.display="block";
 
-        typeInfo.textContent =
+        typeInfo.textContent=
         "Single Choice: Respondent can select only one option.";
 
     }
-
 
     else if(type==="checkbox"){
 
         optionsSection.style.display="block";
 
-        typeInfo.textContent =
-        "Multiple Choice: Respondent can select more than one option.";
+        typeInfo.textContent=
+        "Multiple Choice: Respondent can select multiple options.";
 
     }
-
 
     else{
 
         optionsSection.style.display="none";
 
-        typeInfo.textContent =
-        "Text Answer: Respondent will type an answer.";
+        typeInfo.textContent=
+        "Text Answer: Respondent will type their answer.";
 
     }
 
 });
 
 
-
-/* =====================================
+/* =========================
    ADD OPTION
-===================================== */
+========================= */
 
 function addOption(){
 
-    const box =
+    const box=
         document.getElementById("optionsBox");
 
+    const count=
+        box.querySelectorAll(".option-text").length + 1;
 
-    const count =
-        box.querySelectorAll(".optionInput").length + 1;
-
-
-    const row =
+    const row=
         document.createElement("div");
 
     row.className="option-row";
 
-
-    row.innerHTML = `
+    row.innerHTML=`
 
         <input
-            class="optionInput"
             type="text"
-            placeholder="Enter option ${count}"
-        >
+            class="option-text"
+            placeholder="Enter Option ${count}">
 
         <button
             type="button"
@@ -697,28 +583,24 @@ function addOption(){
 
     `;
 
-
     box.appendChild(row);
 
 }
 
 
-
-/* =====================================
+/* =========================
    REMOVE OPTION
-===================================== */
+========================= */
 
 function removeOption(button){
 
-    const box =
+    const box=
         document.getElementById("optionsBox");
 
-
-    const rows =
+    const rows=
         box.querySelectorAll(".option-row");
 
-
-    if(rows.length <= 2){
+    if(rows.length<=2){
 
         showMessage(
             "At least 2 options are required.",
@@ -726,32 +608,28 @@ function removeOption(button){
         );
 
         return;
-
     }
-
 
     button.parentElement.remove();
 
 }
 
 
-
-/* =====================================
+/* =========================
    SAVE QUESTION
-===================================== */
+========================= */
 
 document
 .getElementById("saveQuestion")
 .addEventListener("click",function(){
 
-    const question =
+    const question=
         document
         .getElementById("questionText")
         .value
         .trim();
 
-
-    const type =
+    const type=
         document
         .getElementById("questionType")
         .value;
@@ -760,12 +638,11 @@ document
     if(!question){
 
         showMessage(
-            "Please enter question.",
+            "Please enter a question.",
             false
         );
 
         return;
-
     }
 
 
@@ -778,12 +655,11 @@ document
     ){
 
         document
-        .querySelectorAll(".optionInput")
+        .querySelectorAll(".option-text")
         .forEach(function(input){
 
-            const value =
+            const value=
                 input.value.trim();
-
 
             if(value){
 
@@ -794,7 +670,7 @@ document
         });
 
 
-        if(options.length < 2){
+        if(options.length<2){
 
             showMessage(
                 "Please enter at least 2 options.",
@@ -802,19 +678,18 @@ document
             );
 
             return;
-
         }
 
     }
 
 
-    const data = {
+    const data={
 
-        question: question,
+        question:question,
 
-        type: type,
+        type:type,
 
-        options: options,
+        options:options,
 
         updatedAt:
             firebase.firestore
@@ -827,23 +702,18 @@ document
     let operation;
 
 
-    /* UPDATE */
-
     if(editingId){
 
-        operation =
+        operation=
             db.collection("questions")
             .doc(editingId)
             .update(data);
 
     }
 
-
-    /* NEW QUESTION */
-
     else{
 
-        operation =
+        operation=
             db.collection("questions")
             .add({
 
@@ -864,13 +734,10 @@ document
     .then(function(){
 
         showMessage(
-
             editingId
             ? "✅ Question updated successfully."
             : "✅ Question saved successfully.",
-
             true
-
         );
 
 
@@ -888,14 +755,14 @@ document
 
 
         document
-        .getElementById("optionsSection")
-        .style.display="block";
+        .getElementById("typeInfo")
+        .textContent=
+        "Single Choice: Respondent can select only one option.";
 
 
         document
-        .getElementById("typeInfo")
-        .textContent =
-        "Single Choice: Respondent can select only one option.";
+        .getElementById("optionsSection")
+        .style.display="block";
 
 
         resetOptions();
@@ -903,14 +770,13 @@ document
 
         document
         .getElementById("saveQuestion")
-        .textContent =
+        .textContent=
         "💾 Save Question";
 
 
         loadQuestions();
 
     })
-
 
     .catch(function(error){
 
@@ -919,9 +785,8 @@ document
             error
         );
 
-
         showMessage(
-            "❌ " + error.message,
+            "❌ "+error.message,
             false
         );
 
@@ -930,10 +795,9 @@ document
 });
 
 
-
-/* =====================================
+/* =========================
    LOAD QUESTIONS
-===================================== */
+========================= */
 
 function loadQuestions(){
 
@@ -942,43 +806,32 @@ function loadQuestions(){
 
     .then(function(snapshot){
 
-        const list =
-            document.getElementById(
-                "questionsList"
-            );
-
+        const list=
+            document.getElementById("questionsList");
 
         list.innerHTML="";
 
 
         if(snapshot.empty){
 
-            list.innerHTML =
+            list.innerHTML=
             "<p>No questions added yet.</p>";
 
             return;
-
         }
-
-
-        let number=1;
 
 
         snapshot.forEach(function(doc){
 
             const data=doc.data();
 
-
-            const card =
+            const card=
                 document.createElement("div");
 
-
-            card.className =
-                "question-card";
+            card.className="question-card";
 
 
             let typeName="";
-
 
             if(data.type==="radio"){
 
@@ -1004,42 +857,36 @@ function loadQuestions(){
 
             if(
                 data.options &&
-                data.options.length > 0
+                data.options.length
             ){
 
-                optionsHTML =
-
-                "<strong>Options:</strong><ol>" +
+                optionsHTML=
+                "<strong>Options:</strong><ol>"+
 
                 data.options
                 .map(function(option){
 
-                    return "<li>" +
-                        escapeHTML(option) +
-                        "</li>";
+                    return "<li>"+
+                    escapeHTML(option)+
+                    "</li>";
 
                 })
-                .join("") +
+                .join("")+
 
                 "</ol>";
 
             }
 
 
-            card.innerHTML = `
+            card.innerHTML=`
 
-                <strong>
-                    ${number}.
-                    Question:
-                </strong>
+                <strong>Question:</strong>
 
                 ${escapeHTML(data.question)}
 
                 <br><br>
 
-                <strong>
-                    Type:
-                </strong>
+                <strong>Type:</strong>
 
                 ${typeName}
 
@@ -1047,26 +894,16 @@ function loadQuestions(){
 
                 ${optionsHTML}
 
-                <button
-                    type="button"
-                    class="edit">
-
+                <button class="edit">
                     ✏️ Edit
-
                 </button>
 
-                <button
-                    type="button"
-                    class="delete">
-
+                <button class="delete">
                     🗑️ Delete
-
                 </button>
 
             `;
 
-
-            /* EDIT */
 
             card
             .querySelector(".edit")
@@ -1079,8 +916,6 @@ function loadQuestions(){
 
             };
 
-
-            /* DELETE */
 
             card
             .querySelector(".delete")
@@ -1095,13 +930,9 @@ function loadQuestions(){
 
             list.appendChild(card);
 
-
-            number++;
-
         });
 
     })
-
 
     .catch(function(error){
 
@@ -1110,13 +941,10 @@ function loadQuestions(){
             error
         );
 
-
         document
-        .getElementById(
-            "questionsList"
-        )
-        .textContent =
-        "Unable to load questions: " +
+        .getElementById("questionsList")
+        .textContent=
+        "Unable to load questions: "+
         error.message;
 
     });
@@ -1124,10 +952,9 @@ function loadQuestions(){
 }
 
 
-
-/* =====================================
+/* =========================
    EDIT QUESTION
-===================================== */
+========================= */
 
 function editQuestion(id,data){
 
@@ -1136,21 +963,18 @@ function editQuestion(id,data){
 
     document
     .getElementById("questionText")
-    .value =
+    .value=
         data.question || "";
 
 
     document
     .getElementById("questionType")
-    .value =
+    .value=
         data.type || "radio";
 
 
-    const box =
-        document.getElementById(
-            "optionsBox"
-        );
-
+    const box=
+        document.getElementById("optionsBox");
 
     box.innerHTML="";
 
@@ -1161,89 +985,44 @@ function editQuestion(id,data){
     ){
 
         document
-        .getElementById(
-            "optionsSection"
-        )
+        .getElementById("optionsSection")
         .style.display="block";
 
 
         document
-        .getElementById(
-            "typeInfo"
-        )
-        .textContent =
-
+        .getElementById("typeInfo")
+        .textContent=
         data.type==="radio"
-
         ? "Single Choice: Respondent can select only one option."
-
-        : "Multiple Choice: Respondent can select more than one option.";
+        : "Multiple Choice: Respondent can select multiple options.";
 
 
         (data.options || [])
         .forEach(function(option,index){
 
-            const row =
-                document.createElement(
-                    "div"
-                );
+            const row=
+                document.createElement("div");
+
+            row.className="option-row";
 
 
-            row.className =
-                "option-row";
+            row.innerHTML=`
 
+                <input
+                    type="text"
+                    class="option-text"
+                    value="${escapeHTML(option)}"
+                    placeholder="Enter Option ${index+1}">
 
-            const input =
-                document.createElement(
-                    "input"
-                );
+                <button
+                    type="button"
+                    class="remove-option"
+                    onclick="removeOption(this)">
+                    ×
+                </button>
 
+            `;
 
-            input.className =
-                "optionInput";
-
-
-            input.type="text";
-
-
-            input.value =
-                option || "";
-
-
-            input.placeholder =
-                "Enter option " +
-                (index+1);
-
-
-            const removeButton =
-                document.createElement(
-                    "button"
-                );
-
-
-            removeButton.type="button";
-
-
-            removeButton.className =
-                "remove-option";
-
-
-            removeButton.textContent="×";
-
-
-            removeButton.onclick =
-                function(){
-
-                    removeOption(
-                        removeButton
-                    );
-
-                };
-
-
-            row.appendChild(input);
-
-            row.appendChild(removeButton);
 
             box.appendChild(row);
 
@@ -1251,49 +1030,32 @@ function editQuestion(id,data){
 
     }
 
-
     else{
 
         document
-        .getElementById(
-            "optionsSection"
-        )
+        .getElementById("optionsSection")
         .style.display="none";
-
-
-        document
-        .getElementById(
-            "typeInfo"
-        )
-        .textContent =
-        "Text Answer: Respondent will type an answer.";
 
     }
 
 
     document
-    .getElementById(
-        "saveQuestion"
-    )
-    .textContent =
+    .getElementById("saveQuestion")
+    .textContent=
     "💾 Update Question";
 
 
     window.scrollTo({
-
         top:0,
-
         behavior:"smooth"
-
     });
 
 }
 
 
-
-/* =====================================
+/* =========================
    DELETE QUESTION
-===================================== */
+========================= */
 
 function deleteQuestion(id){
 
@@ -1304,7 +1066,6 @@ function deleteQuestion(id){
     ){
 
         return;
-
     }
 
 
@@ -1319,7 +1080,6 @@ function deleteQuestion(id){
             true
         );
 
-
         loadQuestions();
 
     })
@@ -1327,7 +1087,7 @@ function deleteQuestion(id){
     .catch(function(error){
 
         showMessage(
-            "❌ Delete failed: " +
+            "❌ Delete failed: "+
             error.message,
             false
         );
@@ -1337,28 +1097,24 @@ function deleteQuestion(id){
 }
 
 
-
-/* =====================================
+/* =========================
    RESET OPTIONS
-===================================== */
+========================= */
 
 function resetOptions(){
 
-    const box =
-        document.getElementById(
-            "optionsBox"
-        );
+    const box=
+        document.getElementById("optionsBox");
 
 
-    box.innerHTML = `
+    box.innerHTML=`
 
         <div class="option-row">
 
             <input
-                class="optionInput"
                 type="text"
-                placeholder="Enter option 1"
-            >
+                class="option-text"
+                placeholder="Enter Option 1">
 
             <button
                 type="button"
@@ -1373,46 +1129,9 @@ function resetOptions(){
         <div class="option-row">
 
             <input
-                class="optionInput"
                 type="text"
-                placeholder="Enter option 2"
-            >
-
-            <button
-                type="button"
-                class="remove-option"
-                onclick="removeOption(this)">
-                ×
-            </button>
-
-        </div>
-
-
-        <div class="option-row">
-
-            <input
-                class="optionInput"
-                type="text"
-                placeholder="Enter option 3"
-            >
-
-            <button
-                type="button"
-                class="remove-option"
-                onclick="removeOption(this)">
-                ×
-            </button>
-
-        </div>
-
-
-        <div class="option-row">
-
-            <input
-                class="optionInput"
-                type="text"
-                placeholder="Enter option 4"
-            >
+                class="option-text"
+                placeholder="Enter Option 2">
 
             <button
                 type="button"
@@ -1428,23 +1147,18 @@ function resetOptions(){
 }
 
 
-
-/* =====================================
+/* =========================
    MESSAGE
-===================================== */
+========================= */
 
 function showMessage(text,success){
 
-    const message =
-        document.getElementById(
-            "message"
-        );
-
+    const message=
+        document.getElementById("message");
 
     message.textContent=text;
 
-
-    message.style.color =
+    message.style.color=
         success
         ? "green"
         : "red";
@@ -1452,30 +1166,23 @@ function showMessage(text,success){
 }
 
 
-
-/* =====================================
+/* =========================
    ESCAPE HTML
-===================================== */
+========================= */
 
 function escapeHTML(value){
 
     return String(value || "")
 
     .replace(/&/g,"&amp;")
-
     .replace(/</g,"&lt;")
-
     .replace(/>/g,"&gt;")
-
     .replace(/"/g,"&quot;")
-
     .replace(/'/g,"&#039;");
 
 }
 
 </script>
 
-
 </body>
-
 </html>
