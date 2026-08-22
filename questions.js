@@ -1,6 +1,8 @@
 const SURVEY_QUESTIONS = [
+
     {
         question: "आपके क्षेत्र की सबसे बड़ी समस्या क्या है?",
+        type: "radio",
         options: [
             "सड़क",
             "पानी",
@@ -9,8 +11,10 @@ const SURVEY_QUESTIONS = [
             "स्वास्थ्य"
         ]
     },
+
     {
         question: "आप वर्तमान सरकार के काम से कितने संतुष्ट हैं?",
+        type: "radio",
         options: [
             "बहुत संतुष्ट",
             "संतुष्ट",
@@ -19,8 +23,10 @@ const SURVEY_QUESTIONS = [
             "बहुत असंतुष्ट"
         ]
     },
+
     {
         question: "आपके अनुसार क्षेत्र में किस मुद्दे पर सबसे ज्यादा ध्यान देना चाहिए?",
+        type: "radio",
         options: [
             "शिक्षा",
             "रोजगार",
@@ -29,4 +35,5 @@ const SURVEY_QUESTIONS = [
             "कृषि"
         ]
     }
+
 ];
