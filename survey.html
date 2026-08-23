@@ -43,9 +43,7 @@ body {
     margin-top: 0;
 }
 
-/* =========================
-   PROGRESS
-========================= */
+/* PROGRESS */
 
 .progress-info {
     display: flex;
@@ -72,9 +70,7 @@ body {
     transition: width 0.3s ease;
 }
 
-/* =========================
-   STEPS
-========================= */
+/* STEPS */
 
 .survey-step {
     display: none;
@@ -90,9 +86,7 @@ body {
     font-size: 20px;
 }
 
-/* =========================
-   QUESTION
-========================= */
+/* QUESTION */
 
 .question-number {
     color: #777;
@@ -138,9 +132,7 @@ body {
     background: #eaf3ff;
 }
 
-/* =========================
-   BUTTONS
-========================= */
+/* BUTTONS */
 
 .navigation-buttons {
     display: flex;
@@ -163,7 +155,8 @@ body {
     color: white;
 }
 
-#nextButton {
+#nextButton,
+#basicNextButton {
     background: #1565c0;
     color: white;
 }
@@ -185,17 +178,13 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* =========================
-   DAILY PROGRESS
-========================= */
+/* DAILY PROGRESS */
 
 #dailyProgressBox {
     margin-bottom: 20px;
 }
 
-/* =========================
-   MESSAGE
-========================= */
+/* MESSAGE */
 
 #message {
     text-align: center;
@@ -203,9 +192,7 @@ button:disabled {
     margin-top: 15px;
 }
 
-/* =========================
-   MOBILE
-========================= */
+/* MOBILE */
 
 @media (max-width: 600px) {
 
@@ -234,9 +221,7 @@ button:disabled {
 
 <div class="login-box">
 
-<!-- =========================
-     HEADER
-========================= -->
+<!-- HEADER -->
 
 <div class="survey-header">
 
@@ -247,16 +232,12 @@ button:disabled {
 </div>
 
 
-<!-- =========================
-     DAILY PROGRESS
-========================= -->
+<!-- DAILY PROGRESS -->
 
 <div id="dailyProgressBox"></div>
 
 
-<!-- =========================
-     QUESTION PROGRESS
-========================= -->
+<!-- QUESTION PROGRESS -->
 
 <div class="progress-info">
 
@@ -280,9 +261,9 @@ class="progress-bar">
 </div>
 
 
-<!-- =================================================
-     STEP 1 - BASIC RESPONDENT DETAILS
-================================================= -->
+<!-- ==========================================
+     BASIC RESPONDENT DETAILS
+========================================== -->
 
 <div
 id="basicDetailsStep"
@@ -304,13 +285,17 @@ autocomplete="off">
 type="text"
 id="mobile"
 placeholder="Mobile Number"
+inputmode="numeric"
+maxlength="10"
 autocomplete="off">
 
 
 <input
 type="number"
 id="age"
-placeholder="Age">
+placeholder="Age"
+min="1"
+max="120">
 
 
 <select id="gender">
@@ -343,55 +328,18 @@ autocomplete="off">
 
 <input
 type="text"
-id="assembly"
-placeholder="Assembly Constituency"
+id="district"
+placeholder="District"
 autocomplete="off">
-
-
-<select id="party">
-
-<option value="">
-Select Political Party
-</option>
-
-<option value="BJP">
-BJP
-</option>
-
-<option value="Congress">
-Congress
-</option>
-
-<option value="AAP">
-AAP
-</option>
-
-<option value="BSP">
-BSP
-</option>
-
-<option value="SP">
-SP
-</option>
-
-<option value="Other">
-Other
-</option>
-
-</select>
 
 
 <input
 type="text"
-id="candidate"
-placeholder="Candidate Name"
+id="pincode"
+placeholder="PIN Code"
+inputmode="numeric"
+maxlength="6"
 autocomplete="off">
-
-
-<textarea
-id="feedback"
-placeholder="Additional Feedback"
-style="display:none;"></textarea>
 
 
 <div class="navigation-buttons">
@@ -407,9 +355,9 @@ Next →
 </div>
 
 
-<!-- =================================================
-     STEP 2 - QUESTIONS
-================================================= -->
+<!-- ==========================================
+     QUESTIONS
+========================================== -->
 
 <div
 id="questionStep"
@@ -463,9 +411,7 @@ Submit Survey
 </div>
 
 
-<!-- =========================
-     MESSAGE
-========================= -->
+<!-- MESSAGE -->
 
 <p id="message"></p>
 
@@ -475,9 +421,9 @@ Submit Survey
 </div>
 
 
-<!-- =================================================
+<!-- ==========================================
      FIREBASE
-================================================= -->
+========================================== -->
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 
@@ -486,17 +432,11 @@ Submit Survey
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 
-<!-- FIREBASE CONFIG -->
-
 <script src="firebase.js"></script>
 
 
-<!-- QUESTIONS -->
-
 <script src="questions.js"></script>
 
-
-<!-- SURVEY JS -->
 
 <script src="survey.js"></script>
 
