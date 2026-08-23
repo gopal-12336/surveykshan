@@ -1,11 +1,15 @@
-console.log("Survey JS Loaded - Final Version");
+console.log("Surveykshan Survey JS Loaded - Final Version");
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
 let DAILY_LIMIT = 20;
 
 let currentQuestion = 0;
-let answers = {};
+
+let answers = {
+    basic: {},
+    questions: {}
+};
 
 let submitBtn = null;
 let message = null;
@@ -17,8 +21,11 @@ let message = null;
 
 function initializeSurveyPage() {
 
-    submitBtn = document.getElementById("submitSurvey");
-    message = document.getElementById("message");
+    submitBtn =
+        document.getElementById("submitSurvey");
+
+    message =
+        document.getElementById("message");
 
     createDailyProgressUI();
 
@@ -46,58 +53,93 @@ function createDailyProgressUI() {
 
     box.id = "dailyProgressBox";
 
-    box.style.background = "#fff";
-    box.style.border = "1px solid #ddd";
+    box.style.background = "#ffffff";
+    box.style.border = "1px solid #e0e0e0";
     box.style.borderRadius = "12px";
     box.style.padding = "15px";
     box.style.margin = "15px 0";
-    box.style.boxShadow = "0 2px 8px rgba(0,0,0,.08)";
+    box.style.boxShadow =
+        "0 2px 8px rgba(0,0,0,0.08)";
 
-    box.innerHTML = `
-        <div style="
-            display:flex;
-            justify-content:space-between;
-            font-weight:bold;
-            margin-bottom:8px;
-        ">
-            <span>📊 Today's Progress</span>
-            <span id="dailyProgressText">0 / ${DAILY_LIMIT}</span>
-        </div>
+    const titleRow = document.createElement("div");
 
-        <div style="
-            width:100%;
-            height:12px;
-            background:#eeeeee;
-            border-radius:20px;
-            overflow:hidden;
-        ">
-            <div
-                id="dailyProgressBar"
-                style="
-                    width:0%;
-                    height:100%;
-                    background:#1565c0;
-                    transition:.4s;
-                ">
-            </div>
-        </div>
+    titleRow.style.display = "flex";
+    titleRow.style.justifyContent = "space-between";
+    titleRow.style.alignItems = "center";
+    titleRow.style.marginBottom = "8px";
+    titleRow.style.fontWeight = "bold";
 
-        <div
-            id="dailyRemainingText"
-            style="
-                margin-top:8px;
-                font-size:13px;
-                color:#555;
-            ">
-            Remaining today: ${DAILY_LIMIT}
-        </div>
-    `;
+    const title = document.createElement("span");
 
-    const container = document.querySelector(".login-box");
+    title.textContent = "📊 Today's Progress";
+
+    const progressText = document.createElement("span");
+
+    progressText.id = "dailyProgressText";
+
+    progressText.textContent =
+        "0 / " + DAILY_LIMIT;
+
+    titleRow.appendChild(title);
+    titleRow.appendChild(progressText);
+
+
+    const progressBackground =
+        document.createElement("div");
+
+    progressBackground.style.width = "100%";
+    progressBackground.style.height = "12px";
+    progressBackground.style.background = "#eeeeee";
+    progressBackground.style.borderRadius = "20px";
+    progressBackground.style.overflow = "hidden";
+
+
+    const progressBar =
+        document.createElement("div");
+
+    progressBar.id = "dailyProgressBar";
+
+    progressBar.style.width = "0%";
+    progressBar.style.height = "100%";
+    progressBar.style.background = "#1565c0";
+    progressBar.style.transition =
+        "width 0.4s ease";
+
+
+    progressBackground.appendChild(progressBar);
+
+
+    const remainingText =
+        document.createElement("div");
+
+    remainingText.id =
+        "dailyRemainingText";
+
+    remainingText.textContent =
+        "Remaining today: " + DAILY_LIMIT;
+
+    remainingText.style.marginTop = "8px";
+    remainingText.style.fontSize = "13px";
+    remainingText.style.color = "#555";
+
+
+    box.appendChild(titleRow);
+    box.appendChild(progressBackground);
+    box.appendChild(remainingText);
+
+
+    const container =
+        document.querySelector(".login-box");
 
     if (container) {
-        container.insertBefore(box, container.firstChild);
+
+        container.insertBefore(
+            box,
+            container.firstChild
+        );
+
     }
+
 }
 
 
@@ -108,49 +150,84 @@ function createDailyProgressUI() {
 function updateDailyProgress(count) {
 
     const progressText =
-        document.getElementById("dailyProgressText");
+        document.getElementById(
+            "dailyProgressText"
+        );
 
     const remainingText =
-        document.getElementById("dailyRemainingText");
+        document.getElementById(
+            "dailyRemainingText"
+        );
 
     const progressBar =
-        document.getElementById("dailyProgressBar");
+        document.getElementById(
+            "dailyProgressBar"
+        );
 
-    if (!progressText || !remainingText || !progressBar) {
+
+    if (
+        !progressText ||
+        !remainingText ||
+        !progressBar
+    ) {
         return;
     }
 
+
     count = Number(count) || 0;
 
+    const limit =
+        Number(DAILY_LIMIT) || 20;
+
     const remaining =
-        Math.max(DAILY_LIMIT - count, 0);
+        Math.max(limit - count, 0);
 
     const percentage =
-        Math.min((count / DAILY_LIMIT) * 100, 100);
+        Math.min(
+            (count / limit) * 100,
+            100
+        );
+
 
     progressText.textContent =
-        count + " / " + DAILY_LIMIT;
+        count + " / " + limit;
 
-    remainingText.textContent =
-        remaining > 0
-            ? "Remaining today: " + remaining
-            : "Daily limit reached";
+
+    if (remaining > 0) {
+
+        remainingText.textContent =
+            "Remaining today: " +
+            remaining;
+
+    } else {
+
+        remainingText.textContent =
+            "Daily survey limit reached.";
+
+    }
+
 
     progressBar.style.width =
         percentage + "%";
 
-    if (count >= DAILY_LIMIT) {
 
-        progressBar.style.background = "#c62828";
+    if (count >= limit) {
+
+        progressBar.style.background =
+            "#c62828";
 
     } else if (percentage >= 80) {
 
-        progressBar.style.background = "#ef6c00";
+        progressBar.style.background =
+            "#ef6c00";
 
     } else {
 
-        progressBar.style.background = "#1565c0";
+        progressBar.style.background =
+            "#1565c0";
+
     }
+
 }
 
 
@@ -163,6 +240,7 @@ function loadDailyLimit() {
     return db.collection("settings")
         .doc("config")
         .get()
+
         .then(function(doc) {
 
             if (doc.exists) {
@@ -176,11 +254,15 @@ function loadDailyLimit() {
                     Number.isFinite(value) &&
                     value > 0
                 ) {
+
                     DAILY_LIMIT = value;
+
                 }
+
             }
 
         })
+
         .catch(function(error) {
 
             console.error(
@@ -189,7 +271,9 @@ function loadDailyLimit() {
             );
 
             DAILY_LIMIT = 20;
+
         });
+
 }
 
 
@@ -203,43 +287,51 @@ function startAuthentication() {
         .setPersistence(
             firebase.auth.Auth.Persistence.SESSION
         )
+
         .then(function() {
 
             firebase.auth()
-                .onAuthStateChanged(function(user) {
+                .onAuthStateChanged(
+                    function(user) {
 
-                    if (!user) {
+                        if (!user) {
 
-                        window.location.replace(
-                            "index.html"
-                        );
+                            window.location.replace(
+                                "index.html"
+                            );
 
-                        return;
+                            return;
+                        }
+
+
+                        if (
+                            user.email &&
+                            user.email.toLowerCase() ===
+                            ADMIN_EMAIL.toLowerCase()
+                        ) {
+
+                            window.location.replace(
+                                "admin.html"
+                            );
+
+                            return;
+                        }
+
+
+                        loadDailyLimit()
+                            .then(function() {
+
+                                checkDailyLimit(
+                                    user
+                                );
+
+                            });
+
                     }
-
-                    if (
-                        user.email &&
-                        user.email.toLowerCase() ===
-                        ADMIN_EMAIL.toLowerCase()
-                    ) {
-
-                        window.location.replace(
-                            "admin.html"
-                        );
-
-                        return;
-                    }
-
-                    loadDailyLimit()
-                        .then(function() {
-
-                            checkDailyLimit(user);
-
-                        });
-
-                });
+                );
 
         })
+
         .catch(function(error) {
 
             console.error(
@@ -248,6 +340,7 @@ function startAuthentication() {
             );
 
         });
+
 }
 
 
@@ -259,7 +352,13 @@ function getTodayCount(user) {
 
     const todayStart = new Date();
 
-    todayStart.setHours(0, 0, 0, 0);
+    todayStart.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
 
     return db.collection("surveys")
         .where(
@@ -268,9 +367,11 @@ function getTodayCount(user) {
             user.email
         )
         .get()
+
         .then(function(snapshot) {
 
             let count = 0;
+
 
             snapshot.forEach(function(doc) {
 
@@ -280,7 +381,9 @@ function getTodayCount(user) {
                     return;
                 }
 
+
                 let date = null;
+
 
                 try {
 
@@ -292,32 +395,31 @@ function getTodayCount(user) {
                         date =
                             data.createdAt.toDate();
 
-                    } else if (
-                        data.createdAt.seconds
-                    ) {
-
-                        date =
-                            new Date(
-                                data.createdAt.seconds * 1000
-                            );
                     }
 
-                } catch (e) {
+                } catch (error) {
+
                     return;
+
                 }
+
 
                 if (
                     date &&
                     date >= todayStart
                 ) {
+
                     count++;
+
                 }
 
             });
 
+
             return count;
 
         });
+
 }
 
 
@@ -328,11 +430,15 @@ function getTodayCount(user) {
 function checkDailyLimit(user) {
 
     getTodayCount(user)
+
         .then(function(count) {
 
             updateDailyProgress(count);
 
-            if (count >= DAILY_LIMIT) {
+
+            if (
+                count >= DAILY_LIMIT
+            ) {
 
                 disableSurveyButtons();
 
@@ -340,20 +446,25 @@ function checkDailyLimit(user) {
                     "Daily survey limit reached."
                 );
 
-            } else {
-
-                enableSurveyButtons();
-
+                return;
             }
 
+
+            enableSurveyButtons();
+
         })
+
         .catch(function(error) {
 
-            console.error(error);
+            console.error(
+                "Daily Count Error:",
+                error
+            );
 
             enableSurveyButtons();
 
         });
+
 }
 
 
@@ -364,11 +475,16 @@ function checkDailyLimit(user) {
 function enableSurveyButtons() {
 
     const basicNext =
-        document.getElementById("basicNextButton");
+        document.getElementById(
+            "basicNextButton"
+        );
 
     if (basicNext) {
+
         basicNext.disabled = false;
+
     }
+
 
     if (submitBtn) {
 
@@ -376,7 +492,9 @@ function enableSurveyButtons() {
 
         submitBtn.textContent =
             "Submit Survey";
+
     }
+
 }
 
 
@@ -386,22 +504,34 @@ function enableSurveyButtons() {
 
 function disableSurveyButtons() {
 
-    const buttons = [
-        "basicNextButton",
-        "nextButton",
-        "previousButton"
-    ];
+    const basicNext =
+        document.getElementById(
+            "basicNextButton"
+        );
 
-    buttons.forEach(function(id) {
+    const next =
+        document.getElementById(
+            "nextButton"
+        );
 
-        const button =
-            document.getElementById(id);
+    const previous =
+        document.getElementById(
+            "previousButton"
+        );
 
-        if (button) {
-            button.disabled = true;
-        }
 
-    });
+    if (basicNext) {
+        basicNext.disabled = true;
+    }
+
+    if (next) {
+        next.disabled = true;
+    }
+
+    if (previous) {
+        previous.disabled = true;
+    }
+
 
     if (submitBtn) {
 
@@ -409,7 +539,31 @@ function disableSurveyButtons() {
 
         submitBtn.textContent =
             "Daily Limit Reached";
+
     }
+
+}
+
+
+// =====================================================
+// MOBILE VALIDATION
+// =====================================================
+
+function validateMobile(mobile) {
+
+    return /^[0-9]{10}$/.test(mobile);
+
+}
+
+
+// =====================================================
+// PIN CODE VALIDATION
+// =====================================================
+
+function validatePincode(pincode) {
+
+    return /^[0-9]{6}$/.test(pincode);
+
 }
 
 
@@ -420,96 +574,160 @@ function disableSurveyButtons() {
 function setupBasicDetails() {
 
     const button =
-        document.getElementById("basicNextButton");
+        document.getElementById(
+            "basicNextButton"
+        );
+
 
     if (!button) {
         return;
     }
+
 
     button.addEventListener(
         "click",
         function() {
 
             const name =
-                document.getElementById("name").value.trim();
+                document.getElementById(
+                    "name"
+                ).value.trim();
+
 
             const mobile =
-                document.getElementById("mobile").value.trim();
+                document.getElementById(
+                    "mobile"
+                ).value.trim();
+
 
             const age =
-                document.getElementById("age").value.trim();
+                document.getElementById(
+                    "age"
+                ).value.trim();
+
 
             const gender =
-                document.getElementById("gender").value;
+                document.getElementById(
+                    "gender"
+                ).value;
+
 
             const village =
-                document.getElementById("village").value.trim();
-
-            const assembly =
-                document.getElementById("assembly").value.trim();
-
-            const party =
-                document.getElementById("party").value;
+                document.getElementById(
+                    "village"
+                ).value.trim();
 
 
-            // =================================================
-            // REQUIRED DETAILS
-            // =================================================
+            const district =
+                document.getElementById(
+                    "district"
+                ).value.trim();
+
+
+            const pincode =
+                document.getElementById(
+                    "pincode"
+                ).value.trim();
+
+
+            // NAME
+
+            if (!name) {
+
+                showMessage(
+                    "Please enter full name."
+                );
+
+                return;
+
+            }
+
+
+            // MOBILE
+
+            if (!validateMobile(mobile)) {
+
+                showMessage(
+                    "Please enter a valid 10 digit mobile number."
+                );
+
+                return;
+
+            }
+
+
+            // AGE
 
             if (
-                !name ||
-                !mobile ||
                 !age ||
-                !gender ||
-                !village ||
-                !assembly ||
-                !party
+                Number(age) < 1 ||
+                Number(age) > 120
             ) {
 
                 showMessage(
-                    "Please fill all required details."
+                    "Please enter a valid age."
                 );
 
                 return;
+
             }
 
 
-            // =================================================
-            // MOBILE VALIDATION
-            // =================================================
+            // GENDER
 
-            if (!/^[0-9]{10}$/.test(mobile)) {
+            if (!gender) {
 
                 showMessage(
-                    "❌ Mobile number must contain exactly 10 digits."
+                    "Please select gender."
                 );
 
                 return;
+
             }
 
 
-            // =================================================
-            // AGE VALIDATION
-            // =================================================
+            // VILLAGE
 
-            const ageNumber = Number(age);
-
-            if (
-                !Number.isFinite(ageNumber) ||
-                ageNumber < 1 ||
-                ageNumber > 120
-            ) {
+            if (!village) {
 
                 showMessage(
-                    "❌ Please enter a valid age."
+                    "Please enter Village / City."
                 );
 
                 return;
+
+            }
+
+
+            // DISTRICT
+
+            if (!district) {
+
+                showMessage(
+                    "Please enter District."
+                );
+
+                return;
+
+            }
+
+
+            // PIN CODE
+
+            if (!validatePincode(pincode)) {
+
+                showMessage(
+                    "Please enter a valid 6 digit PIN Code."
+                );
+
+                return;
+
             }
 
 
             const user =
                 firebase.auth().currentUser;
+
 
             if (!user) {
 
@@ -518,36 +736,33 @@ function setupBasicDetails() {
                 );
 
                 return;
+
             }
 
 
-            // =================================================
-            // CHECK DAILY LIMIT
-            // =================================================
-
             getTodayCount(user)
-                .then(function(todayCount) {
 
-                    updateDailyProgress(todayCount);
+                .then(function(count) {
+
+                    updateDailyProgress(
+                        count
+                    );
+
 
                     if (
-                        todayCount >=
-                        DAILY_LIMIT
+                        count >= DAILY_LIMIT
                     ) {
 
                         disableSurveyButtons();
 
                         showMessage(
-                            "Daily limit reached."
+                            "Daily survey limit reached."
                         );
 
                         return;
+
                     }
 
-
-                    // =================================================
-                    // SAVE BASIC DETAILS TEMPORARILY
-                    // =================================================
 
                     answers.basic = {
 
@@ -555,36 +770,39 @@ function setupBasicDetails() {
 
                         mobile: mobile,
 
-                        age: ageNumber,
+                        age: age,
 
                         gender: gender,
 
                         village: village,
 
-                        assembly: assembly,
+                        district: district,
 
-                        party: party
+                        pincode: pincode
 
                     };
 
 
-                    clearMessage();
-
                     showQuestionPage();
 
                 })
+
                 .catch(function(error) {
 
-                    console.error(error);
+                    console.error(
+                        "Basic Details Error:",
+                        error
+                    );
 
                     showMessage(
-                        "Unable to check daily limit."
+                        "Unable to continue. Please try again."
                     );
 
                 });
 
         }
     );
+
 }
 
 
@@ -604,7 +822,9 @@ function getQuestions() {
         );
 
         return [];
+
     }
+
 
     if (
         !Array.isArray(
@@ -613,9 +833,12 @@ function getQuestions() {
     ) {
 
         return [];
+
     }
 
+
     return SURVEY_QUESTIONS;
+
 }
 
 
@@ -630,30 +853,35 @@ function showQuestionPage() {
             "basicDetailsStep"
         );
 
+
     const questionStep =
         document.getElementById(
             "questionStep"
         );
+
 
     if (basicStep) {
 
         basicStep.classList.remove(
             "active"
         );
+
     }
+
 
     if (questionStep) {
 
         questionStep.classList.add(
             "active"
         );
+
     }
+
 
     currentQuestion = 0;
 
     renderQuestion();
 
-    updateQuestionProgress();
 }
 
 
@@ -666,30 +894,36 @@ function renderQuestion() {
     const questions =
         getQuestions();
 
+
     const questionText =
         document.getElementById(
             "questionText"
         );
+
 
     const questionNumber =
         document.getElementById(
             "questionNumber"
         );
 
+
     const optionsBox =
         document.getElementById(
             "questionOptions"
         );
+
 
     const nextButton =
         document.getElementById(
             "nextButton"
         );
 
+
     const previousButton =
         document.getElementById(
             "previousButton"
         );
+
 
     const submitButton =
         document.getElementById(
@@ -697,8 +931,13 @@ function renderQuestion() {
         );
 
 
-    if (!questionText || !optionsBox) {
+    if (
+        !questionText ||
+        !optionsBox
+    ) {
+
         return;
+
     }
 
 
@@ -710,14 +949,21 @@ function renderQuestion() {
         optionsBox.innerHTML = "";
 
         if (nextButton) {
-            nextButton.style.display = "none";
+
+            nextButton.style.display =
+                "none";
+
         }
 
         if (submitButton) {
-            submitButton.style.display = "block";
+
+            submitButton.style.display =
+                "block";
+
         }
 
         return;
+
     }
 
 
@@ -740,157 +986,72 @@ function renderQuestion() {
 
 
     if (!answers.questions) {
+
         answers.questions = {};
+
     }
 
 
     const savedAnswer =
-        answers.questions[currentQuestion];
+        answers.questions[
+            currentQuestion
+        ];
 
 
     const type =
         question.type ||
-        question.questionType ||
         "single";
 
 
-    const options =
-        Array.isArray(question.options)
-            ? question.options
-            : [];
+    // =================================================
+    // MULTIPLE CHOICE
+    // =================================================
 
+    if (
+        type === "multiple" ||
+        type === "checkbox"
+    ) {
 
-    options.forEach(function(option) {
-
-        const label =
-            document.createElement("label");
-
-        label.className =
-            "option-label";
-
-
-        const input =
-            document.createElement("input");
-
-
-        // =================================================
-        // SINGLE / MULTIPLE
-        // =================================================
-
-        if (
-            type === "multiple" ||
-            type === "checkbox"
-        ) {
-
-            input.type = "checkbox";
-
-            input.name =
-                "surveyQuestion_" +
-                currentQuestion;
-
-        } else {
-
-            input.type = "radio";
-
-            input.name =
-                "surveyQuestion_" +
-                currentQuestion;
-        }
-
-
-        input.value = option;
-
-
-        // =================================================
-        // RESTORE SAVED ANSWER
-        // =================================================
-
-        if (
+        const savedValues =
             Array.isArray(savedAnswer)
-        ) {
-
-            if (
-                savedAnswer.includes(option)
-            ) {
-
-                input.checked = true;
-
-                label.classList.add(
-                    "selected"
-                );
-            }
-
-        } else {
-
-            if (
-                savedAnswer === option
-            ) {
-
-                input.checked = true;
-
-                label.classList.add(
-                    "selected"
-                );
-            }
-        }
+                ? savedAnswer
+                : [];
 
 
-        // =================================================
-        // CHANGE
-        // =================================================
+        (question.options || [])
+            .forEach(function(option) {
 
-        input.addEventListener(
-            "change",
-            function() {
-
-                if (
-                    type === "multiple" ||
-                    type === "checkbox"
-                ) {
-
-                    const selected = [];
-
-                    optionsBox
-                        .querySelectorAll(
-                            "input[type='checkbox']:checked"
-                        )
-                        .forEach(function(item) {
-
-                            selected.push(
-                                item.value
-                            );
-
-                        });
-
-                    answers.questions[
-                        currentQuestion
-                    ] = selected;
-
-
-                    label.classList.toggle(
-                        "selected",
-                        this.checked
+                const label =
+                    document.createElement(
+                        "label"
                     );
 
-                } else {
 
-                    answers.questions[
-                        currentQuestion
-                    ] = this.value;
+                label.className =
+                    "option-label";
 
 
-                    optionsBox
-                        .querySelectorAll(
-                            ".option-label"
-                        )
-                        .forEach(function(item) {
+                const input =
+                    document.createElement(
+                        "input"
+                    );
 
-                            item.classList.remove(
-                                "selected"
-                            );
 
-                        });
+                input.type =
+                    "checkbox";
 
+
+                input.value =
+                    option;
+
+
+                if (
+                    savedValues.includes(
+                        option
+                    )
+                ) {
+
+                    input.checked = true;
 
                     label.classList.add(
                         "selected"
@@ -898,25 +1059,181 @@ function renderQuestion() {
 
                 }
 
-            }
-        );
+
+                input.addEventListener(
+                    "change",
+                    function() {
+
+                        let selected =
+                            [];
 
 
-        label.appendChild(input);
+                        optionsBox
+                            .querySelectorAll(
+                                "input[type='checkbox']:checked"
+                            )
+                            .forEach(
+                                function(item) {
 
-        label.appendChild(
-            document.createTextNode(
-                " " + option
-            )
-        );
+                                    selected.push(
+                                        item.value
+                                    );
 
-        optionsBox.appendChild(label);
+                                }
+                            );
 
-    });
+
+                        answers.questions[
+                            currentQuestion
+                        ] = selected;
+
+
+                        if (this.checked) {
+
+                            label.classList.add(
+                                "selected"
+                            );
+
+                        } else {
+
+                            label.classList.remove(
+                                "selected"
+                            );
+
+                        }
+
+                    }
+                );
+
+
+                label.appendChild(
+                    input
+                );
+
+
+                label.appendChild(
+                    document.createTextNode(
+                        option
+                    )
+                );
+
+
+                optionsBox.appendChild(
+                    label
+                );
+
+            });
+
+
+    }
+
+    // =================================================
+    // SINGLE CHOICE
+    // =================================================
+
+    else {
+
+        (question.options || [])
+            .forEach(function(option) {
+
+                const label =
+                    document.createElement(
+                        "label"
+                    );
+
+
+                label.className =
+                    "option-label";
+
+
+                const input =
+                    document.createElement(
+                        "input"
+                    );
+
+
+                input.type =
+                    "radio";
+
+
+                input.name =
+                    "surveyQuestion";
+
+
+                input.value =
+                    option;
+
+
+                if (
+                    savedAnswer ===
+                    option
+                ) {
+
+                    input.checked = true;
+
+                    label.classList.add(
+                        "selected"
+                    );
+
+                }
+
+
+                input.addEventListener(
+                    "change",
+                    function() {
+
+                        answers.questions[
+                            currentQuestion
+                        ] =
+                            this.value;
+
+
+                        optionsBox
+                            .querySelectorAll(
+                                ".option-label"
+                            )
+                            .forEach(
+                                function(item) {
+
+                                    item.classList.remove(
+                                        "selected"
+                                    );
+
+                                }
+                            );
+
+
+                        label.classList.add(
+                            "selected"
+                        );
+
+                    }
+                );
+
+
+                label.appendChild(
+                    input
+                );
+
+
+                label.appendChild(
+                    document.createTextNode(
+                        option
+                    )
+                );
+
+
+                optionsBox.appendChild(
+                    label
+                );
+
+            });
+
+    }
 
 
     // =================================================
-    // PREVIOUS
+    // BUTTON DISPLAY
     // =================================================
 
     if (previousButton) {
@@ -925,12 +1242,9 @@ function renderQuestion() {
             currentQuestion === 0
                 ? "none"
                 : "block";
+
     }
 
-
-    // =================================================
-    // NEXT / SUBMIT
-    // =================================================
 
     if (
         currentQuestion ===
@@ -938,26 +1252,42 @@ function renderQuestion() {
     ) {
 
         if (nextButton) {
-            nextButton.style.display = "none";
+
+            nextButton.style.display =
+                "none";
+
         }
 
+
         if (submitButton) {
-            submitButton.style.display = "block";
+
+            submitButton.style.display =
+                "block";
+
         }
 
     } else {
 
         if (nextButton) {
-            nextButton.style.display = "block";
+
+            nextButton.style.display =
+                "block";
+
         }
 
+
         if (submitButton) {
-            submitButton.style.display = "none";
+
+            submitButton.style.display =
+                "none";
+
         }
+
     }
 
 
     updateQuestionProgress();
+
 }
 
 
@@ -970,15 +1300,18 @@ function updateQuestionProgress() {
     const questions =
         getQuestions();
 
+
     const progressBar =
         document.getElementById(
             "surveyProgressBar"
         );
 
+
     const progressText =
         document.getElementById(
             "questionProgress"
         );
+
 
     const stepTitle =
         document.getElementById(
@@ -991,17 +1324,21 @@ function updateQuestionProgress() {
     }
 
 
-    if (!questions.length) {
+    if (questions.length === 0) {
 
-        progressBar.style.width = "100%";
+        progressBar.style.width =
+            "100%";
 
         return;
+
     }
 
 
     const percentage =
-        ((currentQuestion + 1) /
-            questions.length) * 100;
+        (
+            (currentQuestion + 1) /
+            questions.length
+        ) * 100;
 
 
     progressBar.style.width =
@@ -1015,6 +1352,7 @@ function updateQuestionProgress() {
             (currentQuestion + 1) +
             " / " +
             questions.length;
+
     }
 
 
@@ -1022,7 +1360,37 @@ function updateQuestionProgress() {
 
         stepTitle.textContent =
             "Survey Questions";
+
     }
+
+}
+
+
+// =====================================================
+// CHECK CURRENT ANSWER
+// =====================================================
+
+function hasCurrentAnswer() {
+
+    const answer =
+        answers.questions[
+            currentQuestion
+        ];
+
+
+    if (Array.isArray(answer)) {
+
+        return answer.length > 0;
+
+    }
+
+
+    return (
+        answer !== undefined &&
+        answer !== null &&
+        String(answer).trim() !== ""
+    );
+
 }
 
 
@@ -1036,6 +1404,7 @@ function setupQuestionButtons() {
         document.getElementById(
             "nextButton"
         );
+
 
     const previousButton =
         document.getElementById(
@@ -1052,26 +1421,15 @@ function setupQuestionButtons() {
                 const questions =
                     getQuestions();
 
-                const answer =
-                    answers.questions &&
-                    answers.questions[
-                        currentQuestion
-                    ];
 
-
-                if (
-                    !answer ||
-                    (
-                        Array.isArray(answer) &&
-                        answer.length === 0
-                    )
-                ) {
+                if (!hasCurrentAnswer()) {
 
                     showMessage(
-                        "Please select an option."
+                        "Please select an option before continuing."
                     );
 
                     return;
+
                 }
 
 
@@ -1082,14 +1440,15 @@ function setupQuestionButtons() {
 
                     currentQuestion++;
 
-                    clearMessage();
-
                     renderQuestion();
+
+                    clearMessage();
 
                 }
 
             }
         );
+
     }
 
 
@@ -1103,14 +1462,15 @@ function setupQuestionButtons() {
 
                     currentQuestion--;
 
-                    clearMessage();
-
                     renderQuestion();
+
+                    clearMessage();
 
                 }
 
             }
         );
+
     }
 
 
@@ -1120,128 +1480,90 @@ function setupQuestionButtons() {
             "click",
             submitCompleteSurvey
         );
+
     }
+
 }
 
 
 // =====================================================
-// CREATE UNIQUE SURVEY FINGERPRINT
+// NORMALIZE VALUE
 // =====================================================
 
-function createSurveyFingerprint() {
+function normalizeValue(value) {
 
-    const basic =
-        answers.basic || {};
+    if (Array.isArray(value)) {
 
-    const questions =
-        answers.questions || {};
+        return value
+            .map(function(item) {
 
+                return String(item)
+                    .trim()
+                    .toLowerCase();
 
-    const normalizedBasic = {
-
-        name:
-            String(basic.name || "")
-                .trim()
-                .toLowerCase(),
-
-        mobile:
-            String(basic.mobile || "")
-                .trim(),
-
-        age:
-            String(basic.age || "")
-                .trim(),
-
-        gender:
-            String(basic.gender || "")
-                .trim()
-                .toLowerCase(),
-
-        village:
-            String(basic.village || "")
-                .trim()
-                .toLowerCase(),
-
-        assembly:
-            String(basic.assembly || "")
-                .trim()
-                .toLowerCase(),
-
-        party:
-            String(basic.party || "")
-                .trim()
-                .toLowerCase()
-
-    };
-
-
-    const normalizedQuestions = {};
-
-
-    Object.keys(questions)
-        .sort(function(a,b) {
-            return Number(a) - Number(b);
-        })
-        .forEach(function(key) {
-
-            let value =
-                questions[key];
-
-
-            if (Array.isArray(value)) {
-
-                value =
-                    value
-                        .map(function(item) {
-                            return String(item)
-                                .trim()
-                                .toLowerCase();
-                        })
-                        .sort();
-
-            } else {
-
-                value =
-                    String(value || "")
-                        .trim()
-                        .toLowerCase();
-            }
-
-
-            normalizedQuestions[key] =
-                value;
-
-        });
-
-
-    const fingerprintString =
-        JSON.stringify({
-            basic: normalizedBasic,
-            questions: normalizedQuestions
-        });
-
-
-    // Simple deterministic hash
-
-    let hash = 0;
-
-    for (
-        let i = 0;
-        i < fingerprintString.length;
-        i++
-    ) {
-
-        hash =
-            (
-                (hash << 5) -
-                hash +
-                fingerprintString.charCodeAt(i)
-            ) | 0;
+            })
+            .sort()
+            .join("|");
 
     }
 
 
-    return String(hash);
+    return String(
+        value === undefined ||
+        value === null
+            ? ""
+            : value
+    )
+    .trim()
+    .toLowerCase();
+
+}
+
+
+// =====================================================
+// CREATE SURVEY FINGERPRINT
+// =====================================================
+
+function createSurveyFingerprint(
+    basic,
+    questionAnswers
+) {
+
+    let parts = [
+
+        basic.mobile,
+
+        basic.name,
+
+        basic.age,
+
+        basic.gender,
+
+        basic.village,
+
+        basic.district,
+
+        basic.pincode
+
+    ];
+
+
+    questionAnswers.forEach(
+        function(answer) {
+
+            parts.push(
+                normalizeValue(answer)
+            );
+
+        }
+    );
+
+
+    return parts
+        .join("||")
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+
 }
 
 
@@ -1249,7 +1571,9 @@ function createSurveyFingerprint() {
 // CHECK DUPLICATE SURVEY
 // =====================================================
 
-function checkDuplicateSurvey(fingerprint) {
+function checkDuplicateSurvey(
+    fingerprint
+) {
 
     return db.collection("surveys")
         .where(
@@ -1259,11 +1583,13 @@ function checkDuplicateSurvey(fingerprint) {
         )
         .limit(1)
         .get()
+
         .then(function(snapshot) {
 
             return !snapshot.empty;
 
         });
+
 }
 
 
@@ -1284,6 +1610,7 @@ function submitCompleteSurvey() {
         );
 
         return;
+
     }
 
 
@@ -1291,9 +1618,7 @@ function submitCompleteSurvey() {
         getQuestions();
 
 
-    // =================================================
     // CHECK ALL QUESTIONS
-    // =================================================
 
     for (
         let i = 0;
@@ -1302,15 +1627,19 @@ function submitCompleteSurvey() {
     ) {
 
         const answer =
-            answers.questions &&
             answers.questions[i];
 
 
         if (
-            !answer ||
+            answer === undefined ||
+            answer === null ||
             (
                 Array.isArray(answer) &&
                 answer.length === 0
+            ) ||
+            (
+                !Array.isArray(answer) &&
+                String(answer).trim() === ""
             )
         ) {
 
@@ -1325,172 +1654,162 @@ function submitCompleteSurvey() {
             );
 
             return;
+
         }
 
     }
 
 
-    // =================================================
-    // MOBILE CHECK AGAIN
-    // =================================================
+    if (submitBtn) {
 
-    const mobile =
-        String(
-            answers.basic.mobile || ""
-        ).trim();
+        submitBtn.disabled = true;
 
+        submitBtn.textContent =
+            "Checking...";
 
-    if (!/^[0-9]{10}$/.test(mobile)) {
-
-        showMessage(
-            "❌ Mobile number must contain exactly 10 digits."
-        );
-
-        return;
     }
 
 
-    submitBtn.disabled = true;
+    loadDailyLimit()
 
-    submitBtn.textContent =
-        "Checking...";
+        .then(function() {
 
-
-    // =================================================
-    // CREATE FINGERPRINT
-    // =================================================
-
-    const fingerprint =
-        createSurveyFingerprint();
-
-
-    // =================================================
-    // CHECK DUPLICATE
-    // =================================================
-
-    checkDuplicateSurvey(fingerprint)
-
-        .then(function(isDuplicate) {
-
-            if (isDuplicate) {
-
-                throw new Error(
-                    "❌ This complete survey has already been submitted. Duplicate submission is not allowed."
-                );
-            }
-
-
-            // =================================================
-            // DAILY LIMIT
-            // =================================================
-
-            return loadDailyLimit()
-                .then(function() {
-
-                    return getTodayCount(
-                        user
-                    );
-
-                })
-                .then(function(todayCount) {
-
-                    updateDailyProgress(
-                        todayCount
-                    );
-
-
-                    if (
-                        todayCount >=
-                        DAILY_LIMIT
-                    ) {
-
-                        throw new Error(
-                            "Daily limit of " +
-                            DAILY_LIMIT +
-                            " surveys reached."
-                        );
-                    }
-
-
-                    return true;
-
-                });
+            return getTodayCount(user);
 
         })
 
 
-        .then(function() {
+        .then(function(todayCount) {
 
-            submitBtn.textContent =
-                "Submitting...";
+            updateDailyProgress(
+                todayCount
+            );
 
 
-            const questionAnswers = {};
+            if (
+                todayCount >=
+                DAILY_LIMIT
+            ) {
+
+                throw new Error(
+                    "Daily survey limit reached."
+                );
+
+            }
+
+
+            const questionAnswers = [];
 
 
             questions.forEach(
-                function(question,index) {
+                function(question, index) {
 
-                    questionAnswers[
-                        "question_" +
-                        (index + 1)
-                    ] = {
+                    questionAnswers.push({
 
                         question:
                             question.question,
 
                         answer:
-                            answers.questions[index],
+                            answers.questions[index]
 
-                        type:
-                            question.type ||
-                            "single"
-
-                    };
+                    });
 
                 }
             );
 
 
-            // =================================================
-            // SAVE FIRESTORE
-            // =================================================
+            const fingerprint =
+                createSurveyFingerprint(
+                    answers.basic,
+                    questionAnswers.map(
+                        function(item) {
+                            return item.answer;
+                        }
+                    )
+                );
+
+
+            if (submitBtn) {
+
+                submitBtn.textContent =
+                    "Checking Duplicate...";
+
+            }
+
+
+            return checkDuplicateSurvey(
+                fingerprint
+            )
+
+            .then(function(isDuplicate) {
+
+                if (isDuplicate) {
+
+                    throw new Error(
+                        "This exact survey has already been submitted. Duplicate survey is not allowed."
+                    );
+
+                }
+
+
+                return {
+
+                    questionAnswers:
+                        questionAnswers,
+
+                    fingerprint:
+                        fingerprint
+
+                };
+
+            });
+
+        })
+
+
+        .then(function(result) {
+
+            if (submitBtn) {
+
+                submitBtn.textContent =
+                    "Submitting...";
+
+            }
+
+
+            const basic =
+                answers.basic;
+
 
             return db.collection("surveys")
                 .add({
 
                     name:
-                        answers.basic.name,
+                        basic.name,
 
                     mobile:
-                        answers.basic.mobile,
+                        basic.mobile,
 
                     age:
-                        answers.basic.age,
+                        basic.age,
 
                     gender:
-                        answers.basic.gender,
+                        basic.gender,
 
                     village:
-                        answers.basic.village,
+                        basic.village,
 
-                    assembly:
-                        answers.basic.assembly,
+                    district:
+                        basic.district,
 
-                    party:
-                        answers.basic.party,
-
-                    candidate:
-                        "",
-
-                    feedback:
-                        "",
+                    pincode:
+                        basic.pincode,
 
                     questions:
-                        questionAnswers,
+                        result.questionAnswers,
 
                     surveyFingerprint:
-                        fingerprint,
+                        result.fingerprint,
 
                     surveyorEmail:
                         user.email,
@@ -1516,7 +1835,11 @@ function submitCompleteSurvey() {
             );
 
 
-            answers = {};
+            answers = {
+                basic: {},
+                questions: {}
+            };
+
 
             currentQuestion = 0;
 
@@ -1529,6 +1852,7 @@ function submitCompleteSurvey() {
                     "questionStep"
                 );
 
+
             const basicStep =
                 document.getElementById(
                     "basicDetailsStep"
@@ -1540,6 +1864,7 @@ function submitCompleteSurvey() {
                 questionStep.classList.remove(
                     "active"
                 );
+
             }
 
 
@@ -1548,13 +1873,15 @@ function submitCompleteSurvey() {
                 basicStep.classList.add(
                     "active"
                 );
+
             }
 
 
-            const questionProgress =
+            const progressText =
                 document.getElementById(
                     "questionProgress"
                 );
+
 
             const stepTitle =
                 document.getElementById(
@@ -1562,10 +1889,11 @@ function submitCompleteSurvey() {
                 );
 
 
-            if (questionProgress) {
+            if (progressText) {
 
-                questionProgress.textContent =
+                progressText.textContent =
                     "Basic Details";
+
             }
 
 
@@ -1573,6 +1901,7 @@ function submitCompleteSurvey() {
 
                 stepTitle.textContent =
                     "Respondent Details";
+
             }
 
 
@@ -1586,6 +1915,7 @@ function submitCompleteSurvey() {
 
                 progressBar.style.width =
                     "0%";
+
             }
 
 
@@ -1632,7 +1962,7 @@ function submitCompleteSurvey() {
 
             showMessage(
                 error.message ||
-                "Survey submission failed."
+                "Survey submit failed."
             );
 
 
@@ -1643,9 +1973,11 @@ function submitCompleteSurvey() {
 
                 submitBtn.textContent =
                     "Submit Survey";
+
             }
 
         });
+
 }
 
 
@@ -1656,13 +1988,19 @@ function submitCompleteSurvey() {
 function clearBasicForm() {
 
     const ids = [
+
         "name",
+
         "mobile",
+
         "age",
+
         "village",
-        "assembly",
-        "candidate",
-        "feedback"
+
+        "district",
+
+        "pincode"
+
     ];
 
 
@@ -1671,27 +2009,28 @@ function clearBasicForm() {
         const element =
             document.getElementById(id);
 
+
         if (element) {
+
             element.value = "";
+
         }
 
     });
 
 
     const gender =
-        document.getElementById("gender");
+        document.getElementById(
+            "gender"
+        );
+
 
     if (gender) {
+
         gender.value = "";
+
     }
 
-
-    const party =
-        document.getElementById("party");
-
-    if (party) {
-        party.value = "";
-    }
 }
 
 
@@ -1699,27 +2038,41 @@ function clearBasicForm() {
 // MESSAGE
 // =====================================================
 
-function showMessage(text, success) {
+function showMessage(
+    text,
+    success
+) {
 
     if (!message) {
         return;
     }
 
+
     message.textContent =
         text;
+
 
     message.style.color =
         success === true
             ? "green"
             : "red";
+
 }
 
+
+// =====================================================
+// CLEAR MESSAGE
+// =====================================================
 
 function clearMessage() {
 
     if (message) {
-        message.textContent = "";
+
+        message.textContent =
+            "";
+
     }
+
 }
 
 
@@ -1734,7 +2087,11 @@ if (
 
     document.addEventListener(
         "DOMContentLoaded",
-        initializeSurveyPage
+        function() {
+
+            initializeSurveyPage();
+
+        }
     );
 
 } else {
