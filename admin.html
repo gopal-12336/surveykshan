@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -9,6 +10,11 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
+
+/* =====================================================
+   BASIC PAGE
+===================================================== */
+
 body{
     background:#f4f6f9;
     margin:0;
@@ -34,6 +40,11 @@ body{
     padding:20px;
 }
 
+
+/* =====================================================
+   SECTIONS
+===================================================== */
+
 .section{
     background:white;
     padding:20px;
@@ -47,14 +58,27 @@ body{
     margin-top:0;
 }
 
-input,select,textarea{
+
+/* =====================================================
+   FORM
+===================================================== */
+
+input,
+select,
+textarea{
     width:100%;
     padding:11px;
     margin:7px 0;
     border:1px solid #ccc;
     border-radius:6px;
     box-sizing:border-box;
+    font-size:15px;
 }
+
+
+/* =====================================================
+   NORMAL BUTTONS
+===================================================== */
 
 button{
     padding:10px 15px;
@@ -62,6 +86,7 @@ button{
     border-radius:6px;
     cursor:pointer;
     margin:4px;
+    font-size:14px;
 }
 
 .primary{
@@ -89,15 +114,77 @@ button{
     color:white;
 }
 
+
+/* =====================================================
+   IMPORTANT OPTION ROW FIX
+===================================================== */
+
+/*
+   आपकी पुरानी style.css में:
+
+   button{
+       width:100%;
+   }
+
+   होने के कारण Delete button पूरा row ले रहा था।
+
+   नीचे !important से option row का button
+   केवल छोटा × button रहेगा।
+*/
+
+#optionsContainer{
+    width:100%;
+}
+
 .option-row{
-    display:flex;
-    gap:8px;
-    align-items:center;
+    display:flex !important;
+    align-items:center !important;
+    gap:8px !important;
+    width:100% !important;
+    margin:8px 0 !important;
+    box-sizing:border-box !important;
 }
 
 .option-row input{
-    flex:1;
+    flex:1 1 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
 }
+
+.option-row button,
+.option-row .remove-option,
+.option-row .delete-option{
+    width:42px !important;
+    min-width:42px !important;
+    max-width:42px !important;
+    flex:0 0 42px !important;
+    height:42px !important;
+    padding:0 !important;
+    margin:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    background:#c62828 !important;
+    color:white !important;
+    border:none !important;
+    border-radius:6px !important;
+    font-size:20px !important;
+    line-height:1 !important;
+    cursor:pointer !important;
+}
+
+.option-row button:hover,
+.option-row .remove-option:hover,
+.option-row .delete-option:hover{
+    background:#b71c1c !important;
+}
+
+
+/* =====================================================
+   QUESTION CARD
+===================================================== */
 
 .question-card{
     border:1px solid #ddd;
@@ -129,6 +216,11 @@ button{
     font-weight:bold;
 }
 
+
+/* =====================================================
+   DASHBOARD CARDS
+===================================================== */
+
 .dashboard{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
@@ -148,13 +240,19 @@ button{
     color:#1565c0;
 }
 
+
+/* =====================================================
+   TABLE
+===================================================== */
+
 table{
     width:100%;
     border-collapse:collapse;
     background:white;
 }
 
-th,td{
+th,
+td{
     border:1px solid #ddd;
     padding:9px;
     text-align:center;
@@ -169,11 +267,27 @@ th{
     overflow-x:auto;
 }
 
+
+/* =====================================================
+   MESSAGES
+===================================================== */
+
 #limitMessage{
     font-weight:bold;
 }
 
+#questionMessage{
+    font-weight:bold;
+    margin-top:10px;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
 @media(max-width:700px){
+
     .container{
         padding:10px;
     }
@@ -181,72 +295,122 @@ th{
     .header{
         font-size:20px;
     }
+
+    .section{
+        padding:15px;
+    }
+
+    .option-row{
+        gap:6px !important;
+    }
+
+    .option-row button,
+    .option-row .remove-option,
+    .option-row .delete-option{
+        width:42px !important;
+        min-width:42px !important;
+        max-width:42px !important;
+        flex-basis:42px !important;
+    }
+
 }
+
 </style>
+
 </head>
 
+
 <body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
 
 <div class="header">
     Surveykshan Admin Dashboard
 </div>
 
+
 <div class="admin-info">
     Admin Panel • Survey Management System
 </div>
 
+
 <div class="container">
 
-<!-- ================= DASHBOARD ================= -->
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
 
 <div class="dashboard">
 
-<div class="card">
-<h4>Total Surveys</h4>
-<h2 id="totalSurvey">0</h2>
-</div>
 
 <div class="card">
-<h4>Today's Surveys</h4>
-<h2 id="todaySurvey">0</h2>
+    <h4>Total Surveys</h4>
+    <h2 id="totalSurvey">0</h2>
 </div>
+
 
 <div class="card">
-<h4>This Week</h4>
-<h2 id="weekSurvey">0</h2>
+    <h4>Today's Surveys</h4>
+    <h2 id="todaySurvey">0</h2>
 </div>
+
 
 <div class="card">
-<h4>This Month</h4>
-<h2 id="monthSurvey">0</h2>
+    <h4>This Week</h4>
+    <h2 id="weekSurvey">0</h2>
 </div>
+
 
 <div class="card">
-<h4>Questions</h4>
-<h2 id="questionCount">0</h2>
+    <h4>This Month</h4>
+    <h2 id="monthSurvey">0</h2>
 </div>
 
+
+<div class="card">
+    <h4>Questions</h4>
+    <h2 id="questionCount">0</h2>
 </div>
 
 
-<!-- ================= QUESTION BUILDER ================= -->
+</div>
+
+
+<!-- =====================================================
+     QUESTION BUILDER
+===================================================== -->
 
 <div class="section">
 
+
 <h2>📝 Survey Question Manager</h2>
+
 
 <p>
 यहाँ से आप अपने survey के questions बना सकते हैं।
 </p>
 
-<label><b>Question</b></label>
+
+<label>
+<b>Question</b>
+</label>
+
 
 <input
-type="text"
-id="questionText"
-placeholder="Enter your question">
+    type="text"
+    id="questionText"
+    placeholder="Enter your question"
+    autocomplete="off">
 
-<label><b>Question Type</b></label>
+
+<label>
+<b>Question Type</b>
+</label>
+
 
 <select id="questionType">
 
@@ -260,120 +424,204 @@ Multiple Choice
 
 </select>
 
-<h3>Options</h3>
+
+<h3>
+Options
+</h3>
+
+
+<!-- IMPORTANT: ADMIN.JS इसी container में options बनाएगा -->
 
 <div id="optionsContainer"></div>
 
+
 <button
-class="gray"
-id="addOption">
+    type="button"
+    class="gray"
+    id="addOption">
+
 ➕ Add Option
+
 </button>
+
 
 <br>
 
-<button
-class="success"
-id="saveQuestion">
-💾 Save Question
-</button>
 
 <button
-class="warning"
-id="cancelEdit"
-style="display:none;">
-Cancel Edit
+    type="button"
+    class="success"
+    id="saveQuestion">
+
+💾 Save Question
+
 </button>
+
+
+<button
+    type="button"
+    class="warning"
+    id="cancelEdit"
+    style="display:none;">
+
+Cancel Edit
+
+</button>
+
 
 <p id="questionMessage"></p>
 
+
 </div>
 
 
-<!-- ================= QUESTIONS LIST ================= -->
+<!-- =====================================================
+     QUESTIONS LIST
+===================================================== -->
 
 <div class="section">
 
-<h2>📋 Survey Questions</h2>
+
+<h2>
+📋 Survey Questions
+</h2>
+
 
 <div id="questionsList">
 
-<p>Loading questions...</p>
+<p>
+Loading questions...
+</p>
 
 </div>
 
+
 </div>
 
 
-<!-- ================= DAILY LIMIT ================= -->
+<!-- =====================================================
+     DAILY LIMIT
+===================================================== -->
 
 <div class="section">
 
-<h2>⚙️ Daily Survey Limit</h2>
+
+<h2>
+⚙️ Daily Survey Limit
+</h2>
+
 
 <input
-type="number"
-id="dailyLimitInput"
-min="1"
-value="20"
-placeholder="Daily Limit">
+    type="number"
+    id="dailyLimitInput"
+    min="1"
+    value="20"
+    placeholder="Daily Limit">
+
 
 <button
-class="primary"
-id="saveDailyLimit">
+    type="button"
+    class="primary"
+    id="saveDailyLimit">
+
 💾 Save Limit
+
 </button>
+
 
 <span id="limitMessage"></span>
 
+
 </div>
 
 
-<!-- ================= SURVEYOR MANAGEMENT ================= -->
+<!-- =====================================================
+     SURVEYOR MANAGEMENT
+===================================================== -->
 
 <div class="section">
 
-<h2>👥 Surveyor Management</h2>
+
+<h2>
+👥 Surveyor Management
+</h2>
+
 
 <div class="table-wrapper">
 
+
 <table>
+
 
 <thead>
 
 <tr>
-<th>Surveyor</th>
-<th>Total</th>
-<th>Today</th>
-<th>This Week</th>
-<th>This Month</th>
-<th>Status</th>
+
+<th>
+Surveyor
+</th>
+
+<th>
+Total
+</th>
+
+<th>
+Today
+</th>
+
+<th>
+This Week
+</th>
+
+<th>
+This Month
+</th>
+
+<th>
+Status
+</th>
+
 </tr>
 
 </thead>
 
-<tbody id="surveyorManagementTable"></tbody>
+
+<tbody id="surveyorManagementTable">
+
+</tbody>
+
 
 </table>
 
-</div>
 
 </div>
 
 
-<!-- ================= SURVEY RECORDS ================= -->
+</div>
+
+
+<!-- =====================================================
+     SURVEY RECORDS
+===================================================== -->
 
 <div class="section">
 
-<h2>📊 Survey Records</h2>
+
+<h2>
+📊 Survey Records
+</h2>
+
 
 <div class="table-wrapper">
 
+
 <table>
+
 
 <thead>
 
 <tr>
+
 <th>Name</th>
 <th>Mobile</th>
 <th>Age</th>
@@ -385,31 +633,46 @@ id="saveDailyLimit">
 <th>Feedback</th>
 <th>Surveyor</th>
 <th>Action</th>
+
 </tr>
 
 </thead>
 
-<tbody id="surveyTable"></tbody>
+
+<tbody id="surveyTable">
+
+</tbody>
+
 
 </table>
 
-</div>
 
 </div>
 
 
-<!-- ================= LOGOUT ================= -->
+</div>
+
+
+<!-- =====================================================
+     LOGOUT
+===================================================== -->
 
 <button
-class="danger"
-id="logoutBtn">
+    type="button"
+    class="danger"
+    id="logoutBtn">
+
 🚪 Logout
+
 </button>
+
 
 </div>
 
 
-<!-- ================= FIREBASE ================= -->
+<!-- =====================================================
+     FIREBASE
+===================================================== -->
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 
@@ -417,9 +680,17 @@ id="logoutBtn">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
+
+<!-- FIREBASE CONFIG -->
+
 <script src="firebase.js"></script>
+
+
+<!-- ADMIN JAVASCRIPT -->
 
 <script src="admin.js"></script>
 
+
 </body>
+
 </html>
