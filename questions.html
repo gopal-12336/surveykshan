@@ -1,195 +1,286 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Surveykshan - Question Management</title>
+<title>Surveykshan - Question Manager</title>
+
+<link rel="stylesheet" href="style.css">
 
 <style>
-*{
-    box-sizing:border-box;
+
+/* =========================================
+   QUESTION PAGE ONLY
+========================================= */
+
+.question-page {
+    width: 100%;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-body{
-    margin:0;
-    font-family:Arial,Helvetica,sans-serif;
-    background:#f4f6f9;
-    color:#222;
+.question-box {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.12);
+    margin-bottom: 25px;
 }
 
-.container{
-    width:100%;
-    max-width:850px;
-    margin:30px auto;
-    padding:15px;
+.question-box h1 {
+    color: #1565c0;
+    margin-bottom: 5px;
 }
 
-.box{
-    background:#fff;
-    padding:25px;
-    border-radius:15px;
-    box-shadow:0 4px 15px rgba(0,0,0,.12);
-    margin-bottom:20px;
+.question-box h2 {
+    color: #1565c0;
+    margin-top: 10px;
 }
 
-h1{
-    text-align:center;
-    color:#1565c0;
-    margin-top:0;
+.question-box label {
+    display: block;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 5px;
 }
 
-h2{
-    color:#1565c0;
+/* =========================================
+   QUESTION INPUT
+========================================= */
+
+.question-box input[type="text"],
+.question-box select {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 7px !important;
+    font-size: 15px !important;
+    background: #fff !important;
 }
 
-label{
-    display:block;
-    font-weight:bold;
-    margin-top:15px;
-    margin-bottom:6px;
+/* =========================================
+   OPTIONS
+========================================= */
+
+#optionsSection {
+    width: 100%;
+    margin-top: 15px;
 }
 
-input,select{
-    width:100%;
-    padding:13px;
-    border:1px solid #ccc;
-    border-radius:8px;
-    font-size:16px;
-    outline:none;
+#optionsBox {
+    width: 100%;
 }
 
-input:focus,select:focus{
-    border-color:#1565c0;
+.option-row {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+    box-sizing: border-box !important;
 }
 
-.option-row{
-    display:flex;
-    width:100%;
-    gap:8px;
-    margin-bottom:10px;
+/* IMPORTANT:
+   This prevents global input width:100%
+   from breaking the option input.
+*/
+
+.option-row .optionInput {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    padding: 12px !important;
+    margin: 0 !important;
+    border: 1px solid #ccc !important;
+    border-radius: 7px !important;
+    font-size: 15px !important;
 }
 
-.option-row input{
-    flex:1;
-    min-width:0;
+/* IMPORTANT:
+   This fixes the RED huge delete button.
+*/
+
+.option-row .remove-option {
+    flex: 0 0 45px !important;
+    width: 45px !important;
+    min-width: 45px !important;
+    max-width: 45px !important;
+    height: 45px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 7px !important;
+    background: #d32f2f !important;
+    color: white !important;
+    font-size: 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
 }
 
-.remove-option{
-    width:45px;
-    flex:0 0 45px;
-    background:#d32f2f;
-    color:#fff;
-    border:none;
-    border-radius:8px;
-    font-size:20px;
-    cursor:pointer;
+/* =========================================
+   ADD OPTION BUTTON
+========================================= */
+
+#addOptionButton {
+    width: 100% !important;
+    padding: 12px !important;
+    margin-top: 5px !important;
+    background: #757575 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 7px !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
 }
 
-button{
-    border:none;
-    border-radius:8px;
-    padding:12px 18px;
-    font-size:15px;
-    cursor:pointer;
-    margin-top:10px;
+/* =========================================
+   SAVE BUTTON
+========================================= */
+
+#saveQuestion {
+    width: 100% !important;
+    padding: 13px !important;
+    margin-top: 15px !important;
+    background: #2e7d32 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 7px !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
 }
 
-.add{
-    background:#2e7d32;
-    color:#fff;
+/* =========================================
+   BACK BUTTON
+========================================= */
+
+#backAdmin {
+    width: 100% !important;
+    padding: 12px !important;
+    margin-top: 10px !important;
+    background: #555 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 7px !important;
+    font-size: 15px !important;
+    cursor: pointer !important;
 }
 
-.save{
-    background:#1565c0;
-    color:#fff;
+/* =========================================
+   MESSAGE
+========================================= */
+
+#message {
+    text-align: center;
+    font-weight: bold;
+    margin-top: 15px;
 }
 
-.back{
-    background:#555;
-    color:#fff;
+/* =========================================
+   EXISTING QUESTIONS
+========================================= */
+
+.question-card {
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 9px;
+    padding: 15px;
+    margin-top: 15px;
 }
 
-.edit{
-    background:#ef6c00;
-    color:#fff;
+.question-card .edit-btn {
+    width: 100% !important;
+    padding: 10px !important;
+    margin-top: 10px !important;
+    background: #ef6c00 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
 }
 
-.delete{
-    background:#c62828;
-    color:#fff;
+.question-card .delete-btn {
+    width: 100% !important;
+    padding: 10px !important;
+    margin-top: 8px !important;
+    background: #c62828 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
 }
 
-.type-info{
-    background:#e3f2fd;
-    color:#1565c0;
-    padding:12px;
-    border-radius:8px;
-    margin-top:10px;
+.type-info {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 10px;
+    border-radius: 7px;
+    margin-top: 10px;
 }
 
-.question-card{
-    background:#fafafa;
-    border:1px solid #ddd;
-    border-radius:10px;
-    padding:18px;
-    margin-top:15px;
-}
-
-.question-card ol{
-    margin-bottom:10px;
-}
-
-.actions{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-}
-
-#message{
-    font-weight:bold;
-    margin-top:15px;
-}
+/* =========================================
+   MOBILE
+========================================= */
 
 @media(max-width:600px){
 
-    .container{
-        margin:10px auto;
-        padding:10px;
+    .question-page {
+        margin: 10px auto;
+        padding: 10px;
     }
 
-    .box{
-        padding:18px;
+    .question-box {
+        padding: 18px;
     }
 
-    .option-row{
-        gap:6px;
+    .option-row {
+        gap: 7px !important;
     }
 
-    .remove-option{
-        width:42px;
-        flex-basis:42px;
+    .option-row .remove-option {
+        flex-basis: 42px !important;
+        width: 42px !important;
+        min-width: 42px !important;
+        max-width: 42px !important;
+        height: 42px !important;
     }
+
 }
+
 </style>
+
 </head>
 
 <body>
 
-<div class="container">
+<div class="question-page">
 
-<div class="box">
+<!-- =========================================
+     CREATE QUESTION
+========================================= -->
 
-<h1>Surveykshan</h1>
+<div class="question-box">
 
-<h2>⚙️ Question Management</h2>
+<h1>📝 Survey Question Manager</h1>
+
+<p>
+यहाँ से आप अपने survey के questions बना सकते हैं।
+</p>
 
 <label>Question</label>
 
 <input
-    type="text"
-    id="questionText"
-    placeholder="Enter your question">
+type="text"
+id="questionText"
+placeholder="Enter your question"
+autocomplete="off">
 
 
 <label>Question Type</label>
@@ -212,71 +303,70 @@ Text Answer
 
 
 <div
-    id="typeInfo"
-    class="type-info">
+class="type-info"
+id="typeInfo">
 
 Single Choice: Respondent can select only one option.
 
 </div>
 
 
+<!-- OPTIONS -->
+
 <div id="optionsSection">
 
-<label>Answer Options</label>
+<h3>Options</h3>
 
 <div id="optionsBox">
 
 <div class="option-row">
+
 <input
-    class="optionInput"
-    type="text"
-    placeholder="Option 1">
+type="text"
+class="optionInput"
+placeholder="Option 1">
 
 <button
-    type="button"
-    class="remove-option"
-    onclick="removeOption(this)">
+type="button"
+class="remove-option">
 ×
 </button>
+
 </div>
 
 
 <div class="option-row">
+
 <input
-    class="optionInput"
-    type="text"
-    placeholder="Option 2">
+type="text"
+class="optionInput"
+placeholder="Option 2">
 
 <button
-    type="button"
-    class="remove-option"
-    onclick="removeOption(this)">
+type="button"
+class="remove-option">
 ×
 </button>
+
 </div>
 
 </div>
 
 
 <button
-    type="button"
-    class="add"
-    onclick="addOption()">
+type="button"
+id="addOptionButton">
 
-+ Add Option
+＋ Add Option
 
 </button>
 
 </div>
 
 
-<br>
-
-
 <button
-    type="button"
-    class="save"
-    id="saveQuestion">
+type="button"
+id="saveQuestion">
 
 💾 Save Question
 
@@ -284,9 +374,8 @@ Single Choice: Respondent can select only one option.
 
 
 <button
-    type="button"
-    class="back"
-    onclick="window.location.href='admin.html'">
+type="button"
+id="backAdmin">
 
 ← Admin Dashboard
 
@@ -298,9 +387,13 @@ Single Choice: Respondent can select only one option.
 </div>
 
 
-<div class="box">
+<!-- =========================================
+     EXISTING QUESTIONS
+========================================= -->
 
-<h2>📋 Existing Questions</h2>
+<div class="question-box">
+
+<h2>📋 Survey Questions</h2>
 
 <div id="questionsList">
 Loading questions...
@@ -310,6 +403,10 @@ Loading questions...
 
 </div>
 
+
+<!-- =========================================
+     FIREBASE
+========================================= -->
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 
@@ -322,18 +419,23 @@ Loading questions...
 
 <script>
 
-const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
+const ADMIN_EMAIL =
+"goswamivinod2305@gmail.com";
 
 let editingId = null;
 
 
-// AUTH
+/* =========================================
+   AUTH
+========================================= */
 
 firebase.auth().onAuthStateChanged(function(user){
 
     if(!user){
 
-        window.location.href = "index.html";
+        window.location.href =
+        "index.html";
+
         return;
     }
 
@@ -343,7 +445,9 @@ firebase.auth().onAuthStateChanged(function(user){
         ADMIN_EMAIL.toLowerCase()
     ){
 
-        window.location.href = "survey.html";
+        window.location.href =
+        "survey.html";
+
         return;
     }
 
@@ -352,44 +456,49 @@ firebase.auth().onAuthStateChanged(function(user){
 });
 
 
-// QUESTION TYPE
+/* =========================================
+   QUESTION TYPE
+========================================= */
 
 document
 .getElementById("questionType")
-.addEventListener("change",function(){
+.addEventListener("change", function(){
 
     const type = this.value;
 
-    const optionsSection =
-        document.getElementById("optionsSection");
+    const section =
+        document.getElementById(
+            "optionsSection"
+        );
 
-    const typeInfo =
-        document.getElementById("typeInfo");
-
+    const info =
+        document.getElementById(
+            "typeInfo"
+        );
 
     if(type === "radio"){
 
-        optionsSection.style.display = "block";
+        section.style.display = "block";
 
-        typeInfo.textContent =
+        info.textContent =
         "Single Choice: Respondent can select only one option.";
 
     }
 
     else if(type === "checkbox"){
 
-        optionsSection.style.display = "block";
+        section.style.display = "block";
 
-        typeInfo.textContent =
+        info.textContent =
         "Multiple Choice: Respondent can select more than one option.";
 
     }
 
     else{
 
-        optionsSection.style.display = "none";
+        section.style.display = "none";
 
-        typeInfo.textContent =
+        info.textContent =
         "Text Answer: Respondent will type an answer.";
 
     }
@@ -397,68 +506,101 @@ document
 });
 
 
-// ADD OPTION
+/* =========================================
+   ADD OPTION
+========================================= */
 
-function addOption(){
+document
+.getElementById("addOptionButton")
+.addEventListener("click", function(){
 
     const box =
-        document.getElementById("optionsBox");
+        document.getElementById(
+            "optionsBox"
+        );
 
     const count =
-        box.querySelectorAll(".option-row").length + 1;
+        box.querySelectorAll(
+            ".option-row"
+        ).length + 1;
 
     const row =
         document.createElement("div");
 
-    row.className = "option-row";
+    row.className =
+        "option-row";
 
     row.innerHTML = `
+
         <input
-            class="optionInput"
             type="text"
+            class="optionInput"
             placeholder="Option ${count}">
 
         <button
             type="button"
-            class="remove-option"
-            onclick="removeOption(this)">
+            class="remove-option">
             ×
         </button>
+
     `;
 
     box.appendChild(row);
-}
+
+});
 
 
-// REMOVE OPTION
+/* =========================================
+   REMOVE OPTION
+========================================= */
 
-function removeOption(button){
+document.addEventListener(
+    "click",
+    function(event){
 
-    const box =
-        document.getElementById("optionsBox");
+        if(
+            event.target.classList.contains(
+                "remove-option"
+            )
+        ){
 
-    const rows =
-        box.querySelectorAll(".option-row");
+            const box =
+                document.getElementById(
+                    "optionsBox"
+                );
 
-    if(rows.length <= 2){
+            const rows =
+                box.querySelectorAll(
+                    ".option-row"
+                );
 
-        showMessage(
-            "At least 2 options are required.",
-            false
-        );
+            if(rows.length <= 2){
 
-        return;
+                showMessage(
+                    "At least 2 options are required.",
+                    false
+                );
+
+                return;
+            }
+
+            event.target
+                .closest(".option-row")
+                .remove();
+
+        }
+
     }
-
-    button.parentElement.remove();
-}
+);
 
 
-// SAVE QUESTION
+/* =========================================
+   SAVE QUESTION
+========================================= */
 
 document
 .getElementById("saveQuestion")
-.addEventListener("click",function(){
+.addEventListener("click", function(){
 
     const question =
         document
@@ -475,7 +617,7 @@ document
     if(!question){
 
         showMessage(
-            "Please enter a question.",
+            "Please enter question.",
             false
         );
 
@@ -486,7 +628,10 @@ document
     let options = [];
 
 
-    if(type === "radio" || type === "checkbox"){
+    if(
+        type === "radio" ||
+        type === "checkbox"
+    ){
 
         document
         .querySelectorAll(".optionInput")
@@ -511,6 +656,7 @@ document
 
             return;
         }
+
     }
 
 
@@ -526,6 +672,7 @@ document
             firebase.firestore
             .FieldValue
             .serverTimestamp()
+
     };
 
 
@@ -539,23 +686,38 @@ document
             .doc(editingId)
             .update(data);
 
-    }else{
+    }
+
+    else{
 
         operation =
             db.collection("questions")
             .add({
 
-                ...data,
+                question: question,
+
+                type: type,
+
+                options: options,
 
                 createdAt:
                     firebase.firestore
                     .FieldValue
+                    .serverTimestamp(),
+
+                updatedAt:
+                    firebase.firestore
+                    .FieldValue
                     .serverTimestamp()
+
             });
+
     }
 
 
-    operation.then(function(){
+    operation
+
+    .then(function(){
 
         showMessage(
             editingId
@@ -577,23 +739,18 @@ document
         .value = "radio";
 
 
+        resetOptions();
+
+
         document
         .getElementById("optionsSection")
         .style.display = "block";
 
 
-        resetOptions();
-
-
-        document
-        .getElementById("saveQuestion")
-        .textContent =
-        "💾 Save Question";
-
-
         loadQuestions();
 
     })
+
     .catch(function(error){
 
         console.error(error);
@@ -608,18 +765,21 @@ document
 });
 
 
-// LOAD QUESTIONS
+/* =========================================
+   LOAD QUESTIONS
+========================================= */
 
 function loadQuestions(){
 
     db.collection("questions")
-    .orderBy("createdAt","asc")
     .get()
 
     .then(function(snapshot){
 
         const list =
-            document.getElementById("questionsList");
+            document.getElementById(
+                "questionsList"
+            );
 
         list.innerHTML = "";
 
@@ -630,28 +790,41 @@ function loadQuestions(){
             "<p>No questions added yet.</p>";
 
             return;
+
         }
 
 
         snapshot.forEach(function(doc){
 
-            const data = doc.data();
+            const data =
+                doc.data();
+
 
             const card =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
             card.className =
                 "question-card";
 
 
-            let typeName = "Text Answer";
+            let typeName =
+                "Text Answer";
+
 
             if(data.type === "radio"){
-                typeName = "Single Choice";
+
+                typeName =
+                "Single Choice";
+
             }
 
-            if(data.type === "checkbox"){
-                typeName = "Multiple Choice";
+            else if(data.type === "checkbox"){
+
+                typeName =
+                "Multiple Choice";
+
             }
 
 
@@ -663,73 +836,91 @@ function loadQuestions(){
                 data.options.length
             ){
 
-                optionsHTML =
-                "<strong>Options:</strong><ol>" +
+                optionsHTML = `
 
-                data.options
-                .map(function(option){
+                    <strong>Options:</strong>
 
-                    return "<li>" +
-                    escapeHTML(option) +
-                    "</li>";
+                    <ol>
 
-                })
-                .join("") +
+                    ${
+                        data.options
+                        .map(function(option){
 
-                "</ol>";
+                            return `
+                                <li>
+                                    ${escapeHTML(option)}
+                                </li>
+                            `;
+
+                        })
+                        .join("")
+                    }
+
+                    </ol>
+
+                `;
+
             }
 
 
             card.innerHTML = `
 
-                <strong>Question:</strong><br>
+                <strong>Question:</strong>
 
                 ${escapeHTML(data.question)}
 
                 <br><br>
 
                 <strong>Type:</strong>
+
                 ${typeName}
 
                 <br><br>
 
                 ${optionsHTML}
 
-                <div class="actions">
+                <button
+                    type="button"
+                    class="edit-btn">
+                    ✏️ Edit
+                </button>
 
-                    <button
-                        type="button"
-                        class="edit">
-                        ✏️ Edit
-                    </button>
+                <button
+                    type="button"
+                    class="delete-btn">
+                    🗑️ Delete
+                </button>
 
-                    <button
-                        type="button"
-                        class="delete">
-                        🗑️ Delete
-                    </button>
-
-                </div>
             `;
 
 
             card
-            .querySelector(".edit")
-            .onclick = function(){
+            .querySelector(".edit-btn")
+            .addEventListener(
+                "click",
+                function(){
 
-                editQuestion(
-                    doc.id,
-                    data
-                );
-            };
+                    editQuestion(
+                        doc.id,
+                        data
+                    );
+
+                }
+            );
 
 
             card
-            .querySelector(".delete")
-            .onclick = function(){
+            .querySelector(".delete-btn")
+            .addEventListener(
+                "click",
+                function(){
 
-                deleteQuestion(doc.id);
-            };
+                    deleteQuestion(
+                        doc.id
+                    );
+
+                }
+            );
 
 
             list.appendChild(card);
@@ -737,23 +928,41 @@ function loadQuestions(){
         });
 
     })
+
     .catch(function(error){
 
-        console.error(error);
+        console.error(
+            "Question loading error:",
+            error
+        );
+
 
         document
-        .getElementById("questionsList")
-        .textContent =
-        "Unable to load questions: " +
-        error.message;
+        .getElementById(
+            "questionsList"
+        )
+        .innerHTML = `
+
+            <p style="
+                color:red;
+                font-weight:bold;
+            ">
+                Question loading error:
+                ${escapeHTML(error.message)}
+            </p>
+
+        `;
 
     });
+
 }
 
 
-// EDIT QUESTION
+/* =========================================
+   EDIT QUESTION
+========================================= */
 
-function editQuestion(id,data){
+function editQuestion(id, data){
 
     editingId = id;
 
@@ -761,17 +970,26 @@ function editQuestion(id,data){
     document
     .getElementById("questionText")
     .value =
-    data.question || "";
+        data.question || "";
 
 
     document
     .getElementById("questionType")
     .value =
-    data.type || "radio";
+        data.type || "radio";
+
+
+    const section =
+        document.getElementById(
+            "optionsSection"
+        );
 
 
     const box =
-        document.getElementById("optionsBox");
+        document.getElementById(
+            "optionsBox"
+        );
+
 
     box.innerHTML = "";
 
@@ -781,62 +999,78 @@ function editQuestion(id,data){
         data.type === "checkbox"
     ){
 
-        document
-        .getElementById("optionsSection")
-        .style.display = "block";
+        section.style.display = "block";
 
 
-        (data.options || [])
-        .forEach(function(option,index){
+        const options =
+            Array.isArray(data.options)
+            ? data.options
+            : [];
+
+
+        options.forEach(function(
+            option,
+            index
+        ){
 
             const row =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
             row.className =
                 "option-row";
 
+
             row.innerHTML = `
 
                 <input
-                    class="optionInput"
                     type="text"
+                    class="optionInput"
                     value="${escapeHTML(option)}"
                     placeholder="Option ${index + 1}">
 
                 <button
                     type="button"
-                    class="remove-option"
-                    onclick="removeOption(this)">
+                    class="remove-option">
                     ×
                 </button>
+
             `;
+
 
             box.appendChild(row);
 
         });
 
-    }else{
+    }
 
-        document
-        .getElementById("optionsSection")
-        .style.display = "none";
+    else{
+
+        section.style.display = "none";
+
     }
 
 
     document
-    .getElementById("saveQuestion")
+    .getElementById(
+        "saveQuestion"
+    )
     .textContent =
-    "💾 Update Question";
+        "💾 Update Question";
 
 
     window.scrollTo({
-        top:0,
-        behavior:"smooth"
+        top: 0,
+        behavior: "smooth"
     });
+
 }
 
 
-// DELETE QUESTION
+/* =========================================
+   DELETE QUESTION
+========================================= */
 
 function deleteQuestion(id){
 
@@ -845,6 +1079,7 @@ function deleteQuestion(id){
             "Are you sure you want to delete this question?"
         )
     ){
+
         return;
     }
 
@@ -863,6 +1098,7 @@ function deleteQuestion(id){
         loadQuestions();
 
     })
+
     .catch(function(error){
 
         showMessage(
@@ -872,10 +1108,13 @@ function deleteQuestion(id){
         );
 
     });
+
 }
 
 
-// RESET OPTIONS
+/* =========================================
+   RESET OPTIONS
+========================================= */
 
 function resetOptions(){
 
@@ -886,63 +1125,94 @@ function resetOptions(){
         <div class="option-row">
 
             <input
-                class="optionInput"
                 type="text"
+                class="optionInput"
                 placeholder="Option 1">
 
             <button
                 type="button"
-                class="remove-option"
-                onclick="removeOption(this)">
+                class="remove-option">
                 ×
             </button>
 
         </div>
+
 
         <div class="option-row">
 
             <input
-                class="optionInput"
                 type="text"
+                class="optionInput"
                 placeholder="Option 2">
 
             <button
                 type="button"
-                class="remove-option"
-                onclick="removeOption(this)">
+                class="remove-option">
                 ×
             </button>
 
         </div>
+
     `;
+
 }
 
 
-// MESSAGE
+/* =========================================
+   MESSAGE
+========================================= */
 
-function showMessage(text,success){
+function showMessage(text, success){
 
     const message =
-        document.getElementById("message");
+        document.getElementById(
+            "message"
+        );
 
-    message.textContent = text;
+    message.textContent =
+        text;
 
     message.style.color =
-        success ? "green" : "red";
+        success
+        ? "green"
+        : "red";
+
 }
 
 
-// ESCAPE HTML
+/* =========================================
+   ESCAPE HTML
+========================================= */
 
 function escapeHTML(value){
 
     return String(value || "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+
 }
+
+
+/* =========================================
+   BACK TO ADMIN
+========================================= */
+
+document
+.getElementById("backAdmin")
+.addEventListener("click", function(){
+
+    window.location.href =
+        "admin.html";
+
+});
 
 </script>
 
