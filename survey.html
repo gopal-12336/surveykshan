@@ -1,444 +1,399 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
 
-<title>Surveykshan - Survey Form</title>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="style.css">
+    <title>Surveykshan Survey</title>
 
-<style>
+    <link rel="stylesheet" href="style.css">
 
-body {
-    background: #f4f6f9;
-}
+    <style>
 
-.survey-container {
-    max-width: 650px;
-    margin: 30px auto;
-    padding: 20px;
-}
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f4f6f9;
+            font-family: Arial, sans-serif;
+        }
 
-.login-box {
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
-}
+        .header {
+            background: #1565c0;
+            color: white;
+            padding: 18px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
 
-.survey-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
+        .container {
+            max-width: 700px;
+            margin: 20px auto;
+            padding: 20px;
+        }
 
-.survey-header h1 {
-    color: #1565c0;
-    margin-bottom: 5px;
-}
+        .survey-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+        }
 
-.survey-header p {
-    color: #666;
-    margin-top: 0;
-}
+        .survey-box h2 {
+            text-align: center;
+            color: #1565c0;
+            margin-top: 0;
+        }
 
-/* PROGRESS */
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
 
-.progress-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #1565c0;
-}
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
 
-.progress-background {
-    width: 100%;
-    height: 10px;
-    background: #e0e0e0;
-    border-radius: 20px;
-    overflow: hidden;
-    margin-bottom: 25px;
-}
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
 
-.progress-bar {
-    width: 0%;
-    height: 100%;
-    background: #1565c0;
-    transition: width 0.3s ease;
-}
+        .required {
+            color: red;
+        }
 
-/* STEPS */
+        /* DAILY LIMIT */
 
-.survey-step {
-    display: none;
-}
+        #dailyLimitBox {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            padding: 14px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            color: #0d47a1;
+        }
 
-.survey-step.active {
-    display: block;
-}
+        #todayCount,
+        #remainingCount {
+            font-size: 18px;
+        }
 
-.step-title {
-    color: #1565c0;
-    margin-bottom: 18px;
-    font-size: 20px;
-}
+        /* SUBMIT BUTTON */
 
-/* QUESTION */
+        #submitSurvey {
+            width: 100%;
+            padding: 13px;
+            margin-top: 20px;
+            background: #1565c0;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-.question-number {
-    color: #777;
-    font-size: 14px;
-    margin-bottom: 8px;
-}
+        #submitSurvey:hover {
+            background: #0d47a1;
+        }
 
-.question-text {
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 1.5;
-    margin-bottom: 20px;
-}
+        #submitSurvey:disabled {
+            background: #9e9e9e;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
 
-.question-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
 
-.option-label {
-    display: block;
-    padding: 14px;
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    cursor: pointer;
-    background: #fff;
-    transition: 0.2s;
-}
+        .logout-btn {
+            width: 100%;
+            padding: 11px;
+            margin-top: 10px;
+            background: #c62828;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
 
-.option-label:hover {
-    border-color: #1565c0;
-    background: #f5f9ff;
-}
+        @media (max-width: 768px) {
 
-.option-label input {
-    margin-right: 10px;
-    transform: scale(1.2);
-}
+            .container {
+                padding: 10px;
+            }
 
-.option-label.selected {
-    border-color: #1565c0;
-    background: #eaf3ff;
-}
+            .survey-box {
+                padding: 18px;
+            }
 
-/* BUTTONS */
+            .header {
+                font-size: 20px;
+            }
 
-.navigation-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 25px;
-}
+        }
 
-.navigation-buttons button {
-    flex: 1;
-    padding: 13px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-#previousButton {
-    background: #757575;
-    color: white;
-}
-
-#nextButton,
-#basicNextButton {
-    background: #1565c0;
-    color: white;
-}
-
-#submitSurvey {
-    background: #2e7d32;
-    color: white;
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 8px;
-    font-size: 17px;
-    cursor: pointer;
-    margin-top: 25px;
-}
-
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* DAILY PROGRESS */
-
-#dailyProgressBox {
-    margin-bottom: 20px;
-}
-
-/* MESSAGE */
-
-#message {
-    text-align: center;
-    font-weight: bold;
-    margin-top: 15px;
-}
-
-/* MOBILE */
-
-@media (max-width: 600px) {
-
-    .survey-container {
-        margin: 10px auto;
-        padding: 10px;
-    }
-
-    .login-box {
-        padding: 18px;
-    }
-
-    .question-text {
-        font-size: 18px;
-    }
-
-}
-
-</style>
+    </style>
 
 </head>
 
+
 <body>
 
-<div class="survey-container">
-
-<div class="login-box">
 
 <!-- HEADER -->
 
-<div class="survey-header">
+<div class="header">
+    Surveykshan Survey Form
+</div>
 
-<h1>Surveykshan</h1>
 
-<p>Political Survey Form</p>
+<!-- MAIN CONTAINER -->
+
+<div class="container">
+
+    <div class="survey-box">
+
+        <h2>
+            Public Opinion Survey
+        </h2>
+
+
+        <!-- NAME -->
+
+        <label for="name">
+            Name <span class="required">*</span>
+        </label>
+
+        <input
+            type="text"
+            id="name"
+            placeholder="Enter Name"
+        >
+
+
+        <!-- MOBILE -->
+
+        <label for="mobile">
+            Mobile <span class="required">*</span>
+        </label>
+
+        <input
+            type="tel"
+            id="mobile"
+            placeholder="Enter Mobile Number"
+        >
+
+
+        <!-- AGE -->
+
+        <label for="age">
+            Age <span class="required">*</span>
+        </label>
+
+        <input
+            type="number"
+            id="age"
+            placeholder="Enter Age"
+            min="1"
+            max="120"
+        >
+
+
+        <!-- GENDER -->
+
+        <label for="gender">
+            Gender <span class="required">*</span>
+        </label>
+
+        <select id="gender">
+
+            <option value="">
+                Select Gender
+            </option>
+
+            <option value="Male">
+                Male
+            </option>
+
+            <option value="Female">
+                Female
+            </option>
+
+            <option value="Other">
+                Other
+            </option>
+
+        </select>
+
+
+        <!-- VILLAGE -->
+
+        <label for="village">
+            Village <span class="required">*</span>
+        </label>
+
+        <input
+            type="text"
+            id="village"
+            placeholder="Enter Village"
+        >
+
+
+        <!-- ASSEMBLY -->
+
+        <label for="assembly">
+            Assembly <span class="required">*</span>
+        </label>
+
+        <input
+            type="text"
+            id="assembly"
+            placeholder="Enter Assembly"
+        >
+
+
+        <!-- PARTY -->
+
+        <label for="party">
+            Party <span class="required">*</span>
+        </label>
+
+        <select id="party">
+
+            <option value="">
+                Select Party
+            </option>
+
+            <option value="BJP">
+                BJP
+            </option>
+
+            <option value="Congress">
+                Congress
+            </option>
+
+            <option value="AAP">
+                AAP
+            </option>
+
+            <option value="BSP">
+                BSP
+            </option>
+
+            <option value="SP">
+                SP
+            </option>
+
+            <option value="Other">
+                Other
+            </option>
+
+        </select>
+
+
+        <!-- CANDIDATE -->
+
+        <label for="candidate">
+            Candidate
+        </label>
+
+        <input
+            type="text"
+            id="candidate"
+            placeholder="Enter Candidate Name"
+        >
+
+
+        <!-- FEEDBACK -->
+
+        <label for="feedback">
+            Feedback
+        </label>
+
+        <textarea
+            id="feedback"
+            placeholder="Enter Feedback"
+        ></textarea>
+
+
+        <!-- DAILY LIMIT -->
+
+        <div id="dailyLimitBox">
+
+            Today's Surveys:
+            <span id="todayCount">0</span>
+            / 20
+
+            <br>
+
+            Remaining:
+            <span id="remainingCount">20</span>
+
+        </div>
+
+
+        <!-- MESSAGE -->
+
+        <div id="message"></div>
+
+
+        <!-- SUBMIT -->
+
+        <button
+            id="submitSurvey"
+            type="button"
+        >
+            Submit Survey
+        </button>
+
+
+    </div>
 
 </div>
 
 
-<!-- DAILY PROGRESS -->
+<!-- FIREBASE -->
 
-<div id="dailyProgressBox"></div>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
+</script>
 
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js">
+</script>
 
-<!-- QUESTION PROGRESS -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js">
+</script>
 
-<div class="progress-info">
 
-<span id="stepTitle">
-Respondent Details
-</span>
+<!-- FIREBASE CONFIG -->
 
-<span id="questionProgress">
-Basic Details
-</span>
+<script src="firebase.js">
+</script>
 
-</div>
 
-<div class="progress-background">
+<!-- SURVEY JS -->
 
-<div
-id="surveyProgressBar"
-class="progress-bar">
-</div>
-
-</div>
-
-
-<!-- ==========================================
-     BASIC RESPONDENT DETAILS
-========================================== -->
-
-<div
-id="basicDetailsStep"
-class="survey-step active">
-
-<h2 class="step-title">
-Respondent Basic Details
-</h2>
-
-
-<input
-type="text"
-id="name"
-placeholder="Full Name"
-autocomplete="off">
-
-
-<input
-type="text"
-id="mobile"
-placeholder="Mobile Number"
-inputmode="numeric"
-maxlength="10"
-autocomplete="off">
-
-
-<input
-type="number"
-id="age"
-placeholder="Age"
-min="1"
-max="120">
-
-
-<select id="gender">
-
-<option value="">
-Select Gender
-</option>
-
-<option value="Male">
-Male
-</option>
-
-<option value="Female">
-Female
-</option>
-
-<option value="Other">
-Other
-</option>
-
-</select>
-
-
-<input
-type="text"
-id="village"
-placeholder="Village / City"
-autocomplete="off">
-
-
-<input
-type="text"
-id="district"
-placeholder="District"
-autocomplete="off">
-
-
-<input
-type="text"
-id="pincode"
-placeholder="PIN Code"
-inputmode="numeric"
-maxlength="6"
-autocomplete="off">
-
-
-<div class="navigation-buttons">
-
-<button
-type="button"
-id="basicNextButton">
-Next →
-</button>
-
-</div>
-
-</div>
-
-
-<!-- ==========================================
-     QUESTIONS
-========================================== -->
-
-<div
-id="questionStep"
-class="survey-step">
-
-<div
-class="question-number"
-id="questionNumber">
-Question 1
-</div>
-
-
-<div
-class="question-text"
-id="questionText">
-Loading question...
-</div>
-
-
-<div
-class="question-options"
-id="questionOptions">
-</div>
-
-
-<div class="navigation-buttons">
-
-<button
-type="button"
-id="previousButton">
-← Previous
-</button>
-
-
-<button
-type="button"
-id="nextButton">
-Next →
-</button>
-
-</div>
-
-
-<button
-type="button"
-id="submitSurvey"
-style="display:none;">
-Submit Survey
-</button>
-
-</div>
-
-
-<!-- MESSAGE -->
-
-<p id="message"></p>
-
-
-</div>
-
-</div>
-
-
-<!-- ==========================================
-     FIREBASE
-========================================== -->
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-
-<script src="firebase.js"></script>
-
-
-<script src="questions.js"></script>
-
-
-<script src="survey.js"></script>
+<script src="survey.js">
+</script>
 
 
 </body>
