@@ -6,13 +6,17 @@
     <meta charset="UTF-8">
 
     <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <title>Surveykshan Survey</title>
 
     <link rel="stylesheet" href="style.css">
 
     <style>
+
+        /* =====================================================
+           GLOBAL
+        ===================================================== */
 
         * {
             box-sizing: border-box;
@@ -32,78 +36,82 @@
             font-family: Arial, sans-serif;
         }
 
-        /* =========================
+
+        /* =====================================================
            HEADER
-        ========================= */
+        ===================================================== */
 
         .header {
             width: 100%;
             background: #1565c0;
             color: white;
-            padding: 14px 10px;
+            padding: 16px 12px;
             text-align: center;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
             line-height: 1.3;
         }
 
 
-        /* =========================
+        /* =====================================================
            MAIN CONTAINER
-        ========================= */
+        ===================================================== */
 
         .container {
             width: 100%;
-            max-width: 700px;
-            margin: 15px auto;
+            max-width: 720px;
+            margin: 20px auto;
             padding: 10px;
         }
 
 
-        /* =========================
-           SURVEY BOX
-        ========================= */
+        /* =====================================================
+           SURVEY CARD
+        ===================================================== */
 
         .survey-box {
             width: 100%;
-            max-width: 100%;
-            background: white;
-            padding: 22px;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, .15);
+            background: #ffffff;
+            padding: 28px;
+            border-radius: 16px;
+            box-shadow: 0 3px 18px rgba(0, 0, 0, 0.12);
         }
 
+
+        /* =====================================================
+           TITLE
+        ===================================================== */
 
         .survey-box h2 {
             text-align: center;
             color: #1565c0;
-            margin-top: 0;
-            margin-bottom: 18px;
-            font-size: 24px;
+            margin: 0 0 25px 0;
+            font-size: 30px;
+            line-height: 1.25;
         }
 
 
-        /* =========================
+        /* =====================================================
            LABELS
-        ========================= */
+        ===================================================== */
 
         label {
             display: block;
-            margin-top: 15px;
-            margin-bottom: 6px;
+            margin-top: 18px;
+            margin-bottom: 7px;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 17px;
+            color: #111;
         }
-
 
         .required {
             color: red;
         }
 
 
-        /* =========================
+        /* =====================================================
            INPUTS
-        ========================= */
+        ===================================================== */
 
         input,
         select,
@@ -111,24 +119,28 @@
             display: block;
             width: 100%;
             max-width: 100%;
-            padding: 11px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            padding: 14px;
+            border: 1px solid #cccccc;
+            border-radius: 9px;
             box-sizing: border-box;
-            font-size: 15px;
+            font-size: 17px;
             font-family: Arial, sans-serif;
-            background: white;
+            background: #ffffff;
+            min-height: 50px;
         }
 
+        input::placeholder,
+        textarea::placeholder {
+            color: #777;
+        }
 
         input:focus,
         select:focus,
         textarea:focus {
             outline: none;
             border-color: #1565c0;
-            box-shadow: 0 0 0 2px rgba(21, 101, 192, .12);
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.12);
         }
-
 
         textarea {
             min-height: 100px;
@@ -136,231 +148,731 @@
         }
 
 
-        /* =========================
-           DAILY LIMIT
-        ========================= */
+        /* =====================================================
+           DAILY LIMIT BOX
+        ===================================================== */
 
         #dailyLimitBox,
         #dailyProgressBox {
+
             width: 100%;
             max-width: 100%;
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
-            padding: 14px;
-            margin: 18px 0;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: bold;
-            color: #0d47a1;
-        }
 
+            background: #e3f2fd;
+
+            border: 1px solid #90caf9;
+
+            padding: 15px;
+
+            margin: 20px 0;
+
+            border-radius: 12px;
+
+            text-align: center;
+
+            font-weight: bold;
+
+            color: #0d47a1;
+
+            line-height: 1.6;
+        }
 
         #todayCount,
         #remainingCount {
-            font-size: 18px;
+            font-size: 20px;
         }
 
 
-        /* =========================
+        /* =====================================================
+           DYNAMIC DAILY PROGRESS BOX
+        ===================================================== */
+
+        #dailyProgressBox {
+
+            background: #e3f2fd;
+
+            border: 1px solid #90caf9;
+
+            text-align: left;
+
+        }
+
+        #dailyProgressText {
+            font-weight: bold;
+        }
+
+        #dailyRemainingText {
+            font-size: 14px;
+        }
+
+
+        /* =====================================================
            MESSAGE
-        ========================= */
+        ===================================================== */
 
         #message {
+
             width: 100%;
+
             margin-top: 15px;
+
             text-align: center;
+
             font-weight: bold;
+
             line-height: 1.5;
+
+            font-size: 15px;
         }
 
 
-        /* =========================
-           BUTTON
-        ========================= */
+        /* =====================================================
+           BASIC NEXT BUTTON
+        ===================================================== */
 
-        #submitSurvey {
+        #basicNextButton {
+
             display: block;
-            width: 100%;
-            max-width: 100%;
-            padding: 13px;
-            margin-top: 20px;
-            background: #1565c0;
-            color: white;
-            border: none;
-            border-radius: 7px;
-            font-size: 17px;
-            font-weight: bold;
+
+            width: 100% !important;
+
+            padding: 15px !important;
+
+            margin-top: 20px !important;
+
+            background: #1565c0 !important;
+
+            color: white !important;
+
+            border: none !important;
+
+            border-radius: 9px !important;
+
+            font-size: 18px !important;
+
+            font-weight: bold !important;
+
             cursor: pointer;
         }
 
+        #basicNextButton:hover {
+            background: #0d47a1 !important;
+        }
+
+        #basicNextButton:disabled {
+            background: #9e9e9e !important;
+            cursor: not-allowed;
+        }
+
+
+        /* =====================================================
+           QUESTION AREA
+        ===================================================== */
+
+        #questionStep,
+        #basicDetailsStep {
+
+            width: 100%;
+
+            max-width: 100%;
+        }
+
+        /*
+           Important:
+           survey.js changes questionStep using class.
+        */
+
+        #questionStep.active {
+            display: block !important;
+        }
+
+        #questionOptions {
+
+            width: 100%;
+
+            max-width: 100%;
+        }
+
+
+        /* =====================================================
+           QUESTION NUMBER
+        ===================================================== */
+
+        #questionNumber {
+
+            margin-top: 10px;
+
+            margin-bottom: 12px;
+
+            font-weight: bold;
+
+            color: #1565c0;
+
+            font-size: 16px;
+        }
+
+
+        /* =====================================================
+           QUESTION TEXT
+        ===================================================== */
+
+        #questionText {
+
+            font-size: 19px;
+
+            font-weight: bold;
+
+            line-height: 1.5;
+
+            margin-bottom: 18px;
+        }
+
+
+        /* =====================================================
+           QUESTION NAVIGATION
+        ===================================================== */
+
+        .question-navigation {
+
+            display: flex;
+
+            gap: 10px;
+
+            width: 100%;
+
+            margin-top: 22px;
+        }
+
+        .question-navigation button {
+
+            flex: 1;
+
+            min-width: 0;
+        }
+
+
+        /* =====================================================
+           PREVIOUS / NEXT
+        ===================================================== */
+
+        #previousButton,
+        #nextButton {
+
+            padding: 14px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            min-height: 50px;
+        }
+
+        #previousButton {
+            background: #757575;
+        }
+
+        #nextButton {
+            background: #1565c0;
+        }
+
+        #previousButton:disabled,
+        #nextButton:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+
+        /* =====================================================
+           FINAL SUBMIT
+        ===================================================== */
+
+        #submitSurvey {
+
+            display: block;
+
+            width: 100%;
+
+            max-width: 100%;
+
+            padding: 15px;
+
+            margin-top: 20px;
+
+            background: #1565c0;
+
+            color: white;
+
+            border: none;
+
+            border-radius: 9px;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
 
         #submitSurvey:hover {
             background: #0d47a1;
         }
 
-
         #submitSurvey:disabled {
+
             background: #9e9e9e;
+
             cursor: not-allowed;
-            opacity: .7;
+
+            opacity: 0.7;
         }
 
 
-        /* =========================
+        /* =====================================================
            LOGOUT
-        ========================= */
+        ===================================================== */
 
         .logout-btn {
+
             width: 100%;
-            padding: 11px;
+
+            padding: 12px;
+
             margin-top: 10px;
+
             background: #c62828;
+
             color: white;
+
             border: none;
-            border-radius: 6px;
+
+            border-radius: 7px;
+
             cursor: pointer;
         }
 
 
-        /* =========================
-           QUESTION AREA
-        ========================= */
+        /* =====================================================
+           TABLET
+        ===================================================== */
 
-        #questionStep,
-        #basicDetailsStep {
-            width: 100%;
-            max-width: 100%;
+        @media (max-width: 768px) {
+
+            .container {
+
+                width: 100%;
+
+                max-width: 100%;
+
+                margin: 10px auto;
+
+                padding: 8px;
+            }
+
+            .survey-box {
+
+                width: 100%;
+
+                padding: 22px;
+
+                border-radius: 14px;
+            }
+
+            .survey-box h2 {
+
+                font-size: 25px;
+            }
+
+            label {
+
+                font-size: 16px;
+            }
+
+            input,
+            select,
+            textarea {
+
+                font-size: 16px;
+
+                padding: 13px;
+            }
+
         }
 
 
-        #questionOptions {
-            width: 100%;
-            max-width: 100%;
-        }
-
-
-        /* =========================
+        /* =====================================================
            MOBILE
-        ========================= */
+        ===================================================== */
 
         @media (max-width: 600px) {
 
+            html,
             body {
+
                 width: 100%;
+
+                max-width: 100%;
+
                 overflow-x: hidden;
             }
 
 
-            .header {
-                width: 100%;
-                padding: 12px 8px;
-                font-size: 19px;
+            body {
+
+                background: #f4f6f9;
             }
 
 
-            .container {
+            /* HEADER */
+
+            .header {
+
                 width: 100%;
+
+                padding: 15px 10px;
+
+                font-size: 21px;
+
+                line-height: 1.25;
+            }
+
+
+            /* CONTAINER */
+
+            .container {
+
+                width: 100%;
+
                 max-width: 100%;
+
                 margin: 8px 0;
+
                 padding: 8px;
             }
 
 
+            /* CARD */
+
             .survey-box {
+
                 width: 100%;
-                padding: 16px 14px;
+
+                max-width: 100%;
+
+                padding: 20px 16px;
+
+                border-radius: 14px;
+
+                box-shadow:
+                    0 2px 12px rgba(0, 0, 0, 0.12);
+            }
+
+
+            /* TITLE */
+
+            .survey-box h2 {
+
+                font-size: 24px;
+
+                line-height: 1.25;
+
+                margin-bottom: 20px;
+            }
+
+
+            /* LABEL */
+
+            label {
+
+                font-size: 17px;
+
+                margin-top: 15px;
+
+                margin-bottom: 7px;
+            }
+
+
+            /* INPUT */
+
+            input,
+            select,
+            textarea {
+
+                width: 100% !important;
+
+                max-width: 100% !important;
+
+                min-width: 0 !important;
+
+                padding: 14px 13px;
+
+                font-size: 16px;
+
+                min-height: 52px;
+
+                border-radius: 9px;
+            }
+
+
+            /* DAILY BOX */
+
+            #dailyLimitBox,
+            #dailyProgressBox {
+
+                width: 100% !important;
+
+                max-width: 100% !important;
+
+                padding: 14px 10px;
+
+                margin: 18px 0;
+
                 border-radius: 10px;
+
+                font-size: 15px;
+
+                line-height: 1.6;
+            }
+
+
+            #todayCount,
+            #remainingCount {
+
+                font-size: 20px;
+            }
+
+
+            #dailyProgressText {
+
+                font-size: 17px;
+            }
+
+
+            #dailyRemainingText {
+
+                font-size: 14px;
+            }
+
+
+            /* MESSAGE */
+
+            #message {
+
+                font-size: 14px;
+
+                padding: 0 3px;
+            }
+
+
+            /* NEXT */
+
+            #basicNextButton {
+
+                width: 100% !important;
+
+                min-height: 52px;
+
+                padding: 14px !important;
+
+                font-size: 17px !important;
+            }
+
+
+            /* QUESTION */
+
+            #questionNumber {
+
+                font-size: 16px;
+            }
+
+
+            #questionText {
+
+                font-size: 18px;
+
+                line-height: 1.5;
+            }
+
+
+            /* NAVIGATION */
+
+            .question-navigation {
+
+                display: flex;
+
+                flex-direction: row;
+
+                gap: 8px;
+            }
+
+
+            #previousButton,
+            #nextButton {
+
+                width: 50%;
+
+                min-height: 50px;
+
+                padding: 12px 8px;
+
+                font-size: 15px;
+            }
+
+
+            /* SUBMIT */
+
+            #submitSurvey {
+
+                width: 100% !important;
+
+                min-height: 52px;
+
+                padding: 14px;
+
+                font-size: 17px;
+            }
+
+        }
+
+
+        /* =====================================================
+           SMALL MOBILE
+        ===================================================== */
+
+        @media (max-width: 380px) {
+
+            .header {
+
+                font-size: 19px;
+
+                padding: 13px 7px;
+            }
+
+
+            .container {
+
+                padding: 5px;
+            }
+
+
+            .survey-box {
+
+                padding: 17px 12px;
+
+                border-radius: 11px;
             }
 
 
             .survey-box h2 {
-                font-size: 20px;
-                margin-bottom: 15px;
+
+                font-size: 21px;
+
+                margin-bottom: 17px;
             }
 
 
             label {
-                font-size: 14px;
-                margin-top: 12px;
+
+                font-size: 16px;
+
+                margin-top: 13px;
             }
 
 
             input,
             select,
             textarea {
-                width: 100%;
-                max-width: 100%;
-                font-size: 16px;
+
+                font-size: 15px;
+
                 padding: 12px;
-            }
 
-
-            textarea {
-                min-height: 90px;
+                min-height: 49px;
             }
 
 
             #dailyLimitBox,
             #dailyProgressBox {
-                width: 100%;
-                padding: 12px;
-                margin: 15px 0;
+
+                padding: 12px 8px;
+
                 font-size: 14px;
             }
 
 
             #todayCount,
             #remainingCount {
+
+                font-size: 18px;
+            }
+
+
+            #basicNextButton,
+            #submitSurvey {
+
+                font-size: 16px !important;
+
+                min-height: 50px;
+            }
+
+
+            #questionText {
+
                 font-size: 17px;
             }
 
 
-            #submitSurvey {
-                width: 100%;
-                padding: 13px;
-                font-size: 16px;
-            }
+            #previousButton,
+            #nextButton {
 
-
-            #message {
                 font-size: 14px;
+
+                padding: 11px 5px;
             }
 
         }
 
 
-        /* =========================
-           VERY SMALL MOBILE
-        ========================= */
+        /* =====================================================
+           PREVENT VERY LONG TEXT FROM BREAKING MOBILE
+        ===================================================== */
 
-        @media (max-width: 380px) {
+        input,
+        select,
+        textarea,
+        button {
 
-            .container {
-                padding: 5px;
+            max-width: 100%;
+
+            word-wrap: break-word;
+        }
+
+
+        /* =====================================================
+           DYNAMIC PROGRESS BOX MOBILE FIX
+        ===================================================== */
+
+        @media (max-width: 600px) {
+
+            #dailyProgressBox {
+
+                font-size: 14px;
+
+                padding: 13px;
+
+                margin: 10px 0 12px 0;
             }
 
+            #dailyProgressBox > div {
 
-            .survey-box {
-                padding: 13px 10px;
-            }
-
-
-            .header {
-                font-size: 18px;
-                padding: 11px 6px;
-            }
-
-
-            .survey-box h2 {
-                font-size: 18px;
-            }
-
-
-            input,
-            select,
-            textarea {
-                font-size: 15px;
-                padding: 11px;
+                max-width: 100%;
             }
 
         }
@@ -373,36 +885,36 @@
 <body>
 
 
-    <!-- =========================
+    <!-- =====================================================
          HEADER
-    ========================= -->
+    ===================================================== -->
 
     <div class="header">
         Surveykshan Survey Form
     </div>
 
 
-    <!-- =========================
+    <!-- =====================================================
          MAIN CONTAINER
-    ========================= -->
+    ===================================================== -->
 
     <div class="container">
 
         <div class="survey-box">
 
 
-            <!-- =========================
+            <!-- =================================================
                  TITLE
-            ========================= -->
+            ================================================= -->
 
             <h2>
                 Public Opinion Survey
             </h2>
 
 
-            <!-- =========================
+            <!-- =================================================
                  BASIC DETAILS
-            ========================= -->
+            ================================================= -->
 
             <div id="basicDetailsStep">
 
@@ -507,7 +1019,7 @@
                 >
 
 
-                <!-- PINCODE -->
+                <!-- PIN CODE -->
 
                 <label for="pincode">
                     PIN Code <span class="required">*</span>
@@ -523,17 +1035,23 @@
                 >
 
 
-                <!-- DAILY PROGRESS -->
+                <!-- =================================================
+                     DAILY LIMIT
+                ================================================== -->
 
                 <div id="dailyLimitBox">
 
-                    Today's Surveys:
-                    <span id="todayCount">0</span>
+                    📊 Today's Surveys:
+                    <span id="todayCount">
+                        0
+                    </span>
 
                     <br>
 
                     Remaining:
-                    <span id="remainingCount">Loading...</span>
+                    <span id="remainingCount">
+                        Loading...
+                    </span>
 
                 </div>
 
@@ -548,28 +1066,17 @@
                 <button
                     id="basicNextButton"
                     type="button"
-                    style="
-                        width:100%;
-                        padding:13px;
-                        margin-top:18px;
-                        background:#1565c0;
-                        color:white;
-                        border:none;
-                        border-radius:7px;
-                        font-size:16px;
-                        font-weight:bold;
-                        cursor:pointer;
-                    "
                 >
                     Next →
                 </button>
 
+
             </div>
 
 
-            <!-- =========================
+            <!-- =================================================
                  QUESTION STEP
-            ========================= -->
+            ================================================= -->
 
             <div
                 id="questionStep"
@@ -578,57 +1085,35 @@
             >
 
 
-                <div
-                    id="questionNumber"
-                    style="
-                        margin-top:10px;
-                        margin-bottom:10px;
-                        font-weight:bold;
-                        color:#1565c0;
-                    "
-                >
+                <!-- QUESTION NUMBER -->
+
+                <div id="questionNumber">
                 </div>
 
 
-                <div
-                    id="questionText"
-                    style="
-                        font-size:18px;
-                        font-weight:bold;
-                        line-height:1.5;
-                        margin-bottom:15px;
-                    "
-                >
+                <!-- QUESTION -->
+
+                <div id="questionText">
+
                     Loading questions...
+
                 </div>
 
 
-                <div id="questionOptions"></div>
+                <!-- OPTIONS -->
+
+                <div id="questionOptions">
+                </div>
 
 
                 <!-- QUESTION NAVIGATION -->
 
-                <div
-                    style="
-                        display:flex;
-                        gap:10px;
-                        margin-top:20px;
-                    "
-                >
+                <div class="question-navigation">
+
 
                     <button
                         id="previousButton"
                         type="button"
-                        style="
-                            flex:1;
-                            padding:12px;
-                            border:none;
-                            border-radius:7px;
-                            background:#757575;
-                            color:white;
-                            font-weight:bold;
-                            cursor:pointer;
-                        "
                     >
                         ← Previous
                     </button>
@@ -637,19 +1122,10 @@
                     <button
                         id="nextButton"
                         type="button"
-                        style="
-                            flex:1;
-                            padding:12px;
-                            border:none;
-                            border-radius:7px;
-                            background:#1565c0;
-                            color:white;
-                            font-weight:bold;
-                            cursor:pointer;
-                        "
                     >
                         Next →
                     </button>
+
 
                 </div>
 
@@ -672,9 +1148,9 @@
     </div>
 
 
-    <!-- =========================
+    <!-- =====================================================
          FIREBASE
-    ========================= -->
+    ===================================================== -->
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
     </script>
@@ -686,17 +1162,17 @@
     </script>
 
 
-    <!-- =========================
+    <!-- =====================================================
          FIREBASE CONFIG
-    ========================= -->
+    ===================================================== -->
 
     <script src="firebase.js">
     </script>
 
 
-    <!-- =========================
+    <!-- =====================================================
          SURVEY JS
-    ========================= -->
+    ===================================================== -->
 
     <script src="survey.js">
     </script>
