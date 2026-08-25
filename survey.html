@@ -14,140 +14,352 @@
 
     <style>
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 0;
             background: #f4f6f9;
             font-family: Arial, sans-serif;
+            color: #222;
         }
+
+        /* ================= HEADER ================= */
 
         .header {
             background: #1565c0;
             color: white;
-            padding: 18px;
+            padding: 18px 15px;
             text-align: center;
             font-size: 24px;
             font-weight: bold;
         }
 
+        /* ================= MAIN ================= */
+
         .container {
-            max-width: 700px;
-            margin: 20px auto;
-            padding: 20px;
+            width: 100%;
+            max-width: 760px;
+            margin: 25px auto;
+            padding: 0 15px;
         }
 
         .survey-box {
             background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 3px 15px rgba(0,0,0,.12);
         }
+
+        /* ================= TITLE ================= */
 
         .survey-box h2 {
             text-align: center;
             color: #1565c0;
-            margin-top: 0;
+            margin: 0 0 25px;
+            font-size: 25px;
         }
+
+        /* ================= STEP ================= */
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .step-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1565c0;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e3f2fd;
+        }
+
+        /* ================= LABEL ================= */
 
         label {
             display: block;
-            margin-top: 15px;
-            margin-bottom: 6px;
+            margin-top: 17px;
+            margin-bottom: 7px;
             font-weight: bold;
-        }
-
-        input,
-        select,
-        textarea {
-            width: 100%;
-            padding: 11px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 15px;
-        }
-
-        textarea {
-            min-height: 100px;
-            resize: vertical;
+            color: #333;
         }
 
         .required {
             color: red;
         }
 
-        /* DAILY LIMIT */
+        /* ================= INPUT ================= */
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #cfcfcf;
+            border-radius: 7px;
+            outline: none;
+            font-size: 16px;
+            background: white;
+            transition: .2s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #1565c0;
+            box-shadow: 0 0 0 2px rgba(21,101,192,.10);
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        /* ================= DAILY LIMIT ================= */
 
         #dailyLimitBox {
             background: #e3f2fd;
             border: 1px solid #90caf9;
-            padding: 14px;
-            margin: 20px 0;
-            border-radius: 8px;
+            padding: 15px;
+            margin: 0 0 20px;
+            border-radius: 9px;
             text-align: center;
             font-weight: bold;
             color: #0d47a1;
+            line-height: 1.8;
         }
 
         #todayCount,
         #remainingCount {
-            font-size: 18px;
+            font-size: 20px;
+            font-weight: bold;
         }
 
-        /* SUBMIT BUTTON */
+        /* ================= DYNAMIC DAILY PROGRESS ================= */
 
-        #submitSurvey {
+        #dailyProgressBox {
+            margin-bottom: 20px !important;
+        }
+
+        /* ================= QUESTIONS ================= */
+
+        #questionNumber {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        #questionText {
+            font-size: 20px;
+            line-height: 1.5;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 20px;
+        }
+
+        #questionOptions {
             width: 100%;
-            padding: 13px;
-            margin-top: 20px;
-            background: #1565c0;
-            color: white;
+        }
+
+        #questionOptions label {
+            margin-top: 0;
+            margin-bottom: 10px;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        #questionOptions label:hover {
+            background: #f1f7ff;
+            border-color: #90caf9;
+        }
+
+        #questionOptions input {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.15);
+        }
+
+        /* ================= BUTTONS ================= */
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        button {
             border: none;
             border-radius: 7px;
-            font-size: 17px;
+            padding: 13px 18px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            transition: .2s;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: .65;
+        }
+
+        /* BASIC NEXT */
+
+        #basicNextButton {
+            width: 100%;
+            background: #1565c0;
+            color: white;
+        }
+
+        #basicNextButton:hover {
+            background: #0d47a1;
+        }
+
+        /* PREVIOUS */
+
+        #previousButton {
+            flex: 1;
+            background: #757575;
+            color: white;
+        }
+
+        #previousButton:hover {
+            background: #616161;
+        }
+
+        /* NEXT */
+
+        #nextButton {
+            flex: 1;
+            background: #1565c0;
+            color: white;
+        }
+
+        #nextButton:hover {
+            background: #0d47a1;
+        }
+
+        /* SUBMIT */
+
+        #submitSurvey {
+            flex: 1;
+            background: #2e7d32;
+            color: white;
         }
 
         #submitSurvey:hover {
-            background: #0d47a1;
+            background: #1b5e20;
         }
 
         #submitSurvey:disabled {
             background: #9e9e9e;
             cursor: not-allowed;
-            opacity: 0.7;
         }
+
+        /* ================= MESSAGE ================= */
 
         #message {
             margin-top: 15px;
             text-align: center;
             font-weight: bold;
+            color: #c62828;
+            line-height: 1.5;
         }
 
-        .logout-btn {
-            width: 100%;
-            padding: 11px;
-            margin-top: 10px;
-            background: #c62828;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
+        /* ================= SUCCESS ================= */
+
+        .success-message {
+            color: #2e7d32 !important;
         }
+
+        /* ================= MOBILE ================= */
 
         @media (max-width: 768px) {
 
+            .header {
+                padding: 16px 10px;
+                font-size: 21px;
+            }
+
             .container {
-                padding: 10px;
+                margin: 12px auto;
+                padding: 0 10px;
             }
 
             .survey-box {
-                padding: 18px;
+                padding: 20px 16px;
+                border-radius: 12px;
+            }
+
+            .survey-box h2 {
+                font-size: 21px;
+                margin-bottom: 20px;
+            }
+
+            .step-title {
+                font-size: 18px;
+            }
+
+            label {
+                font-size: 15px;
+                margin-top: 15px;
+            }
+
+            input,
+            select,
+            textarea {
+                padding: 13px;
+                font-size: 16px;
+            }
+
+            #questionText {
+                font-size: 18px;
+            }
+
+            .button-row {
+                flex-direction: row;
+            }
+
+            button {
+                font-size: 15px;
+                padding: 13px 10px;
+            }
+
+        }
+
+        /* ================= SMALL MOBILE ================= */
+
+        @media (max-width: 400px) {
+
+            .container {
+                padding: 0 7px;
+            }
+
+            .survey-box {
+                padding: 17px 13px;
             }
 
             .header {
-                font-size: 20px;
+                font-size: 19px;
+            }
+
+            .button-row {
+                gap: 7px;
+            }
+
+            button {
+                font-size: 14px;
             }
 
         }
@@ -160,14 +372,14 @@
 <body>
 
 
-<!-- HEADER -->
+<!-- ================= HEADER ================= -->
 
 <div class="header">
     Surveykshan Survey Form
 </div>
 
 
-<!-- MAIN CONTAINER -->
+<!-- ================= MAIN ================= -->
 
 <div class="container">
 
@@ -178,201 +390,253 @@
         </h2>
 
 
-        <!-- NAME -->
+        <!-- ================================================= -->
+        <!-- BASIC DETAILS STEP -->
+        <!-- ================================================= -->
 
-        <label for="name">
-            Name <span class="required">*</span>
-        </label>
-
-        <input
-            type="text"
-            id="name"
-            placeholder="Enter Name"
+        <div
+            id="basicDetailsStep"
+            class="step active"
         >
 
-
-        <!-- MOBILE -->
-
-        <label for="mobile">
-            Mobile <span class="required">*</span>
-        </label>
-
-        <input
-            type="tel"
-            id="mobile"
-            placeholder="Enter Mobile Number"
-        >
+            <div class="step-title">
+                👤 Basic Information
+            </div>
 
 
-        <!-- AGE -->
+            <!-- NAME -->
 
-        <label for="age">
-            Age <span class="required">*</span>
-        </label>
+            <label for="name">
+                Name
+                <span class="required">*</span>
+            </label>
 
-        <input
-            type="number"
-            id="age"
-            placeholder="Enter Age"
-            min="1"
-            max="120"
-        >
-
-
-        <!-- GENDER -->
-
-        <label for="gender">
-            Gender <span class="required">*</span>
-        </label>
-
-        <select id="gender">
-
-            <option value="">
-                Select Gender
-            </option>
-
-            <option value="Male">
-                Male
-            </option>
-
-            <option value="Female">
-                Female
-            </option>
-
-            <option value="Other">
-                Other
-            </option>
-
-        </select>
+            <input
+                type="text"
+                id="name"
+                placeholder="Enter Name"
+                autocomplete="off"
+            >
 
 
-        <!-- VILLAGE -->
+            <!-- MOBILE -->
 
-        <label for="village">
-            Village <span class="required">*</span>
-        </label>
+            <label for="mobile">
+                Mobile Number
+                <span class="required">*</span>
+            </label>
 
-        <input
-            type="text"
-            id="village"
-            placeholder="Enter Village"
-        >
-
-
-        <!-- ASSEMBLY -->
-
-        <label for="assembly">
-            Assembly <span class="required">*</span>
-        </label>
-
-        <input
-            type="text"
-            id="assembly"
-            placeholder="Enter Assembly"
-        >
+            <input
+                type="tel"
+                id="mobile"
+                placeholder="Enter 10 Digit Mobile Number"
+                maxlength="10"
+                inputmode="numeric"
+                autocomplete="off"
+            >
 
 
-        <!-- PARTY -->
+            <!-- AGE -->
 
-        <label for="party">
-            Party <span class="required">*</span>
-        </label>
+            <label for="age">
+                Age
+                <span class="required">*</span>
+            </label>
 
-        <select id="party">
-
-            <option value="">
-                Select Party
-            </option>
-
-            <option value="BJP">
-                BJP
-            </option>
-
-            <option value="Congress">
-                Congress
-            </option>
-
-            <option value="AAP">
-                AAP
-            </option>
-
-            <option value="BSP">
-                BSP
-            </option>
-
-            <option value="SP">
-                SP
-            </option>
-
-            <option value="Other">
-                Other
-            </option>
-
-        </select>
+            <input
+                type="number"
+                id="age"
+                placeholder="Enter Age"
+                min="1"
+                max="120"
+            >
 
 
-        <!-- CANDIDATE -->
+            <!-- GENDER -->
 
-        <label for="candidate">
-            Candidate
-        </label>
+            <label for="gender">
+                Gender
+                <span class="required">*</span>
+            </label>
 
-        <input
-            type="text"
-            id="candidate"
-            placeholder="Enter Candidate Name"
-        >
+            <select id="gender">
+
+                <option value="">
+                    Select Gender
+                </option>
+
+                <option value="Male">
+                    Male
+                </option>
+
+                <option value="Female">
+                    Female
+                </option>
+
+                <option value="Other">
+                    Other
+                </option>
+
+            </select>
 
 
-        <!-- FEEDBACK -->
+            <!-- VILLAGE -->
 
-        <label for="feedback">
-            Feedback
-        </label>
+            <label for="village">
+                Village
+                <span class="required">*</span>
+            </label>
 
-        <textarea
-            id="feedback"
-            placeholder="Enter Feedback"
-        ></textarea>
+            <input
+                type="text"
+                id="village"
+                placeholder="Enter Village"
+                autocomplete="off"
+            >
 
 
-        <!-- DAILY LIMIT -->
+            <!-- DISTRICT -->
 
-        <div id="dailyLimitBox">
+            <label for="district">
+                District
+            </label>
 
-            Today's Surveys:
-            <span id="todayCount">0</span>
-            / 20
+            <input
+                type="text"
+                id="district"
+                placeholder="Enter District"
+                autocomplete="off"
+            >
 
-            <br>
 
-            Remaining:
-            <span id="remainingCount">20</span>
+            <!-- PINCODE -->
+
+            <label for="pincode">
+                PIN Code
+            </label>
+
+            <input
+                type="tel"
+                id="pincode"
+                placeholder="Enter 6 Digit PIN Code"
+                maxlength="6"
+                inputmode="numeric"
+                autocomplete="off"
+            >
+
+
+            <!-- DAILY LIMIT -->
+
+            <div id="dailyLimitBox">
+
+                Today's Surveys:
+                <span id="todayCount">0</span>
+
+                <br>
+
+                Remaining:
+                <span id="remainingCount">0</span>
+
+            </div>
+
+
+            <!-- MESSAGE -->
+
+            <div id="message"></div>
+
+
+            <!-- NEXT -->
+
+            <button
+                id="basicNextButton"
+                type="button"
+            >
+                Continue to Survey →
+            </button>
 
         </div>
 
 
-        <!-- MESSAGE -->
+        <!-- ================================================= -->
+        <!-- QUESTION STEP -->
+        <!-- ================================================= -->
 
-        <div id="message"></div>
-
-
-        <!-- SUBMIT -->
-
-        <button
-            id="submitSurvey"
-            type="button"
+        <div
+            id="questionStep"
+            class="step"
         >
-            Submit Survey
-        </button>
 
+            <div class="step-title">
+                📋 Public Opinion Questions
+            </div>
+
+
+            <!-- QUESTION NUMBER -->
+
+            <div id="questionNumber">
+                Question 1
+            </div>
+
+
+            <!-- QUESTION -->
+
+            <div id="questionText">
+                Loading questions...
+            </div>
+
+
+            <!-- OPTIONS -->
+
+            <div id="questionOptions">
+            </div>
+
+
+            <!-- BUTTONS -->
+
+            <div class="button-row">
+
+                <button
+                    id="previousButton"
+                    type="button"
+                >
+                    ← Previous
+                </button>
+
+
+                <button
+                    id="nextButton"
+                    type="button"
+                >
+                    Next →
+                </button>
+
+
+                <button
+                    id="submitSurvey"
+                    type="button"
+                    style="display:none;"
+                >
+                    Submit Survey
+                </button>
+
+            </div>
+
+
+            <!-- MESSAGE -->
+
+            <div id="message">
+            </div>
+
+        </div>
 
     </div>
 
 </div>
 
 
+<!-- ===================================================== -->
 <!-- FIREBASE -->
+<!-- ===================================================== -->
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
 </script>
