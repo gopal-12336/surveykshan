@@ -1373,132 +1373,139 @@ SHOW QUESTION PAGE
 function showQuestionPage() {
 
     const basicStep =
-        document.getElementById(
-            "basicDetailsStep"
-        );
-
+        document.getElementById("basicDetailsStep");
 
     const questionStep =
-        document.getElementById(
-            "questionStep"
-        );
+        document.getElementById("questionStep");
 
-
-    if (basicStep) {
-
-        basicStep.classList.remove(
-            "active"
-        );
-
-    }
-
-
-    if (questionStep) {
-
-        questionStep.classList.add(
-            "active"
-        );
-
-    }
-
-
-    renderQuestion();
-
-}
-
-
-/*
-=====================================================
-RENDER QUESTION
-=====================================================
-*/
-
-function renderQuestion() {
-
-    const questionText =
-        document.getElementById(
-            "questionText"
-        );
-
-
-    const questionNumber =
-        document.getElementById(
-            "questionNumber"
-        );
-
-
-    const optionsBox =
-        document.getElementById(
-            "questionOptions"
-        );
-
-
-    const nextButton =
-        document.getElementById(
-            "nextButton"
-        );
-
-
-    const previousButton =
-        document.getElementById(
-            "previousButton"
-        );
-
-
-    const submitButton =
-        document.getElementById(
-            "submitSurvey"
-        );
-
-
-    if (
-        !questionText ||
-        !optionsBox
-    ) {
+    if (!basicStep || !questionStep) {
 
         console.error(
-            "Question elements not found."
+            "Basic Details Step or Question Step not found."
         );
 
         return;
-
     }
 
 
-    if (
-        surveyQuestions.length === 0
-    ) {
+    /* =================================================
+       PREPARE QUESTION PAGE
+    ================================================= */
 
-        questionText.textContent =
-            "No questions found.";
+    questionStep.style.display = "block";
 
-        optionsBox.innerHTML =
-            "";
+    questionStep.style.position = "absolute";
 
-        return;
+    questionStep.style.left = "0";
 
-    }
+    questionStep.style.top = "0";
+
+    questionStep.style.width = "100%";
+
+    questionStep.style.transform =
+        "translateX(100%)";
+
+    questionStep.style.opacity = "0";
 
 
-    const question =
-        surveyQuestions[
-            currentQuestion
-        ];
+    /* =================================================
+       PREPARE BASIC PAGE
+    ================================================= */
+
+    basicStep.style.position = "relative";
+
+    basicStep.style.transform =
+        "translateX(0)";
+
+    basicStep.style.opacity = "1";
 
 
-    if (!question) {
+    /* =================================================
+       ENABLE ANIMATION
+    ================================================= */
 
-        return;
+    basicStep.style.transition =
+        "transform 0.45s ease, opacity 0.45s ease";
 
-    }
+    questionStep.style.transition =
+        "transform 0.45s ease, opacity 0.45s ease";
 
 
     /*
-    =========================================
-    QUESTION NUMBER
-    =========================================
-    */
+     * Force browser to recognize the starting position
+     * before starting the animation.
+     */
 
+    void questionStep.offsetWidth;
+
+
+    /* =================================================
+       BASIC PAGE → LEFT
+    ================================================= */
+
+    basicStep.style.transform =
+        "translateX(-100%)";
+
+    basicStep.style.opacity = "0";
+
+
+    /* =================================================
+       QUESTION PAGE → CENTER
+    ================================================= */
+
+    questionStep.style.transform =
+        "translateX(0)";
+
+    questionStep.style.opacity = "1";
+
+
+    /* =================================================
+       AFTER ANIMATION
+    ================================================= */
+
+    setTimeout(function() {
+
+        basicStep.style.display = "none";
+
+        basicStep.style.position = "relative";
+
+        basicStep.style.left = "auto";
+
+        basicStep.style.top = "auto";
+
+        basicStep.style.width = "100%";
+
+
+        questionStep.style.position =
+            "relative";
+
+        questionStep.style.left =
+            "auto";
+
+        questionStep.style.top =
+            "auto";
+
+        questionStep.style.width =
+            "100%";
+
+
+        basicStep.style.transform = "";
+
+        basicStep.style.opacity = "";
+
+
+        questionStep.style.transform = "";
+
+        questionStep.style.opacity = "";
+
+
+        /* Render current question */
+
+        renderQuestion();
+
+    }, 450);
+
+}
     if (questionNumber) {
 
         questionNumber.textContent =
