@@ -1,141 +1,237 @@
-console.log("Survey JS Loaded - Daily Limit + Dynamic Questions");
+console.log("Survey JS Loaded - FINAL VERSION");
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
-let DAILY_LIMIT = 20;
+/*
+=====================================================
+GLOBAL VARIABLES
+=====================================================
+*/
+
+let DAILY_LIMIT = 0;
 
 let currentQuestion = 0;
+
+let surveyQuestions = [];
 
 let answers = {
     basic: {},
     questions: {}
 };
 
-let surveyQuestions = [];
+let surveyStarted = false;
 
 let submitBtn = null;
 let message = null;
 
-let surveyStarted = false;
+let dailyLimitLoaded = false;
 
 
-// =====================================================
-// INITIALIZE
-// =====================================================
+/*
+=====================================================
+INITIALIZE
+=====================================================
+*/
 
 function initializeSurveyPage() {
 
-    submitBtn = document.getElementById("submitSurvey");
-    message = document.getElementById("message");
+    console.log("Initializing Survey Page...");
+
+    submitBtn =
+        document.getElementById("submitSurvey");
+
+    message =
+        document.getElementById("message");
 
     setupBasicDetails();
+
     setupQuestionButtons();
 
     createDailyProgressUI();
 
     startAuthentication();
+
 }
 
 
-// =====================================================
-// DAILY PROGRESS UI
-// =====================================================
+/*
+=====================================================
+DAILY PROGRESS UI
+=====================================================
+*/
 
 function createDailyProgressUI() {
 
-    if (document.getElementById("dailyProgressBox")) {
+    if (
+        document.getElementById(
+            "dailyProgressBox"
+        )
+    ) {
         return;
     }
 
-    const box = document.createElement("div");
 
-    box.id = "dailyProgressBox";
+    const box =
+        document.createElement("div");
 
-    box.style.background = "#ffffff";
-    box.style.border = "1px solid #e0e0e0";
-    box.style.borderRadius = "12px";
-    box.style.padding = "15px";
-    box.style.margin = "15px 0";
-    box.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-    box.style.fontFamily = "Arial,sans-serif";
+    box.id =
+        "dailyProgressBox";
 
-    const titleRow = document.createElement("div");
+    box.style.background =
+        "#ffffff";
 
-    titleRow.style.display = "flex";
-    titleRow.style.justifyContent = "space-between";
-    titleRow.style.alignItems = "center";
-    titleRow.style.marginBottom = "8px";
-    titleRow.style.fontWeight = "bold";
+    box.style.border =
+        "1px solid #e0e0e0";
 
-    const title = document.createElement("span");
+    box.style.borderRadius =
+        "12px";
 
-    title.textContent = "📊 Today's Progress";
+    box.style.padding =
+        "15px";
 
-    const progressText = document.createElement("span");
+    box.style.margin =
+        "15px 0";
 
-    progressText.id = "dailyProgressText";
-    progressText.textContent = "0 / 20";
+    box.style.boxShadow =
+        "0 2px 8px rgba(0,0,0,0.08)";
+
+    box.style.fontFamily =
+        "Arial,sans-serif";
+
+
+    const titleRow =
+        document.createElement("div");
+
+    titleRow.style.display =
+        "flex";
+
+    titleRow.style.justifyContent =
+        "space-between";
+
+    titleRow.style.alignItems =
+        "center";
+
+    titleRow.style.marginBottom =
+        "8px";
+
+    titleRow.style.fontWeight =
+        "bold";
+
+
+    const title =
+        document.createElement("span");
+
+    title.textContent =
+        "📊 Today's Progress";
+
+
+    const progressText =
+        document.createElement("span");
+
+    progressText.id =
+        "dailyProgressText";
+
+    progressText.textContent =
+        "0 / --";
+
 
     titleRow.appendChild(title);
-    titleRow.appendChild(progressText);
+
+    titleRow.appendChild(
+        progressText
+    );
 
 
-    const progressBackground = document.createElement("div");
+    const progressBackground =
+        document.createElement("div");
 
-    progressBackground.style.width = "100%";
-    progressBackground.style.height = "12px";
-    progressBackground.style.background = "#eeeeee";
-    progressBackground.style.borderRadius = "20px";
-    progressBackground.style.overflow = "hidden";
+    progressBackground.style.width =
+        "100%";
 
+    progressBackground.style.height =
+        "12px";
 
-    const progressBar = document.createElement("div");
+    progressBackground.style.background =
+        "#eeeeee";
 
-    progressBar.id = "dailyProgressBar";
+    progressBackground.style.borderRadius =
+        "20px";
 
-    progressBar.style.width = "0%";
-    progressBar.style.height = "100%";
-    progressBar.style.background = "#1565c0";
-    progressBar.style.transition = "width 0.4s ease";
-
-    progressBackground.appendChild(progressBar);
+    progressBackground.style.overflow =
+        "hidden";
 
 
-    const remainingText = document.createElement("div");
+    const progressBar =
+        document.createElement("div");
 
-    remainingText.id = "dailyRemainingText";
+    progressBar.id =
+        "dailyProgressBar";
+
+    progressBar.style.width =
+        "0%";
+
+    progressBar.style.height =
+        "100%";
+
+    progressBar.style.background =
+        "#1565c0";
+
+    progressBar.style.transition =
+        "width 0.4s ease";
+
+
+    progressBackground.appendChild(
+        progressBar
+    );
+
+
+    const remainingText =
+        document.createElement("div");
+
+    remainingText.id =
+        "dailyRemainingText";
 
     remainingText.textContent =
-        "Remaining today: 20";
+        "Loading daily limit...";
 
-    remainingText.style.marginTop = "8px";
-    remainingText.style.fontSize = "13px";
-    remainingText.style.color = "#555";
+    remainingText.style.marginTop =
+        "8px";
+
+    remainingText.style.fontSize =
+        "13px";
+
+    remainingText.style.color =
+        "#555";
 
 
     box.appendChild(titleRow);
-    box.appendChild(progressBackground);
-    box.appendChild(remainingText);
+
+    box.appendChild(
+        progressBackground
+    );
+
+    box.appendChild(
+        remainingText
+    );
 
 
     const container =
-        document.querySelector(".login-box") ||
-        document.querySelector(".container") ||
+        document.querySelector(
+            ".survey-box"
+        ) ||
+        document.querySelector(
+            ".container"
+        ) ||
         document.body;
 
 
     if (container) {
 
-        /*
-         * If survey.html already contains
-         * dailyLimitBox, put our progress
-         * box after it.
-         */
-
         const dailyLimitBox =
             document.getElementById(
                 "dailyLimitBox"
             );
+
 
         if (dailyLimitBox) {
 
@@ -144,7 +240,9 @@ function createDailyProgressUI() {
                 box
             );
 
-        } else {
+        }
+
+        else {
 
             container.insertBefore(
                 box,
@@ -158,37 +256,13 @@ function createDailyProgressUI() {
 }
 
 
-// =====================================================
-// UPDATE DAILY PROGRESS
-// =====================================================
+/*
+=====================================================
+UPDATE DAILY PROGRESS
+=====================================================
+*/
 
 function updateDailyProgress(count) {
-
-    const progressText =
-        document.getElementById(
-            "dailyProgressText"
-        );
-
-    const remainingText =
-        document.getElementById(
-            "dailyRemainingText"
-        );
-
-    const progressBar =
-        document.getElementById(
-            "dailyProgressBar"
-        );
-
-    const todayCount =
-        document.getElementById(
-            "todayCount"
-        );
-
-    const remainingCount =
-        document.getElementById(
-            "remainingCount"
-        );
-
 
     count = Number(count);
 
@@ -201,9 +275,22 @@ function updateDailyProgress(count) {
 
 
     const limit =
-        Number(DAILY_LIMIT) > 0
-            ? Number(DAILY_LIMIT)
-            : 20;
+        Number(DAILY_LIMIT);
+
+
+    if (
+        !Number.isFinite(limit) ||
+        limit <= 0
+    ) {
+
+        console.warn(
+            "Invalid daily limit:",
+            DAILY_LIMIT
+        );
+
+        return;
+
+    }
 
 
     const remaining =
@@ -220,20 +307,62 @@ function updateDailyProgress(count) {
         );
 
 
+    const progressText =
+        document.getElementById(
+            "dailyProgressText"
+        );
+
+
+    const remainingText =
+        document.getElementById(
+            "dailyRemainingText"
+        );
+
+
+    const progressBar =
+        document.getElementById(
+            "dailyProgressBar"
+        );
+
+
+    const todayCount =
+        document.getElementById(
+            "todayCount"
+        );
+
+
+    const remainingCount =
+        document.getElementById(
+            "remainingCount"
+        );
+
+
     if (progressText) {
 
         progressText.textContent =
-            count + " / " + limit;
+            count +
+            " / " +
+            limit;
 
     }
 
 
     if (remainingText) {
 
-        remainingText.textContent =
-            remaining > 0
-                ? "Remaining today: " + remaining
-                : "🚫 Daily limit reached";
+        if (remaining <= 0) {
+
+            remainingText.textContent =
+                "🚫 Daily limit reached";
+
+        }
+
+        else {
+
+            remainingText.textContent =
+                "Remaining today: " +
+                remaining;
+
+        }
 
     }
 
@@ -244,14 +373,18 @@ function updateDailyProgress(count) {
             percentage + "%";
 
 
-        if (count >= limit) {
+        if (
+            count >= limit
+        ) {
 
             progressBar.style.background =
                 "#c62828";
 
         }
 
-        else if (percentage >= 80) {
+        else if (
+            percentage >= 80
+        ) {
 
             progressBar.style.background =
                 "#ef6c00";
@@ -267,10 +400,6 @@ function updateDailyProgress(count) {
 
     }
 
-
-    /*
-     * survey.html वाला simple counter
-     */
 
     if (todayCount) {
 
@@ -288,30 +417,29 @@ function updateDailyProgress(count) {
     }
 
 
-    /*
-     * Disable submit if limit reached.
-     */
-
-    if (count >= limit) {
+    if (
+        count >= limit
+    ) {
 
         disableSurveyButtons();
-
-    }
-
-    else {
-
-        enableSurveyButtons();
 
     }
 
 }
 
 
-// =====================================================
-// LOAD DAILY LIMIT
-// =====================================================
+/*
+=====================================================
+LOAD DAILY LIMIT FROM FIRESTORE
+=====================================================
+*/
 
 function loadDailyLimit() {
+
+    console.log(
+        "Loading daily limit..."
+    );
+
 
     return db.collection("settings")
         .doc("config")
@@ -319,59 +447,87 @@ function loadDailyLimit() {
 
         .then(function(doc) {
 
+            if (!doc.exists) {
+
+                throw new Error(
+                    "settings/config document not found."
+                );
+
+            }
+
+
+            const data =
+                doc.data() || {};
+
+
+            const value =
+                Number(
+                    data.dailyLimit
+                );
+
+
             if (
-                doc.exists &&
-                doc.data().dailyLimit !== undefined
+                !Number.isFinite(value) ||
+                value <= 0
             ) {
 
-                const value =
-                    Number(
-                        doc.data().dailyLimit
-                    );
-
-
-                if (
-                    Number.isFinite(value) &&
-                    value > 0
-                ) {
-
-                    DAILY_LIMIT = value;
-
-                }
-
-                else {
-
-                    DAILY_LIMIT = 20;
-
-                }
+                throw new Error(
+                    "Invalid dailyLimit in settings/config."
+                );
 
             }
 
-            else {
 
-                DAILY_LIMIT = 20;
+            DAILY_LIMIT =
+                value;
 
-            }
+            dailyLimitLoaded =
+                true;
+
+
+            console.log(
+                "Daily Limit Loaded:",
+                DAILY_LIMIT
+            );
+
+
+            return DAILY_LIMIT;
 
         })
 
         .catch(function(error) {
 
-            console.warn(
-                "Daily limit loading failed:",
+            console.error(
+                "Daily limit loading error:",
                 error
             );
 
-            DAILY_LIMIT = 20;
+
+            dailyLimitLoaded =
+                false;
+
+
+            DAILY_LIMIT =
+                0;
+
+
+            showMessage(
+                "Unable to load daily survey limit. Please contact admin."
+            );
+
+
+            throw error;
 
         });
 
 }
 
 
-// =====================================================
-// AUTHENTICATION
-// =====================================================
+/*
+=====================================================
+AUTHENTICATION
+=====================================================
+*/
 
 function startAuthentication() {
 
@@ -398,14 +554,12 @@ function startAuthentication() {
                         }
 
 
-                        /*
-                         * Admin should go to admin panel.
-                         */
-
                         if (
                             user.email &&
-                            user.email.toLowerCase() ===
-                            ADMIN_EMAIL.toLowerCase()
+                            user.email
+                                .toLowerCase() ===
+                            ADMIN_EMAIL
+                                .toLowerCase()
                         ) {
 
                             window.location.replace(
@@ -441,7 +595,8 @@ function startAuthentication() {
 
 
                                 if (
-                                    count >= DAILY_LIMIT
+                                    count >=
+                                    DAILY_LIMIT
                                 ) {
 
                                     showMessage(
@@ -457,6 +612,7 @@ function startAuthentication() {
 
                                 enableSurveyButtons();
 
+
                                 loadQuestionsFromFirestore();
 
                             })
@@ -466,11 +622,6 @@ function startAuthentication() {
                                 console.error(
                                     "Startup error:",
                                     error
-                                );
-
-                                showMessage(
-                                    "Unable to load survey: " +
-                                    error.message
                                 );
 
                             });
@@ -487,18 +638,28 @@ function startAuthentication() {
                 error
             );
 
+            showMessage(
+                "Authentication error: " +
+                error.message
+            );
+
         });
 
 }
 
 
-// =====================================================
-// GET TODAY COUNT
-// =====================================================
+/*
+=====================================================
+GET TODAY COUNT
+=====================================================
+*/
 
 function getTodayCount(user) {
 
-    if (!user || !user.email) {
+    if (
+        !user ||
+        !user.email
+    ) {
 
         return Promise.resolve(0);
 
@@ -516,19 +677,14 @@ function getTodayCount(user) {
     );
 
 
-    /*
-     * We use surveyorEmail.
-     *
-     * New submissions created by this
-     * survey.js will contain surveyorEmail.
-     */
-
     return db.collection("surveys")
+
         .where(
             "surveyorEmail",
             "==",
             user.email
         )
+
         .get()
 
         .then(function(snapshot) {
@@ -536,28 +692,30 @@ function getTodayCount(user) {
             let count = 0;
 
 
-            snapshot.forEach(function(doc) {
+            snapshot.forEach(
+                function(doc) {
 
-                const data =
-                    doc.data();
-
-
-                const date =
-                    getFirestoreDate(
-                        data.createdAt
-                    );
+                    const data =
+                        doc.data();
 
 
-                if (
-                    date &&
-                    date >= todayStart
-                ) {
+                    const date =
+                        getFirestoreDate(
+                            data.createdAt
+                        );
 
-                    count++;
+
+                    if (
+                        date &&
+                        date >= todayStart
+                    ) {
+
+                        count++;
+
+                    }
 
                 }
-
-            });
+            );
 
 
             return count;
@@ -566,15 +724,11 @@ function getTodayCount(user) {
 
         .catch(function(error) {
 
-            /*
-             * Old records may not contain
-             * surveyorEmail.
-             */
-
-            console.warn(
-                "Surveyor count error:",
+            console.error(
+                "Today count error:",
                 error
             );
+
 
             return 0;
 
@@ -583,9 +737,11 @@ function getTodayCount(user) {
 }
 
 
-// =====================================================
-// FIRESTORE DATE
-// =====================================================
+/*
+=====================================================
+FIRESTORE DATE
+=====================================================
+*/
 
 function getFirestoreDate(value) {
 
@@ -609,7 +765,8 @@ function getFirestoreDate(value) {
 
 
         if (
-            value.seconds !== undefined
+            value.seconds !==
+            undefined
         ) {
 
             return new Date(
@@ -623,11 +780,18 @@ function getFirestoreDate(value) {
             new Date(value);
 
 
-        return isNaN(
-            date.getTime()
-        )
-            ? null
-            : date;
+        if (
+            isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return null;
+
+        }
+
+
+        return date;
 
     }
 
@@ -640,9 +804,11 @@ function getFirestoreDate(value) {
 }
 
 
-// =====================================================
-// LOAD QUESTIONS
-// =====================================================
+/*
+=====================================================
+LOAD QUESTIONS
+=====================================================
+*/
 
 function loadQuestionsFromFirestore() {
 
@@ -661,10 +827,12 @@ function loadQuestionsFromFirestore() {
 
 
     db.collection("questions")
+
         .orderBy(
             "createdAt",
             "asc"
         )
+
         .get()
 
         .then(function(snapshot) {
@@ -678,48 +846,61 @@ function loadQuestionsFromFirestore() {
         .catch(function(error) {
 
             console.warn(
-                "Ordered loading failed:",
+                "Ordered question loading failed:",
                 error
             );
 
 
-            /*
-             * Fallback.
-             */
+            return db.collection(
+                "questions"
+            ).get();
 
-            db.collection("questions")
-                .get()
+        })
 
-                .then(function(snapshot) {
+        .then(function(snapshot) {
 
-                    buildQuestionsFromSnapshot(
-                        snapshot
-                    );
+            if (!snapshot) {
 
-                })
+                return;
 
-                .catch(function(error2) {
+            }
 
-                    console.error(
-                        "Question loading error:",
-                        error2
-                    );
 
-                    showMessage(
-                        "Questions load failed: " +
-                        error2.message
-                    );
+            if (
+                surveyQuestions.length === 0
+            ) {
 
-                });
+                buildQuestionsFromSnapshot(
+                    snapshot
+                );
+
+            }
+
+        })
+
+        .catch(function(error) {
+
+            console.error(
+                "Question loading error:",
+                error
+            );
+
+
+            showMessage(
+                "Questions load failed: " +
+                error.message
+            );
 
         });
 
 }
 
 
-// =====================================================
-// BUILD QUESTIONS
-// =====================================================
+/*
+=====================================================
+BUILD QUESTIONS
+=====================================================
+*/
 
 function buildQuestionsFromSnapshot(
     snapshot
@@ -728,72 +909,81 @@ function buildQuestionsFromSnapshot(
     surveyQuestions = [];
 
 
-    snapshot.forEach(function(doc) {
+    snapshot.forEach(
+        function(doc) {
 
-        const data =
-            doc.data();
+            const data =
+                doc.data();
 
 
-        if (
-            !data.question ||
-            !Array.isArray(
+            if (
+                !data.question ||
+                !Array.isArray(
+                    data.options
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            const options =
                 data.options
-            )
-        ) {
 
-            return;
+                    .map(function(option) {
+
+                        return String(
+                            option
+                        ).trim();
+
+                    })
+
+                    .filter(function(option) {
+
+                        return (
+                            option !== ""
+                        );
+
+                    });
+
+
+            if (
+                options.length < 2
+            ) {
+
+                return;
+
+            }
+
+
+            surveyQuestions.push({
+
+                id:
+                    doc.id,
+
+                question:
+                    String(
+                        data.question
+                    ).trim(),
+
+                type:
+                    data.type ===
+                    "multiple"
+                        ? "multiple"
+                        : "single",
+
+                options:
+                    options,
+
+                createdAt:
+                    data.createdAt ||
+                    null
+
+            });
 
         }
-
-
-        const cleanOptions =
-            data.options
-                .map(function(option) {
-
-                    return String(
-                        option
-                    ).trim();
-
-                })
-                .filter(function(option) {
-
-                    return option !== "";
-
-                });
-
-
-        if (
-            cleanOptions.length < 2
-        ) {
-
-            return;
-
-        }
-
-
-        surveyQuestions.push({
-
-            id: doc.id,
-
-            question:
-                String(
-                    data.question
-                ).trim(),
-
-            type:
-                data.type === "multiple"
-                    ? "multiple"
-                    : "single",
-
-            options:
-                cleanOptions,
-
-            createdAt:
-                data.createdAt || null
-
-        });
-
-    });
+    );
 
 
     surveyQuestions.sort(
@@ -804,13 +994,17 @@ function buildQuestionsFromSnapshot(
                     a.createdAt
                 );
 
+
             const dateB =
                 getFirestoreDate(
                     b.createdAt
                 );
 
 
-            if (dateA && dateB) {
+            if (
+                dateA &&
+                dateB
+            ) {
 
                 return (
                     dateA.getTime() -
@@ -820,13 +1014,23 @@ function buildQuestionsFromSnapshot(
             }
 
 
-            if (dateA && !dateB) {
+            if (
+                dateA &&
+                !dateB
+            ) {
+
                 return -1;
+
             }
 
 
-            if (!dateA && dateB) {
+            if (
+                !dateA &&
+                dateB
+            ) {
+
                 return 1;
+
             }
 
 
@@ -855,18 +1059,24 @@ function buildQuestionsFromSnapshot(
     }
 
 
-    currentQuestion = 0;
+    currentQuestion =
+        0;
 
-    answers.questions = {};
+
+    answers.questions =
+        {};
+
 
     renderQuestion();
 
 }
 
 
-// =====================================================
-// BASIC DETAILS
-// =====================================================
+/*
+=====================================================
+BASIC DETAILS
+=====================================================
+*/
 
 function setupBasicDetails() {
 
@@ -878,8 +1088,8 @@ function setupBasicDetails() {
 
     if (!button) {
 
-        console.log(
-            "basicNextButton not found"
+        console.warn(
+            "basicNextButton not found."
         );
 
         return;
@@ -894,54 +1104,80 @@ function setupBasicDetails() {
             clearMessage();
 
 
-            const name =
-                getValue("name");
-
-            const mobile =
-                getValue("mobile");
-
-            const age =
-                getValue("age");
-
-            const gender =
-                getValue("gender");
-
-            const village =
-                getValue("village");
-
-            const assembly =
-                getValue("assembly");
-
-            const district =
-                getValue("district");
-
-            const pincode =
-                getValue("pincode");
-
-
-            /*
-             * Assembly is used if present.
-             * District/pincode remain optional
-             * for compatibility with old form.
-             */
-
             if (
-                !name ||
-                !mobile ||
-                !age ||
-                !gender ||
-                !village ||
-                !assembly
+                !dailyLimitLoaded ||
+                DAILY_LIMIT <= 0
             ) {
 
                 showMessage(
-                    "Please fill all required fields."
+                    "Daily limit is still loading. Please wait."
                 );
 
                 return;
 
             }
 
+
+            const name =
+                getValue("name");
+
+
+            const mobile =
+                getValue("mobile");
+
+
+            const age =
+                getValue("age");
+
+
+            const gender =
+                getValue("gender");
+
+
+            const village =
+                getValue("village");
+
+
+            const assembly =
+                getValue("assembly");
+
+
+            const district =
+                getValue("district");
+
+
+            const pincode =
+                getValue("pincode");
+
+
+            /*
+            =========================================
+            REQUIRED BASIC DETAILS
+            =========================================
+            */
+
+            if (
+                !name ||
+                !mobile ||
+                !age ||
+                !gender ||
+                !village
+            ) {
+
+                showMessage(
+                    "Please fill all required basic information."
+                );
+
+                return;
+
+            }
+
+
+            /*
+            =========================================
+            MOBILE VALIDATION
+            =========================================
+            */
 
             if (
                 !/^[0-9]{10}$/.test(
@@ -957,6 +1193,12 @@ function setupBasicDetails() {
 
             }
 
+
+            /*
+            =========================================
+            AGE VALIDATION
+            =========================================
+            */
 
             const ageNumber =
                 Number(age);
@@ -979,6 +1221,12 @@ function setupBasicDetails() {
             }
 
 
+            /*
+            =========================================
+            PINCODE
+            =========================================
+            */
+
             if (
                 pincode &&
                 !/^[0-9]{6}$/.test(
@@ -987,7 +1235,7 @@ function setupBasicDetails() {
             ) {
 
                 showMessage(
-                    "❌ Please enter a valid 6 digit PIN code."
+                    "❌ PIN code must contain exactly 6 digits."
                 );
 
                 return;
@@ -1012,9 +1260,10 @@ function setupBasicDetails() {
 
 
             /*
-             * Check limit AGAIN immediately
-             * before starting survey.
-             */
+            =========================================
+            CHECK LIMIT AGAIN
+            =========================================
+            */
 
             getTodayCount(user)
 
@@ -1026,33 +1275,48 @@ function setupBasicDetails() {
 
 
                     if (
-                        count >= DAILY_LIMIT
+                        count >=
+                        DAILY_LIMIT
                     ) {
 
                         disableSurveyButtons();
 
+
                         showMessage(
                             "🚫 Daily survey limit reached."
                         );
+
 
                         return;
 
                     }
 
 
+                    /*
+                    =================================
+                    SAVE BASIC INFORMATION
+                    =================================
+                    */
+
                     answers.basic = {
 
-                        name: name,
+                        name:
+                            name,
 
-                        mobile: mobile,
+                        mobile:
+                            mobile,
 
-                        age: age,
+                        age:
+                            ageNumber,
 
-                        gender: gender,
+                        gender:
+                            gender,
 
-                        village: village,
+                        village:
+                            village,
 
-                        assembly: assembly,
+                        assembly:
+                            assembly,
 
                         district:
                             district,
@@ -1063,11 +1327,16 @@ function setupBasicDetails() {
                     };
 
 
-                    answers.questions = {};
+                    answers.questions =
+                        {};
 
-                    currentQuestion = 0;
 
-                    surveyStarted = true;
+                    currentQuestion =
+                        0;
+
+
+                    surveyStarted =
+                        true;
 
 
                     showQuestionPage();
@@ -1076,6 +1345,1507 @@ function setupBasicDetails() {
 
                 .catch(function(error) {
 
-                    console.error(error);
+                    console.error(
+                        "Basic details error:",
+                        error
+                    );
 
-      
+
+                    showMessage(
+                        "Unable to continue: " +
+                        error.message
+                    );
+
+                });
+
+        }
+    );
+
+}
+
+
+/*
+=====================================================
+SHOW QUESTION PAGE
+=====================================================
+*/
+
+function showQuestionPage() {
+
+    const basicStep =
+        document.getElementById(
+            "basicDetailsStep"
+        );
+
+
+    const questionStep =
+        document.getElementById(
+            "questionStep"
+        );
+
+
+    if (basicStep) {
+
+        basicStep.classList.remove(
+            "active"
+        );
+
+    }
+
+
+    if (questionStep) {
+
+        questionStep.classList.add(
+            "active"
+        );
+
+    }
+
+
+    renderQuestion();
+
+}
+
+
+/*
+=====================================================
+RENDER QUESTION
+=====================================================
+*/
+
+function renderQuestion() {
+
+    const questionText =
+        document.getElementById(
+            "questionText"
+        );
+
+
+    const questionNumber =
+        document.getElementById(
+            "questionNumber"
+        );
+
+
+    const optionsBox =
+        document.getElementById(
+            "questionOptions"
+        );
+
+
+    const nextButton =
+        document.getElementById(
+            "nextButton"
+        );
+
+
+    const previousButton =
+        document.getElementById(
+            "previousButton"
+        );
+
+
+    const submitButton =
+        document.getElementById(
+            "submitSurvey"
+        );
+
+
+    if (
+        !questionText ||
+        !optionsBox
+    ) {
+
+        console.error(
+            "Question elements not found."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        surveyQuestions.length === 0
+    ) {
+
+        questionText.textContent =
+            "No questions found.";
+
+        optionsBox.innerHTML =
+            "";
+
+        return;
+
+    }
+
+
+    const question =
+        surveyQuestions[
+            currentQuestion
+        ];
+
+
+    if (!question) {
+
+        return;
+
+    }
+
+
+    /*
+    =========================================
+    QUESTION NUMBER
+    =========================================
+    */
+
+    if (questionNumber) {
+
+        questionNumber.textContent =
+            "Question " +
+            (currentQuestion + 1) +
+            " of " +
+            surveyQuestions.length;
+
+    }
+
+
+    /*
+    =========================================
+    QUESTION TEXT
+    =========================================
+    */
+
+    questionText.textContent =
+        question.question;
+
+
+    /*
+    =========================================
+    OPTIONS
+    =========================================
+    */
+
+    optionsBox.innerHTML =
+        "";
+
+
+    const savedAnswer =
+        answers.questions[
+            question.id
+        ];
+
+
+    question.options.forEach(
+        function(option, index) {
+
+            const label =
+                document.createElement(
+                    "label"
+                );
+
+
+            label.style.display =
+                "block";
+
+            label.style.marginBottom =
+                "10px";
+
+            label.style.padding =
+                "13px";
+
+            label.style.border =
+                "1px solid #ddd";
+
+            label.style.borderRadius =
+                "8px";
+
+            label.style.cursor =
+                "pointer";
+
+
+            const input =
+                document.createElement(
+                    "input"
+                );
+
+
+            input.type =
+                question.type ===
+                "multiple"
+                    ? "checkbox"
+                    : "radio";
+
+
+            input.name =
+                "surveyQuestion_" +
+                question.id;
+
+
+            input.value =
+                option;
+
+
+            input.style.width =
+                "auto";
+
+            input.style.marginRight =
+                "10px";
+
+
+            if (
+                question.type ===
+                "multiple"
+            ) {
+
+                if (
+                    Array.isArray(
+                        savedAnswer
+                    ) &&
+                    savedAnswer.includes(
+                        option
+                    )
+                ) {
+
+                    input.checked =
+                        true;
+
+                }
+
+            }
+
+            else {
+
+                if (
+                    savedAnswer ===
+                    option
+                ) {
+
+                    input.checked =
+                        true;
+
+                }
+
+            }
+
+
+            label.appendChild(
+                input
+            );
+
+
+            const text =
+                document.createTextNode(
+                    option
+                );
+
+
+            label.appendChild(
+                text
+            );
+
+
+            optionsBox.appendChild(
+                label
+            );
+
+        }
+    );
+
+
+    /*
+    =========================================
+    PREVIOUS BUTTON
+    =========================================
+    */
+
+    if (previousButton) {
+
+        previousButton.disabled =
+            currentQuestion === 0;
+
+    }
+
+
+    /*
+    =========================================
+    LAST QUESTION
+    =========================================
+    */
+
+    const isLastQuestion =
+        currentQuestion ===
+        surveyQuestions.length - 1;
+
+
+    if (nextButton) {
+
+        nextButton.style.display =
+            isLastQuestion
+                ? "none"
+                : "block";
+
+    }
+
+
+    if (submitButton) {
+
+        submitButton.style.display =
+            isLastQuestion
+                ? "block"
+                : "none";
+
+    }
+
+}
+
+
+/*
+=====================================================
+GET CURRENT ANSWER
+=====================================================
+*/
+
+function getCurrentQuestionAnswer() {
+
+    if (
+        surveyQuestions.length === 0
+    ) {
+
+        return null;
+
+    }
+
+
+    const question =
+        surveyQuestions[
+            currentQuestion
+        ];
+
+
+    if (!question) {
+
+        return null;
+
+    }
+
+
+    const inputs =
+        document.querySelectorAll(
+            'input[name="surveyQuestion_' +
+            question.id +
+            '"]'
+        );
+
+
+    if (
+        question.type ===
+        "multiple"
+    ) {
+
+        const selected =
+            [];
+
+
+        inputs.forEach(
+            function(input) {
+
+                if (
+                    input.checked
+                ) {
+
+                    selected.push(
+                        input.value
+                    );
+
+                }
+
+            }
+        );
+
+
+        return selected;
+
+    }
+
+
+    let selected =
+        null;
+
+
+    inputs.forEach(
+        function(input) {
+
+            if (
+                input.checked
+            ) {
+
+                selected =
+                    input.value;
+
+            }
+
+        }
+    );
+
+
+    return selected;
+
+}
+
+
+/*
+=====================================================
+SAVE CURRENT ANSWER
+=====================================================
+*/
+
+function saveCurrentQuestionAnswer() {
+
+    const question =
+        surveyQuestions[
+            currentQuestion
+        ];
+
+
+    if (!question) {
+
+        return false;
+
+    }
+
+
+    const answer =
+        getCurrentQuestionAnswer();
+
+
+    if (
+        question.type ===
+        "multiple"
+    ) {
+
+        if (
+            !Array.isArray(answer) ||
+            answer.length === 0
+        ) {
+
+            showMessage(
+                "Please select at least one option."
+            );
+
+            return false;
+
+        }
+
+    }
+
+    else {
+
+        if (
+            !answer
+        ) {
+
+            showMessage(
+                "Please select an option."
+            );
+
+            return false;
+
+        }
+
+    }
+
+
+    answers.questions[
+        question.id
+    ] =
+        answer;
+
+
+    return true;
+
+}
+
+
+/*
+=====================================================
+QUESTION BUTTONS
+=====================================================
+*/
+
+function setupQuestionButtons() {
+
+    const nextButton =
+        document.getElementById(
+            "nextButton"
+        );
+
+
+    const previousButton =
+        document.getElementById(
+            "previousButton"
+        );
+
+
+    const submitButton =
+        document.getElementById(
+            "submitSurvey"
+        );
+
+
+    if (nextButton) {
+
+        nextButton.addEventListener(
+            "click",
+            function() {
+
+                clearMessage();
+
+
+                if (
+                    !saveCurrentQuestionAnswer()
+                ) {
+
+                    return;
+
+                }
+
+
+                if (
+                    currentQuestion <
+                    surveyQuestions.length - 1
+                ) {
+
+                    currentQuestion++;
+
+                    renderQuestion();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    if (previousButton) {
+
+        previousButton.addEventListener(
+            "click",
+            function() {
+
+                clearMessage();
+
+
+                /*
+                Save answer if selected,
+                but don't block going back.
+                */
+
+                const question =
+                    surveyQuestions[
+                        currentQuestion
+                    ];
+
+
+                if (question) {
+
+                    const answer =
+                        getCurrentQuestionAnswer();
+
+
+                    if (
+                        question.type ===
+                        "multiple"
+                    ) {
+
+                        if (
+                            Array.isArray(
+                                answer
+                            ) &&
+                            answer.length > 0
+                        ) {
+
+                            answers.questions[
+                                question.id
+                            ] =
+                                answer;
+
+                        }
+
+                    }
+
+                    else {
+
+                        if (answer) {
+
+                            answers.questions[
+                                question.id
+                            ] =
+                                answer;
+
+                        }
+
+                    }
+
+                }
+
+
+                if (
+                    currentQuestion > 0
+                ) {
+
+                    currentQuestion--;
+
+                    renderQuestion();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    if (submitButton) {
+
+        submitButton.addEventListener(
+            "click",
+            function() {
+
+                submitSurvey();
+
+            }
+        );
+
+    }
+
+}
+
+
+/*
+=====================================================
+SUBMIT SURVEY
+=====================================================
+*/
+
+function submitSurvey() {
+
+    clearMessage();
+
+
+    if (
+        !dailyLimitLoaded ||
+        DAILY_LIMIT <= 0
+    ) {
+
+        showMessage(
+            "Daily limit is not loaded yet."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        !surveyStarted
+    ) {
+
+        showMessage(
+            "Please start the survey first."
+        );
+
+        return;
+
+    }
+
+
+    /*
+    =========================================
+    SAVE FINAL QUESTION
+    =========================================
+    */
+
+    if (
+        !saveCurrentQuestionAnswer()
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+    =========================================
+    CHECK ALL QUESTIONS
+    =========================================
+    */
+
+    for (
+        let i = 0;
+        i < surveyQuestions.length;
+        i++
+    ) {
+
+        const question =
+            surveyQuestions[i];
+
+
+        const answer =
+            answers.questions[
+                question.id
+            ];
+
+
+        if (
+            question.type ===
+            "multiple"
+        ) {
+
+            if (
+                !Array.isArray(
+                    answer
+                ) ||
+                answer.length === 0
+            ) {
+
+                currentQuestion =
+                    i;
+
+                renderQuestion();
+
+                showMessage(
+                    "Please answer Question " +
+                    (i + 1) +
+                    " before submitting."
+                );
+
+                return;
+
+            }
+
+        }
+
+        else {
+
+            if (
+                !answer
+            ) {
+
+                currentQuestion =
+                    i;
+
+                renderQuestion();
+
+                showMessage(
+                    "Please answer Question " +
+                    (i + 1) +
+                    " before submitting."
+                );
+
+                return;
+
+            }
+
+        }
+
+    }
+
+
+    const user =
+        firebase.auth()
+            .currentUser;
+
+
+    if (!user) {
+
+        showMessage(
+            "Session expired. Please login again."
+        );
+
+        return;
+
+    }
+
+
+    /*
+    =========================================
+    DISABLE SUBMIT WHILE SAVING
+    =========================================
+    */
+
+    const button =
+        document.getElementById(
+            "submitSurvey"
+        );
+
+
+    if (button) {
+
+        button.disabled =
+            true;
+
+        button.textContent =
+            "Saving Survey...";
+
+    }
+
+
+    /*
+    =========================================
+    CHECK TODAY COUNT AGAIN
+    =========================================
+    */
+
+    getTodayCount(user)
+
+        .then(function(count) {
+
+            updateDailyProgress(
+                count
+            );
+
+
+            if (
+                count >=
+                DAILY_LIMIT
+            ) {
+
+                throw new Error(
+                    "Daily survey limit reached."
+                );
+
+            }
+
+
+            /*
+            =====================================
+            PREPARE FIRESTORE DATA
+            =====================================
+            */
+
+            const surveyData = {
+
+                name:
+                    answers.basic.name,
+
+                mobile:
+                    answers.basic.mobile,
+
+                age:
+                    answers.basic.age,
+
+                gender:
+                    answers.basic.gender,
+
+                village:
+                    answers.basic.village,
+
+                assembly:
+                    answers.basic.assembly || "",
+
+                district:
+                    answers.basic.district || "",
+
+                pincode:
+                    answers.basic.pincode || "",
+
+                answers:
+                    answers.questions,
+
+                surveyorEmail:
+                    user.email || "",
+
+                surveyorUid:
+                    user.uid || "",
+
+                createdBy:
+                    user.email || "",
+
+                createdAt:
+                    firebase.firestore
+                        .FieldValue
+                        .serverTimestamp()
+
+            };
+
+
+            console.log(
+                "Saving survey:",
+                surveyData
+            );
+
+
+            return db.collection(
+                "surveys"
+            ).add(
+                surveyData
+            );
+
+        })
+
+        .then(function(docRef) {
+
+            console.log(
+                "Survey saved:",
+                docRef.id
+            );
+
+
+            /*
+            =====================================
+            GET UPDATED COUNT
+            =====================================
+            */
+
+            return getTodayCount(
+                user
+            );
+
+        })
+
+        .then(function(newCount) {
+
+            updateDailyProgress(
+                newCount
+            );
+
+
+            /*
+            =====================================
+            SUCCESS
+            =====================================
+            */
+
+            showSuccessMessage(
+                "✅ Survey submitted successfully!"
+            );
+
+
+            /*
+            =====================================
+            RESET FORM
+            =====================================
+            */
+
+            resetSurveyForm();
+
+
+            /*
+            =====================================
+            IF LIMIT REACHED
+            =====================================
+            */
+
+            if (
+                newCount >=
+                DAILY_LIMIT
+            ) {
+
+                disableSurveyButtons();
+
+                showMessage(
+                    "✅ Survey saved. Daily limit reached."
+                );
+
+            }
+
+        })
+
+        .catch(function(error) {
+
+            console.error(
+                "Survey submission error:",
+                error
+            );
+
+
+            showMessage(
+                "❌ Survey could not be submitted: " +
+                error.message
+            );
+
+
+            if (button) {
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "Submit Survey";
+
+            }
+
+        });
+
+}
+
+
+/*
+=====================================================
+RESET SURVEY FORM AFTER SUCCESS
+=====================================================
+*/
+
+function resetSurveyForm() {
+
+    answers = {
+
+        basic: {},
+
+        questions: {}
+
+    };
+
+
+    currentQuestion =
+        0;
+
+
+    surveyStarted =
+        false;
+
+
+    /*
+    =========================================
+    RESET BASIC INPUTS
+    =========================================
+    */
+
+    const ids = [
+
+        "name",
+
+        "mobile",
+
+        "age",
+
+        "gender",
+
+        "village",
+
+        "assembly",
+
+        "district",
+
+        "pincode"
+
+    ];
+
+
+    ids.forEach(
+        function(id) {
+
+            const element =
+                document.getElementById(
+                    id
+                );
+
+
+            if (!element) {
+
+                return;
+
+            }
+
+
+            if (
+                element.tagName
+                .toLowerCase() ===
+                "select"
+            ) {
+
+                element.value =
+                    "";
+
+            }
+
+            else {
+
+                element.value =
+                    "";
+
+            }
+
+        }
+    );
+
+
+    /*
+    =========================================
+    SHOW BASIC PAGE AGAIN
+    =========================================
+    */
+
+    const basicStep =
+        document.getElementById(
+            "basicDetailsStep"
+        );
+
+
+    const questionStep =
+        document.getElementById(
+            "questionStep"
+        );
+
+
+    if (questionStep) {
+
+        questionStep.classList.remove(
+            "active"
+        );
+
+    }
+
+
+    if (basicStep) {
+
+        basicStep.classList.add(
+            "active"
+        );
+
+    }
+
+
+    /*
+    =========================================
+    RESET SUBMIT BUTTON
+    =========================================
+    */
+
+    const button =
+        document.getElementById(
+            "submitSurvey"
+        );
+
+
+    if (button) {
+
+        button.disabled =
+            false;
+
+        button.textContent =
+            "Submit Survey";
+
+        button.style.display =
+            "none";
+
+    }
+
+
+    /*
+    =========================================
+    REFRESH COUNT
+    =========================================
+    */
+
+    const user =
+        firebase.auth()
+            .currentUser;
+
+
+    if (user) {
+
+        getTodayCount(user)
+
+            .then(function(count) {
+
+                updateDailyProgress(
+                    count
+                );
+
+            });
+
+    }
+
+}
+
+
+/*
+=====================================================
+DISABLE SURVEY BUTTONS
+=====================================================
+*/
+
+function disableSurveyButtons() {
+
+    const basicButton =
+        document.getElementById(
+            "basicNextButton"
+        );
+
+
+    const nextButton =
+        document.getElementById(
+            "nextButton"
+        );
+
+
+    const previousButton =
+        document.getElementById(
+            "previousButton"
+        );
+
+
+    const submitButton =
+        document.getElementById(
+            "submitSurvey"
+        );
+
+
+    if (basicButton) {
+
+        basicButton.disabled =
+            true;
+
+    }
+
+
+    if (nextButton) {
+
+        nextButton.disabled =
+            true;
+
+    }
+
+
+    if (previousButton) {
+
+        previousButton.disabled =
+            true;
+
+    }
+
+
+    if (submitButton) {
+
+        submitButton.disabled =
+            true;
+
+    }
+
+}
+
+
+/*
+=====================================================
+ENABLE SURVEY BUTTONS
+=====================================================
+*/
+
+function enableSurveyButtons() {
+
+    const basicButton =
+        document.getElementById(
+            "basicNextButton"
+        );
+
+
+    const nextButton =
+        document.getElementById(
+            "nextButton"
+        );
+
+
+    const previousButton =
+        document.getElementById(
+            "previousButton"
+        );
+
+
+    const submitButton =
+        document.getElementById(
+            "submitSurvey"
+        );
+
+
+    if (basicButton) {
+
+        basicButton.disabled =
+            false;
+
+    }
+
+
+    if (nextButton) {
+
+        nextButton.disabled =
+            false;
+
+    }
+
+
+    if (previousButton) {
+
+        previousButton.disabled =
+            currentQuestion === 0;
+
+    }
+
+
+    if (submitButton) {
+
+        submitButton.disabled =
+            false;
+
+    }
+
+}
+
+
+/*
+=====================================================
+GET VALUE
+=====================================================
+*/
+
+function getValue(id) {
+
+    const element =
+        document.getElementById(id);
+
+
+    if (!element) {
+
+        return "";
+
+    }
+
+
+    return String(
+        element.value || ""
+    ).trim();
+
+}
+
+
+/*
+=====================================================
+SHOW MESSAGE
+=====================================================
+*/
+
+function showMessage(text) {
+
+    /*
+    Find message element again
+    because there may be more than
+    one message element in old HTML.
+    */
+
+    message =
+        document.getElementById(
+            "message"
+        );
+
+
+    if (!message) {
+
+        return;
+
+    }
+
+
+    message.classList.remove(
+        "success-message"
+    );
+
+
+    message.textContent =
+        text;
+
+
+    message.style.color =
+        "#c62828";
+
+}
+
+
+/*
+=====================================================
+SHOW SUCCESS MESSAGE
+=====================================================
+*/
+
+function showSuccessMessage(text) {
+
+    message =
+        document.getElementById(
+            "message"
+        );
+
+
+    if (!message) {
+
+        return;
+
+    }
+
+
+    message.classList.add(
+        "success-message"
+    );
+
+
+    message.textContent =
+        text;
+
+
+    message.style.color =
+        "#2e7d32";
+
+}
+
+
+/*
+=====================================================
+CLEAR MESSAGE
+=====================================================
+*/
+
+function clearMessage() {
+
+    const messageElement =
+        document.getElementById(
+            "message"
+        );
+
+
+    if (messageElement) {
+
+        messageElement.textContent =
+            "";
+
+        messageElement.classList.remove(
+            "success-message"
+        );
+
+    }
+
+}
+
+
+/*
+=====================================================
+START PAGE
+=====================================================
+*/
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeSurveyPage
+    );
+
+}
+
+else {
+
+    initializeSurveyPage();
+
+}
