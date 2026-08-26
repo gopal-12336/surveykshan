@@ -1861,3 +1861,98 @@ document
 // ===============================
 
 initializeQuestionBuilder();
+
+/* ==========================================
+   REMOVE DUPLICATE FILTER FROM SURVEY RECORDS
+   ========================================== */
+
+function removeDuplicateSurveyFilter() {
+
+    const headings = Array.from(document.querySelectorAll("*"))
+        .filter(function(el) {
+            return el.children.length === 0 &&
+                el.textContent.trim().includes("Filter Survey Records");
+        });
+
+    if (headings.length <= 1) return;
+
+    // Pehla filter rakhenge, baaki duplicate filter remove karenge
+    for (let i = 1; i < headings.length; i++) {
+
+        let heading = headings[i];
+        let parent = heading.parentElement;
+
+        if (!parent) continue;
+
+        // Filter ka main container dhoondhein
+        let container = parent;
+
+        for (let j = 0; j < 5; j++) {
+
+            if (!container.parentElement) break;
+
+            const text = container.textContent || "";
+
+            if (
+                text.includes("All Names") &&
+                text.includes("All Mobiles") &&
+                text.includes("All Villages") &&
+                text.includes("All Surveyors") &&
+                text.includes("All Dates")
+            ) {
+                container.remove();
+                break;
+            }
+
+            container = container.parentElement;
+        }
+    }
+}
+
+
+/* Page load ke baad duplicate filter remove */
+document.addEventListener("DOMContentLoaded", function() {
+
+    setTimeout(function() {
+        removeDuplicateSurveyFilter();
+    }, 500);
+
+    setTimeout(function() {
+        removeDuplicateSurveyFilter();
+    }, 1500);
+
+});
+
+
+/* Survey records reload hone ke baad bhi duplicate filter remove */
+const oldRenderSurveyRecords = window.renderSurveyRecords;
+
+if (typeof oldRenderSurveyRecords === "function") {
+
+    window.renderSurveyRecords = function() {
+
+        oldRenderSurveyRecords.apply(this, arguments);
+
+        setTimeout(function() {
+            removeDuplicateSurveyFilter();
+        }, 100);
+
+    };
+
+}
+
+
+/* Mutation observer:
+   Agar filter dobara table ke andar create ho,
+   to automatically remove ho jayega.
+*/
+const filterObserver = new MutationObserver(function() {
+
+    removeDuplicateSurveyFilter();
+
+});
+
+filterObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+});
