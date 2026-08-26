@@ -1,67 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Surveykshan Admin Panel</title>
 
 <link rel="stylesheet" href="style.css">
 
 <style>
-
-/* =====================================================
-   BASIC PAGE
-===================================================== */
+*{
+    box-sizing:border-box;
+}
 
 body{
     background:#f4f6f9;
     margin:0;
     font-family:Arial,sans-serif;
+    color:#222;
 }
 
 .header{
-    background:#1565c0;
+    background:linear-gradient(135deg,#1565c0,#1976d2);
     color:white;
-    padding:18px;
+    padding:20px;
     text-align:center;
-    font-size:24px;
+    font-size:26px;
     font-weight:bold;
 }
 
 .admin-info{
     text-align:center;
-    color:#555;
-    margin:10px;
+    color:#666;
+    margin:12px;
 }
 
 .container{
+    max-width:1400px;
+    margin:auto;
     padding:20px;
 }
-
-
-/* =====================================================
-   SECTIONS
-===================================================== */
 
 .section{
     background:white;
     padding:20px;
     margin-bottom:20px;
-    border-radius:10px;
-    box-shadow:0 2px 10px rgba(0,0,0,.1);
+    border-radius:14px;
+    box-shadow:0 3px 15px rgba(0,0,0,.08);
 }
 
 .section h2{
     color:#1565c0;
     margin-top:0;
 }
-
-
-/* =====================================================
-   FORM
-===================================================== */
 
 input,
 select,
@@ -70,23 +60,24 @@ textarea{
     padding:11px;
     margin:7px 0;
     border:1px solid #ccc;
-    border-radius:6px;
+    border-radius:7px;
     box-sizing:border-box;
     font-size:15px;
 }
 
-
-/* =====================================================
-   NORMAL BUTTONS
-===================================================== */
-
 button{
     padding:10px 15px;
     border:0;
-    border-radius:6px;
+    border-radius:7px;
     cursor:pointer;
     margin:4px;
     font-size:14px;
+    font-weight:600;
+}
+
+button:disabled{
+    opacity:.6;
+    cursor:not-allowed;
 }
 
 .primary{
@@ -100,7 +91,7 @@ button{
 }
 
 .danger{
-    background:#c62828;
+    background:#d32f2f;
     color:white;
 }
 
@@ -114,23 +105,7 @@ button{
     color:white;
 }
 
-
-/* =====================================================
-   IMPORTANT OPTION ROW FIX
-===================================================== */
-
-/*
-   आपकी पुरानी style.css में:
-
-   button{
-       width:100%;
-   }
-
-   होने के कारण Delete button पूरा row ले रहा था।
-
-   नीचे !important से option row का button
-   केवल छोटा × button रहेगा।
-*/
+/* QUESTION OPTIONS */
 
 #optionsContainer{
     width:100%;
@@ -142,53 +117,30 @@ button{
     gap:8px !important;
     width:100% !important;
     margin:8px 0 !important;
-    box-sizing:border-box !important;
 }
 
 .option-row input{
-    flex:1 1 auto !important;
+    flex:1 !important;
     width:auto !important;
-    min-width:0 !important;
     margin:0 !important;
-    box-sizing:border-box !important;
 }
 
-.option-row button,
-.option-row .remove-option,
-.option-row .delete-option{
+.option-row button{
     width:42px !important;
     min-width:42px !important;
     max-width:42px !important;
-    flex:0 0 42px !important;
     height:42px !important;
     padding:0 !important;
     margin:0 !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
     background:#c62828 !important;
     color:white !important;
-    border:none !important;
-    border-radius:6px !important;
-    font-size:20px !important;
-    line-height:1 !important;
-    cursor:pointer !important;
 }
 
-.option-row button:hover,
-.option-row .remove-option:hover,
-.option-row .delete-option:hover{
-    background:#b71c1c !important;
-}
-
-
-/* =====================================================
-   QUESTION CARD
-===================================================== */
+/* QUESTION CARDS */
 
 .question-card{
     border:1px solid #ddd;
-    border-radius:8px;
+    border-radius:10px;
     padding:15px;
     margin:12px 0;
     background:#fafafa;
@@ -202,7 +154,7 @@ button{
     background:white;
     padding:8px;
     margin:5px 0;
-    border-radius:5px;
+    border-radius:6px;
     border:1px solid #eee;
 }
 
@@ -216,37 +168,94 @@ button{
     font-weight:bold;
 }
 
-
-/* =====================================================
-   DASHBOARD CARDS
-===================================================== */
+/* DASHBOARD */
 
 .dashboard{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-    gap:12px;
+    gap:15px;
     margin-bottom:20px;
 }
 
 .card{
     background:white;
-    padding:18px;
+    padding:20px;
     text-align:center;
-    border-radius:10px;
-    box-shadow:0 2px 8px rgba(0,0,0,.1);
+    border-radius:12px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+}
+
+.card h4{
+    margin:0;
+    color:#555;
 }
 
 .card h2{
     color:#1565c0;
+    margin:10px 0 0;
 }
 
+/* FILTER AREA */
 
-/* =====================================================
-   TABLE
-===================================================== */
+#recordsFilterArea{
+    background:#f8fbff;
+    border:1px solid #d7e6f7;
+    border-radius:14px;
+    padding:15px;
+    margin-bottom:18px;
+}
+
+#recordsFilterArea h3{
+    margin:0 0 12px;
+    color:#1565c0;
+}
+
+#recordsFilterArea > div{
+    max-width:100%;
+}
+
+/* Keep dynamically created filter card clean */
+
+#recordsFilterArea select{
+    min-width:150px;
+}
+
+#recordsFilterArea button{
+    min-width:110px;
+}
+
+/* SURVEY RECORDS */
+
+.records-section{
+    overflow:hidden;
+}
+
+.records-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.records-title h2{
+    margin:0;
+}
+
+.records-table-wrapper{
+    width:100%;
+    overflow-x:auto;
+    border:1px solid #ddd;
+    border-radius:10px;
+}
+
+#surveyTable{
+    width:100%;
+}
 
 table{
     width:100%;
+    min-width:900px;
     border-collapse:collapse;
     background:white;
 }
@@ -254,37 +263,111 @@ table{
 th,
 td{
     border:1px solid #ddd;
-    padding:9px;
+    padding:11px;
     text-align:center;
+    white-space:nowrap;
 }
 
 th{
     background:#1565c0;
     color:white;
-}
-
-.table-wrapper{
-    overflow-x:auto;
-}
-
-
-/* =====================================================
-   MESSAGES
-===================================================== */
-
-#limitMessage{
     font-weight:bold;
+    position:sticky;
+    top:0;
+    z-index:2;
 }
 
+td{
+    background:white;
+}
+
+tr:hover td{
+    background:#f7fbff;
+}
+
+/* ANSWER BUTTON */
+
+.answer-btn{
+    background:#6a1b9a !important;
+    color:white !important;
+}
+
+.answer-btn:hover{
+    background:#4a148c !important;
+}
+
+/* ANSWER POPUP */
+
+.answer-modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.answer-modal-content{
+    background:white;
+    width:min(700px,95vw);
+    max-height:85vh;
+    overflow:auto;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 10px 40px rgba(0,0,0,.3);
+}
+
+.answer-modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid #ddd;
+    padding-bottom:12px;
+    margin-bottom:15px;
+}
+
+.answer-modal-header h2{
+    margin:0;
+    color:#1565c0;
+}
+
+.close-answer{
+    background:#d32f2f;
+    color:white;
+    font-size:18px;
+    width:40px;
+    height:40px;
+    padding:0;
+}
+
+.answer-item{
+    background:#f7f9fc;
+    border:1px solid #e0e0e0;
+    border-radius:9px;
+    padding:12px;
+    margin-bottom:10px;
+}
+
+.answer-question{
+    font-weight:bold;
+    color:#1565c0;
+    margin-bottom:6px;
+}
+
+.answer-value{
+    color:#222;
+}
+
+/* MESSAGES */
+
+#limitMessage,
 #questionMessage{
     font-weight:bold;
-    margin-top:10px;
 }
 
-
-/* =====================================================
-   MOBILE
-===================================================== */
+/* MOBILE */
 
 @media(max-width:700px){
 
@@ -300,397 +383,462 @@ th{
         padding:15px;
     }
 
-    .option-row{
-        gap:6px !important;
+    .dashboard{
+        grid-template-columns:repeat(2,1fr);
+        gap:10px;
     }
 
-    .option-row button,
-    .option-row .remove-option,
-    .option-row .delete-option{
-        width:42px !important;
-        min-width:42px !important;
-        max-width:42px !important;
-        flex-basis:42px !important;
+    .card{
+        padding:14px 8px;
     }
 
+    .card h4{
+        font-size:13px;
+    }
+
+    .card h2{
+        font-size:22px;
+    }
+
+    .records-title{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    #recordsFilterArea{
+        padding:10px;
+    }
 }
-
 </style>
-
 </head>
 
-
 <body>
-
-
-<!-- =====================================================
-     HEADER
-===================================================== -->
 
 <div class="header">
     Surveykshan Admin Dashboard
 </div>
 
-
 <div class="admin-info">
     Admin Panel • Survey Management System
 </div>
 
-
 <div class="container">
 
-
-<!-- =====================================================
-     DASHBOARD
-===================================================== -->
+<!-- DASHBOARD -->
 
 <div class="dashboard">
 
+    <div class="card">
+        <h4>Total Surveys</h4>
+        <h2 id="totalSurvey">0</h2>
+    </div>
 
-<div class="card">
-    <h4>Total Surveys</h4>
-    <h2 id="totalSurvey">0</h2>
-</div>
+    <div class="card">
+        <h4>Today's Surveys</h4>
+        <h2 id="todaySurvey">0</h2>
+    </div>
 
+    <div class="card">
+        <h4>This Week</h4>
+        <h2 id="weekSurvey">0</h2>
+    </div>
 
-<div class="card">
-    <h4>Today's Surveys</h4>
-    <h2 id="todaySurvey">0</h2>
-</div>
+    <div class="card">
+        <h4>This Month</h4>
+        <h2 id="monthSurvey">0</h2>
+    </div>
 
-
-<div class="card">
-    <h4>This Week</h4>
-    <h2 id="weekSurvey">0</h2>
-</div>
-
-
-<div class="card">
-    <h4>This Month</h4>
-    <h2 id="monthSurvey">0</h2>
-</div>
-
-
-<div class="card">
-    <h4>Questions</h4>
-    <h2 id="questionCount">0</h2>
-</div>
-
+    <div class="card">
+        <h4>Questions</h4>
+        <h2 id="questionCount">0</h2>
+    </div>
 
 </div>
 
 
-<!-- =====================================================
-     QUESTION BUILDER
-===================================================== -->
+<!-- QUESTION BUILDER -->
+
+<div class="section" id="questionManagerSection">
+
+    <h2>📝 Survey Question Manager</h2>
+
+    <p>
+        यहाँ से survey questions बनाएँ और manage करें।
+    </p>
+
+    <label>
+        <b>Question</b>
+    </label>
+
+    <input
+        type="text"
+        id="questionText"
+        placeholder="Enter your question"
+        autocomplete="off">
+
+    <label>
+        <b>Question Type</b>
+    </label>
+
+    <select id="questionType">
+
+        <option value="single">
+            Single Choice
+        </option>
+
+        <option value="multiple">
+            Multiple Choice
+        </option>
+
+    </select>
+
+    <h3>Options</h3>
+
+    <div id="optionsContainer"></div>
+
+    <button
+        type="button"
+        class="gray"
+        id="addOption">
+        ➕ Add Option
+    </button>
+
+    <br>
+
+    <button
+        type="button"
+        class="success"
+        id="saveQuestion">
+        💾 Save Question
+    </button>
+
+    <button
+        type="button"
+        class="warning"
+        id="cancelEdit"
+        style="display:none;">
+        Cancel Edit
+    </button>
+
+    <p id="questionMessage"></p>
+
+</div>
+
+
+<!-- QUESTIONS LIST -->
+
+<div class="section" id="questionsListSection">
+
+    <h2>📋 Survey Questions</h2>
+
+    <div id="questionsList">
+        <p>Loading questions...</p>
+    </div>
+
+</div>
+
+
+<!-- DAILY LIMIT -->
 
 <div class="section">
 
+    <h2>⚙️ Daily Survey Limit</h2>
 
-<h2>📝 Survey Question Manager</h2>
+    <input
+        type="number"
+        id="dailyLimitInput"
+        min="1"
+        value="20"
+        placeholder="Daily Limit">
 
+    <button
+        type="button"
+        class="primary"
+        id="saveDailyLimit">
+        💾 Save Limit
+    </button>
 
-<p>
-यहाँ से आप अपने survey के questions बना सकते हैं।
-</p>
-
-
-<label>
-<b>Question</b>
-</label>
-
-
-<input
-    type="text"
-    id="questionText"
-    placeholder="Enter your question"
-    autocomplete="off">
-
-
-<label>
-<b>Question Type</b>
-</label>
-
-
-<select id="questionType">
-
-<option value="single">
-Single Choice
-</option>
-
-<option value="multiple">
-Multiple Choice
-</option>
-
-</select>
-
-
-<h3>
-Options
-</h3>
-
-
-<!-- IMPORTANT: ADMIN.JS इसी container में options बनाएगा -->
-
-<div id="optionsContainer"></div>
-
-
-<button
-    type="button"
-    class="gray"
-    id="addOption">
-
-➕ Add Option
-
-</button>
-
-
-<br>
-
-
-<button
-    type="button"
-    class="success"
-    id="saveQuestion">
-
-💾 Save Question
-
-</button>
-
-
-<button
-    type="button"
-    class="warning"
-    id="cancelEdit"
-    style="display:none;">
-
-Cancel Edit
-
-</button>
-
-
-<p id="questionMessage"></p>
-
+    <span id="limitMessage"></span>
 
 </div>
 
 
-<!-- =====================================================
-     QUESTIONS LIST
-===================================================== -->
+<!-- SURVEYOR MANAGEMENT -->
 
 <div class="section">
 
+    <h2>👥 Surveyor Management</h2>
 
-<h2>
-📋 Survey Questions
-</h2>
+    <div class="table-wrapper">
 
+        <table>
 
-<div id="questionsList">
+            <thead>
+                <tr>
+                    <th>Surveyor</th>
+                    <th>Total</th>
+                    <th>Today</th>
+                    <th>This Week</th>
+                    <th>This Month</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
 
-<p>
-Loading questions...
-</p>
+            <tbody id="surveyorManagementTable"></tbody>
 
-</div>
+        </table>
 
-
-</div>
-
-
-<!-- =====================================================
-     DAILY LIMIT
-===================================================== -->
-
-<div class="section">
-
-
-<h2>
-⚙️ Daily Survey Limit
-</h2>
-
-
-<input
-    type="number"
-    id="dailyLimitInput"
-    min="1"
-    value="20"
-    placeholder="Daily Limit">
-
-
-<button
-    type="button"
-    class="primary"
-    id="saveDailyLimit">
-
-💾 Save Limit
-
-</button>
-
-
-<span id="limitMessage"></span>
-
+    </div>
 
 </div>
 
 
-<!-- =====================================================
-     SURVEYOR MANAGEMENT
-===================================================== -->
+<!-- FILTER IS NOW OUTSIDE RECORD TABLE -->
 
-<div class="section">
+<div id="recordsFilterArea">
 
-
-<h2>
-👥 Surveyor Management
-</h2>
-
-
-<div class="table-wrapper">
-
-
-<table>
-
-
-<thead>
-
-<tr>
-
-<th>
-Surveyor
-</th>
-
-<th>
-Total
-</th>
-
-<th>
-Today
-</th>
-
-<th>
-This Week
-</th>
-
-<th>
-This Month
-</th>
-
-<th>
-Status
-</th>
-
-</tr>
-
-</thead>
-
-
-<tbody id="surveyorManagementTable">
-
-</tbody>
-
-
-</table>
-
+    <h3>🔎 Filter Survey Records</h3>
 
 </div>
 
 
-</div>
+<!-- SURVEY RECORDS -->
 
+<div class="section records-section">
 
-<!-- =====================================================
-     SURVEY RECORDS
-===================================================== -->
+    <div class="records-title">
 
-<div class="section">
+        <h2>📊 Survey Records</h2>
 
+        <button
+            type="button"
+            class="danger"
+            id="deleteAllSurveysBtn">
+            🗑️ Delete All Surveys
+        </button>
 
-<h2>
-📊 Survey Records
-</h2>
+    </div>
 
+    <div class="records-table-wrapper">
 
-<div class="table-wrapper">
+        <table>
 
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Village</th>
+                    <th>Party</th>
+                    <th>Candidate</th>
+                    <th>Answers / Action</th>
+                </tr>
+            </thead>
 
-<table>
+            <tbody id="surveyTable"></tbody>
 
+        </table>
 
-<thead>
-
-<tr>
-
-<th>Name</th>
-<th>Mobile</th>
-<th>Age</th>
-<th>Gender</th>
-<th>Village</th>
-<th>Assembly</th>
-<th>Party</th>
-<th>Candidate</th>
-<th>Feedback</th>
-<th>Surveyor</th>
-<th>Action</th>
-
-</tr>
-
-</thead>
-
-
-<tbody id="surveyTable">
-
-</tbody>
-
-
-</table>
-
+    </div>
 
 </div>
 
 
+<!-- ANSWER MODAL -->
+
+<div
+    id="answerModal"
+    class="answer-modal">
+
+    <div class="answer-modal-content">
+
+        <div class="answer-modal-header">
+
+            <h2>📋 Survey Answers</h2>
+
+            <button
+                type="button"
+                class="close-answer"
+                onclick="closeAnswerModal()">
+                ×
+            </button>
+
+        </div>
+
+        <div id="answerModalBody"></div>
+
+    </div>
+
 </div>
 
 
-<!-- =====================================================
-     LOGOUT
-===================================================== -->
+<!-- LOGOUT -->
 
-<button
-    type="button"
-    class="danger"
-    id="logoutBtn">
+<div style="text-align:center;margin:25px 0;">
 
-🚪 Logout
+    <button
+        type="button"
+        class="danger"
+        id="logoutBtn">
+        🚪 Logout
+    </button>
 
-</button>
-
+</div>
 
 </div>
 
 
-<!-- =====================================================
-     FIREBASE
-===================================================== -->
+<!-- FIREBASE -->
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-
-<!-- FIREBASE CONFIG -->
-
 <script src="firebase.js"></script>
-
-
-<!-- ADMIN JAVASCRIPT -->
 
 <script src="admin.js"></script>
 
 
-</body>
+<!-- FILTER RELOCATION -->
 
+<script>
+
+(function(){
+
+    function moveFilterOutsideRecords(){
+
+        const target =
+            document.getElementById("recordsFilterArea");
+
+        if(!target) return;
+
+        const recordsSection =
+            document.querySelector(".records-section");
+
+        if(!recordsSection) return;
+
+        /*
+         * अगर admin.js ने filter पहले ही बनाया है
+         * तो उसे Survey Records के ऊपर move कर देंगे।
+         */
+
+        const candidates =
+            document.querySelectorAll(
+                "div,section,form"
+            );
+
+        candidates.forEach(function(el){
+
+            if(
+                el === target ||
+                target.contains(el) ||
+                el.contains(target)
+            ){
+                return;
+            }
+
+            const text =
+                (el.innerText || "").toLowerCase();
+
+            const selects =
+                el.querySelectorAll("select").length;
+
+            const hasFilterButton =
+                text.includes("filter") &&
+                text.includes("clear");
+
+            if(
+                selects >= 3 &&
+                hasFilterButton &&
+                el.offsetWidth > 0 &&
+                el.offsetHeight > 0
+            ){
+
+                if(
+                    !recordsSection.contains(el) &&
+                    !target.contains(el)
+                ){
+
+                    target.appendChild(el);
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+    setTimeout(
+        moveFilterOutsideRecords,
+        500
+    );
+
+    setTimeout(
+        moveFilterOutsideRecords,
+        1500
+    );
+
+    setTimeout(
+        moveFilterOutsideRecords,
+        3000
+    );
+
+    const observer =
+        new MutationObserver(function(){
+
+            moveFilterOutsideRecords();
+
+        });
+
+    observer.observe(
+        document.body,
+        {
+            childList:true,
+            subtree:true
+        }
+    );
+
+})();
+
+</script>
+
+
+<!-- ANSWER MODAL HELPERS -->
+
+<script>
+
+function closeAnswerModal(){
+
+    const modal =
+        document.getElementById("answerModal");
+
+    if(modal){
+        modal.style.display = "none";
+    }
+
+}
+
+
+window.addEventListener("click",function(event){
+
+    const modal =
+        document.getElementById("answerModal");
+
+    if(
+        modal &&
+        event.target === modal
+    ){
+
+        modal.style.display = "none";
+
+    }
+
+});
+
+</script>
+
+</body>
 </html>
