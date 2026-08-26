@@ -1,17 +1,19 @@
-console.log("Admin JS Loaded - FINAL FIX");
+console.log("Admin JS Loaded - FINAL VERSION");
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
 let allSurveys = [];
-let filteredSurveys = [];
 let allSurveyors = [];
 let allQuestions = [];
+
+let filteredSurveys = [];
+
 let editingQuestionId = null;
 
 
-// =====================================================
-// AUTH
-// =====================================================
+// ======================================================
+// ADMIN AUTH
+// ======================================================
 
 firebase.auth()
 .setPersistence(firebase.auth.Auth.Persistence.SESSION)
@@ -36,26 +38,66 @@ firebase.auth()
 
         loadDailyLimit();
         loadQuestions();
-        loadSurveys();
         loadSurveyors();
+        loadSurveys();
 
     });
 
 })
 .catch(function(error){
-
     console.error("Auth error:", error);
-
 });
 
 
-// =====================================================
-// DATE HELPERS
-// =====================================================
+// ======================================================
+// HELPERS
+// ======================================================
+
+function setText(id,value){
+
+    const el = document.getElementById(id);
+
+    if(el){
+        el.textContent = value;
+    }
+
+}
+
+
+function escapeHTML(value){
+
+    if(value === null || value === undefined){
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+function normalizeValue(value){
+
+    if(value === null || value === undefined){
+        return "";
+    }
+
+    return String(value)
+        .trim()
+        .toLowerCase();
+
+}
+
 
 function getDate(value){
 
-    if(!value) return null;
+    if(!value){
+        return null;
+    }
 
     try{
 
@@ -67,15 +109,21 @@ function getDate(value){
             return new Date(value.seconds * 1000);
         }
 
-        const d = new Date(value);
+        if(value._seconds !== undefined){
+            return new Date(value._seconds * 1000);
+        }
 
-        return isNaN(d.getTime()) ? null : d;
+        const date = new Date(value);
+
+        if(isNaN(date.getTime())){
+            return null;
+        }
+
+        return date;
 
     }
     catch(error){
-
         return null;
-
     }
 
 }
@@ -83,7 +131,9 @@ function getDate(value){
 
 function isToday(date){
 
-    if(!date) return false;
+    if(!date){
+        return false;
+    }
 
     const now = new Date();
 
@@ -98,7 +148,9 @@ function isToday(date){
 
 function isThisWeek(date){
 
-    if(!date) return false;
+    if(!date){
+        return false;
+    }
 
     const now = new Date();
 
@@ -109,7 +161,6 @@ function isThisWeek(date){
     const diff = day === 0 ? 6 : day - 1;
 
     start.setDate(start.getDate() - diff);
-
     start.setHours(0,0,0,0);
 
     return date >= start;
@@ -119,7 +170,9 @@ function isThisWeek(date){
 
 function isThisMonth(date){
 
-    if(!date) return false;
+    if(!date){
+        return false;
+    }
 
     const now = new Date();
 
@@ -131,25 +184,88 @@ function isThisMonth(date){
 }
 
 
-function escapeHTML(value){
+// ======================================================
+// QUESTION MANAGER
+// ======================================================
 
-    if(value === null || value === undefined){
-        return "";
+function createOptionInput(value = ""){
+
+    const container =
+        document.getElementById("optionsContainer");
+
+    if(!container){
+        return;
     }
 
-    return String(value)
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
+    const row =
+        document.createElement("div");
+
+    row.className = "option-row";
+
+
+    const input =
+        document.createElement("input");
+
+    input.type = "text";
+    input.className = "question-option";
+    input.placeholder = "Enter option";
+    input.value = value;
+
+
+    const remove =
+        document.createElement("button");
+
+    remove.type = "button";
+    remove.className = "danger";
+    remove.textContent = "❌";
+
+
+    remove.addEventListener("click",function(){
+
+        row.remove();
+
+    });
+
+
+    row.appendChild(input);
+    row.appendChild(remove);
+
+    container.appendChild(row);
 
 }
 
 
-// =====================================================
-// QUESTION MANAGER HIDE / SHOW
-// =====================================================
+function initializeQuestionBuilder(){
+
+    const container =
+        document.getElementById("optionsContainer");
+
+    if(!container){
+        return;
+    }
+
+    if(container.children.length === 0){
+
+        createOptionInput();
+        createOptionInput();
+
+    }
+
+}
+
+
+// ADD OPTION
+
+document
+.getElementById("addOption")
+?.addEventListener("click",function(){
+
+    createOptionInput();
+
+});
+
+
+// HIDE / SHOW QUESTION MANAGER
 
 document
 .getElementById("questionManagerToggle")
@@ -158,9 +274,14 @@ document
     const body =
         document.getElementById("questionManagerBody");
 
-    if(!body) return;
+    if(!body){
+        return;
+    }
 
-    if(body.style.display === "none"){
+    const hidden =
+        body.style.display === "none";
+
+    if(hidden){
 
         body.style.display = "block";
 
@@ -178,87 +299,7 @@ document
 });
 
 
-// =====================================================
-// QUESTION OPTIONS
-// =====================================================
-
-function createOptionInput(value=""){
-
-    const container =
-        document.getElementById("optionsContainer");
-
-    if(!container) return;
-
-    const row =
-        document.createElement("div");
-
-    row.className = "option-row";
-
-
-    const input =
-        document.createElement("input");
-
-    input.type = "text";
-
-    input.className = "question-option";
-
-    input.placeholder = "Enter option";
-
-    input.value = value;
-
-
-    const remove =
-        document.createElement("button");
-
-    remove.type = "button";
-
-    remove.className = "danger";
-
-    remove.textContent = "✖";
-
-    remove.onclick = function(){
-
-        row.remove();
-
-    };
-
-
-    row.appendChild(input);
-
-    row.appendChild(remove);
-
-    container.appendChild(row);
-
-}
-
-
-function initializeQuestionBuilder(){
-
-    const container =
-        document.getElementById("optionsContainer");
-
-    if(!container) return;
-
-    container.innerHTML = "";
-
-    createOptionInput();
-    createOptionInput();
-
-}
-
-
-document
-.getElementById("addOption")
-?.addEventListener("click",function(){
-
-    createOptionInput();
-
-});
-
-
-// =====================================================
 // SAVE QUESTION
-// =====================================================
 
 document
 .getElementById("saveQuestion")
@@ -270,7 +311,12 @@ document
     const typeElement =
         document.getElementById("questionType");
 
-    if(!textElement || !typeElement) return;
+    const saveButton = this;
+
+
+    if(!textElement || !typeElement){
+        return;
+    }
 
 
     const text =
@@ -322,13 +368,13 @@ document
     }
 
 
-    const data = {
+    const questionData = {
 
-        question:text,
+        question: text,
 
-        type:type,
+        type: type,
 
-        options:options,
+        options: options,
 
         updatedAt:
             firebase.firestore.FieldValue.serverTimestamp()
@@ -336,15 +382,8 @@ document
     };
 
 
-    const button =
-        document.getElementById("saveQuestion");
-
-    if(!button) return;
-
-
-    button.disabled = true;
-
-    button.textContent = "Saving...";
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
 
 
     let promise;
@@ -355,22 +394,23 @@ document
         promise =
             db.collection("questions")
             .doc(editingQuestionId)
-            .update(data);
+            .update(questionData);
 
     }
     else{
 
-        data.createdAt =
+        questionData.createdAt =
             firebase.firestore.FieldValue.serverTimestamp();
 
         promise =
             db.collection("questions")
-            .add(data);
+            .add(questionData);
 
     }
 
 
     promise
+
     .then(function(){
 
         showQuestionMessage(
@@ -385,12 +425,10 @@ document
         loadQuestions();
 
     })
+
     .catch(function(error){
 
-        console.error(
-            "Question save error:",
-            error
-        );
+        console.error("Question save error:",error);
 
         showQuestionMessage(
             "Error: " + error.message,
@@ -398,11 +436,12 @@ document
         );
 
     })
+
     .finally(function(){
 
-        button.disabled = false;
+        saveButton.disabled = false;
 
-        button.textContent =
+        saveButton.textContent =
             "💾 Save Question";
 
     });
@@ -410,26 +449,23 @@ document
 });
 
 
-// =====================================================
 // LOAD QUESTIONS
-// =====================================================
 
 function loadQuestions(){
 
     db.collection("questions")
+    .orderBy("createdAt","asc")
     .get()
 
     .then(function(snapshot){
 
         allQuestions = [];
 
-
         snapshot.forEach(function(doc){
 
             allQuestions.push({
 
-                id:doc.id,
-
+                id: doc.id,
                 ...doc.data()
 
             });
@@ -437,58 +473,77 @@ function loadQuestions(){
         });
 
 
-        allQuestions.sort(function(a,b){
-
-            const da = getDate(a.createdAt);
-            const dbb = getDate(b.createdAt);
-
-            if(da && dbb){
-
-                return da.getTime() - dbb.getTime();
-
-            }
-
-            return 0;
-
-        });
-
-
-        const count =
-            document.getElementById("questionCount");
-
-        if(count){
-
-            count.textContent =
-                allQuestions.length;
-
-        }
+        setText(
+            "questionCount",
+            allQuestions.length
+        );
 
 
         renderQuestions();
 
     })
+
     .catch(function(error){
 
-        console.error(
-            "Question loading error:",
+        console.warn(
+            "Question orderBy failed. Loading without orderBy.",
             error
         );
+
+
+        db.collection("questions")
+        .get()
+
+        .then(function(snapshot){
+
+            allQuestions = [];
+
+            snapshot.forEach(function(doc){
+
+                allQuestions.push({
+
+                    id: doc.id,
+                    ...doc.data()
+
+                });
+
+            });
+
+
+            setText(
+                "questionCount",
+                allQuestions.length
+            );
+
+
+            renderQuestions();
+
+        })
+
+        .catch(function(error2){
+
+            console.error(
+                "Question loading error:",
+                error2
+            );
+
+        });
 
     });
 
 }
 
 
-// =====================================================
 // RENDER QUESTIONS
-// =====================================================
 
 function renderQuestions(){
 
     const container =
         document.getElementById("questionsList");
 
-    if(!container) return;
+    if(!container){
+        return;
+    }
 
 
     container.innerHTML = "";
@@ -509,8 +564,7 @@ function renderQuestions(){
         const card =
             document.createElement("div");
 
-        card.className =
-            "question-card";
+        card.className = "question-card";
 
 
         const title =
@@ -519,79 +573,81 @@ function renderQuestions(){
         title.textContent =
             (index + 1) +
             ". " +
-            (question.question || "");
-
-
-        card.appendChild(title);
+            (question.question || "Untitled Question");
 
 
         const badge =
             document.createElement("span");
+
+        badge.className = "badge";
 
         badge.textContent =
             question.type === "multiple"
             ? "Multiple Choice"
             : "Single Choice";
 
-        badge.style.cssText =
-            "background:#e3f2fd;color:#1565c0;padding:5px 9px;border-radius:20px;font-size:12px;font-weight:bold;";
 
-
+        card.appendChild(title);
         card.appendChild(badge);
 
 
-        (question.options || [])
-        .forEach(function(option){
+        const options =
+            document.createElement("div");
+
+        options.style.marginTop = "10px";
+
+
+        (question.options || []).forEach(function(option){
 
             const item =
                 document.createElement("div");
 
+            item.className = "option-item";
+
             item.textContent =
                 "• " + option;
 
-            item.style.padding =
-                "5px 0";
-
-            card.appendChild(item);
+            options.appendChild(item);
 
         });
+
+
+        card.appendChild(options);
 
 
         const edit =
             document.createElement("button");
 
-        edit.className =
-            "primary";
+        edit.className = "primary";
+        edit.type = "button";
+        edit.textContent = "✏️ Edit";
 
-        edit.textContent =
-            "✏️ Edit";
 
-        edit.onclick = function(){
+        edit.addEventListener("click",function(){
 
             editQuestion(question.id);
 
-        };
+        });
 
 
         const del =
             document.createElement("button");
 
-        del.className =
-            "danger";
+        del.className = "danger";
+        del.type = "button";
+        del.textContent = "🗑️ Delete";
 
-        del.textContent =
-            "🗑️ Delete";
 
-        del.onclick = function(){
+        del.addEventListener("click",function(){
 
             deleteQuestion(question.id);
 
-        };
+        });
 
 
         card.appendChild(edit);
-
         card.appendChild(del);
+
 
         container.appendChild(card);
 
@@ -600,47 +656,53 @@ function renderQuestions(){
 }
 
 
-// =====================================================
 // EDIT QUESTION
-// =====================================================
 
 function editQuestion(id){
 
     const question =
-        allQuestions.find(function(q){
+        allQuestions.find(function(item){
 
-            return q.id === id;
+            return item.id === id;
 
         });
 
 
-    if(!question) return;
+    if(!question){
+        return;
+    }
 
 
     editingQuestionId = id;
 
 
-    document
-    .getElementById("questionText")
-    .value =
-        question.question || "";
+    const questionText =
+        document.getElementById("questionText");
 
-
-    document
-    .getElementById("questionType")
-    .value =
-        question.type || "single";
-
+    const questionType =
+        document.getElementById("questionType");
 
     const container =
         document.getElementById("optionsContainer");
+
+
+    if(questionText){
+        questionText.value =
+            question.question || "";
+    }
+
+
+    if(questionType){
+        questionType.value =
+            question.type || "single";
+    }
+
 
     if(container){
 
         container.innerHTML = "";
 
-        (question.options || [])
-        .forEach(function(option){
+        (question.options || []).forEach(function(option){
 
             createOptionInput(option);
 
@@ -649,51 +711,56 @@ function editQuestion(id){
     }
 
 
-    document
-    .getElementById("saveQuestion")
-    .textContent =
-        "💾 Update Question";
+    const saveButton =
+        document.getElementById("saveQuestion");
+
+    if(saveButton){
+        saveButton.textContent =
+            "💾 Update Question";
+    }
 
 
-    document
-    .getElementById("cancelEdit")
-    .style.display =
-        "inline-block";
+    const cancelButton =
+        document.getElementById("cancelEdit");
+
+    if(cancelButton){
+        cancelButton.style.display =
+            "inline-block";
+    }
 
 
-    document
-    .getElementById("questionManagerBody")
-    .style.display =
-        "block";
+    const managerBody =
+        document.getElementById("questionManagerBody");
+
+    if(managerBody){
+        managerBody.style.display = "block";
+    }
 
 
-    document
-    .getElementById("questionManagerToggle")
-    .textContent =
-        "🙈 Hide";
+    const toggle =
+        document.getElementById("questionManagerToggle");
+
+    if(toggle){
+        toggle.textContent = "🙈 Hide";
+    }
 
 
     window.scrollTo({
-
         top:0,
-
         behavior:"smooth"
-
     });
 
 }
 
 
-// =====================================================
 // DELETE QUESTION
-// =====================================================
 
 function deleteQuestion(id){
 
-    if(!confirm("Delete this question?")){
-
+    if(!confirm(
+        "Are you sure you want to delete this question?"
+    )){
         return;
-
     }
 
 
@@ -703,9 +770,12 @@ function deleteQuestion(id){
 
     .then(function(){
 
+        alert("Question deleted successfully.");
+
         loadQuestions();
 
     })
+
     .catch(function(error){
 
         alert(
@@ -717,6 +787,8 @@ function deleteQuestion(id){
 
 }
 
+
+// CANCEL EDIT
 
 document
 .getElementById("cancelEdit")
@@ -735,56 +807,48 @@ function resetQuestionBuilder(){
     const questionText =
         document.getElementById("questionText");
 
-    if(questionText){
-
-        questionText.value = "";
-
-    }
-
-
     const questionType =
         document.getElementById("questionType");
 
-    if(questionType){
+    const container =
+        document.getElementById("optionsContainer");
 
-        questionType.value = "single";
+    const saveButton =
+        document.getElementById("saveQuestion");
 
+    const cancelButton =
+        document.getElementById("cancelEdit");
+
+
+    if(questionText){
+        questionText.value = "";
     }
 
 
-    const container =
-        document.getElementById("optionsContainer");
+    if(questionType){
+        questionType.value = "single";
+    }
+
 
     if(container){
 
         container.innerHTML = "";
 
         createOptionInput();
-
         createOptionInput();
 
     }
 
 
-    const button =
-        document.getElementById("saveQuestion");
-
-    if(button){
-
-        button.textContent =
+    if(saveButton){
+        saveButton.textContent =
             "💾 Save Question";
-
     }
 
 
-    const cancel =
-        document.getElementById("cancelEdit");
-
-    if(cancel){
-
-        cancel.style.display =
+    if(cancelButton){
+        cancelButton.style.display =
             "none";
-
     }
 
 }
@@ -792,25 +856,24 @@ function resetQuestionBuilder(){
 
 function showQuestionMessage(text,success){
 
-    const element =
+    const message =
         document.getElementById("questionMessage");
 
-    if(!element) return;
+    if(!message){
+        return;
+    }
 
+    message.textContent = text;
 
-    element.textContent = text;
-
-    element.style.color =
-        success
-        ? "#2e7d32"
-        : "#d32f2f";
+    message.style.color =
+        success ? "green" : "red";
 
 }
 
 
-// =====================================================
-// LOAD SURVEYS
-// =====================================================
+// ======================================================
+// SURVEYS
+// ======================================================
 
 function loadSurveys(){
 
@@ -821,13 +884,11 @@ function loadSurveys(){
 
         allSurveys = [];
 
-
         snapshot.forEach(function(doc){
 
             allSurveys.push({
 
-                id:doc.id,
-
+                id: doc.id,
                 ...doc.data()
 
             });
@@ -835,40 +896,26 @@ function loadSurveys(){
         });
 
 
-        allSurveys.sort(function(a,b){
-
-            const da = getDate(a.createdAt);
-            const dbb = getDate(b.createdAt);
-
-            if(!da && !dbb) return 0;
-
-            if(!da) return 1;
-
-            if(!dbb) return -1;
-
-            return dbb.getTime() - da.getTime();
-
-        });
-
-
         filteredSurveys =
-            [...allSurveys];
+            allSurveys.slice();
 
 
         updateDashboard();
 
-        createFilterOptions();
+        populateFilterDropdowns();
 
         renderSurveyRecords();
 
-
-        // IMPORTANT:
-        // Survey data load hone ke baad
-        // Surveyor Management ko dobara render karein.
+        /*
+         * IMPORTANT:
+         * Surveyor Management is rendered AFTER
+         * surveys are loaded so counts are correct.
+         */
 
         renderSurveyorManagement();
 
     })
+
     .catch(function(error){
 
         console.error(
@@ -881,43 +928,37 @@ function loadSurveys(){
 }
 
 
-// =====================================================
+// ======================================================
 // DASHBOARD
-// =====================================================
+// ======================================================
 
 function updateDashboard(){
 
     let today = 0;
-
     let week = 0;
-
     let month = 0;
 
 
     allSurveys.forEach(function(survey){
 
         const date =
-            getDate(survey.createdAt);
+            getDate(
+                survey.createdAt ||
+                survey.timestamp ||
+                survey.submittedAt
+            );
 
 
         if(isToday(date)){
-
             today++;
-
         }
-
 
         if(isThisWeek(date)){
-
             week++;
-
         }
 
-
         if(isThisMonth(date)){
-
             month++;
-
         }
 
     });
@@ -928,18 +969,15 @@ function updateDashboard(){
         allSurveys.length
     );
 
-
     setText(
         "todaySurvey",
         today
     );
 
-
     setText(
         "weekSurvey",
         week
     );
-
 
     setText(
         "monthSurvey",
@@ -949,174 +987,182 @@ function updateDashboard(){
 }
 
 
-function setText(id,value){
+// ======================================================
+// FILTER DROPDOWNS
+// ======================================================
 
-    const element =
-        document.getElementById(id);
+function addUniqueOption(select,value,label){
 
-    if(element){
-
-        element.textContent =
-            value;
-
-    }
-
-}
-
-
-// =====================================================
-// FILTER OPTIONS
-// =====================================================
-
-function addUniqueOptions(selectId,values,icon){
-
-    const select =
-        document.getElementById(selectId);
-
-    if(!select) return;
-
-
-    const first =
-        select.options[0];
-
-
-    select.innerHTML = "";
-
-
-    if(first){
-
-        select.appendChild(first);
-
+    if(!select || !value){
+        return;
     }
 
 
-    const unique =
-        [
-            ...new Set(
+    const exists =
+        Array.from(select.options)
+        .some(function(option){
 
-                values
-
-                .filter(function(v){
-
-                    return(
-                        v !== null &&
-                        v !== undefined
-                    );
-
-                })
-
-                .map(function(v){
-
-                    return String(v).trim();
-
-                })
-
-                .filter(Boolean)
-
-            )
-        ]
-        .sort(function(a,b){
-
-            return a.localeCompare(b);
+            return normalizeValue(option.value) ===
+                   normalizeValue(value);
 
         });
 
 
-    unique.forEach(function(value){
+    if(exists){
+        return;
+    }
 
-        const option =
-            document.createElement("option");
 
-        option.value = value;
+    const option =
+        document.createElement("option");
 
-        option.textContent =
-            icon + " " + value;
+    option.value = value;
+    option.textContent = label || value;
 
-        select.appendChild(option);
+    select.appendChild(option);
+
+}
+
+
+function populateFilterDropdowns(){
+
+    const nameSelect =
+        document.getElementById("filterName");
+
+    const mobileSelect =
+        document.getElementById("filterMobile");
+
+    const villageSelect =
+        document.getElementById("filterVillage");
+
+    const surveyorSelect =
+        document.getElementById("filterSurveyor");
+
+
+    if(nameSelect){
+
+        nameSelect.innerHTML =
+            '<option value="">👤 All Names</option>';
+
+    }
+
+
+    if(mobileSelect){
+
+        mobileSelect.innerHTML =
+            '<option value="">📱 All Mobiles</option>';
+
+    }
+
+
+    if(villageSelect){
+
+        villageSelect.innerHTML =
+            '<option value="">🏠 All Villages</option>';
+
+    }
+
+
+    if(surveyorSelect){
+
+        surveyorSelect.innerHTML =
+            '<option value="">🧑‍💼 All Surveyors</option>';
+
+    }
+
+
+    allSurveys.forEach(function(survey){
+
+        addUniqueOption(
+            nameSelect,
+            survey.name,
+            survey.name
+        );
+
+
+        addUniqueOption(
+            mobileSelect,
+            survey.mobile,
+            survey.mobile
+        );
+
+
+        addUniqueOption(
+            villageSelect,
+            survey.village,
+            survey.village
+        );
+
+
+        const surveyor =
+            survey.surveyorEmail ||
+            survey.surveyorId ||
+            survey.createdBy;
+
+
+        addUniqueOption(
+            surveyorSelect,
+            surveyor,
+            surveyor
+        );
+
+    });
+
+
+    allSurveyors.forEach(function(surveyor){
+
+        const email =
+            surveyor.email ||
+            surveyor.surveyorEmail ||
+            surveyor.id;
+
+
+        addUniqueOption(
+            surveyorSelect,
+            email,
+            email
+        );
 
     });
 
 }
 
 
-function createFilterOptions(){
-
-    addUniqueOptions(
-        "filterName",
-        allSurveys.map(function(s){
-
-            return s.name;
-
-        }),
-        "👤"
-    );
-
-
-    addUniqueOptions(
-        "filterMobile",
-        allSurveys.map(function(s){
-
-            return s.mobile;
-
-        }),
-        "📱"
-    );
-
-
-    addUniqueOptions(
-        "filterVillage",
-        allSurveys.map(function(s){
-
-            return s.village;
-
-        }),
-        "🏠"
-    );
-
-
-    addUniqueOptions(
-        "filterSurveyor",
-        allSurveys.map(function(s){
-
-            return(
-                s.surveyorEmail ||
-                s.createdBy ||
-                ""
-            );
-
-        }),
-        "🧑‍💼"
-    );
-
-}
-
-
-// =====================================================
 // APPLY FILTER
-// =====================================================
 
 document
 .getElementById("applySurveyFilter")
 ?.addEventListener("click",function(){
 
-    const name =
-        document.getElementById("filterName").value;
+    applySurveyFilter();
 
+});
+
+
+function applySurveyFilter(){
+
+    const name =
+        normalizeValue(
+            document.getElementById("filterName")?.value
+        );
 
     const mobile =
-        document.getElementById("filterMobile").value;
-
+        normalizeValue(
+            document.getElementById("filterMobile")?.value
+        );
 
     const village =
-        document.getElementById("filterVillage").value;
-
+        normalizeValue(
+            document.getElementById("filterVillage")?.value
+        );
 
     const surveyor =
-        document.getElementById("filterSurveyor").value;
-
+        normalizeValue(
+            document.getElementById("filterSurveyor")?.value
+        );
 
     const dateFilter =
-        document.getElementById("filterDate").value;
+        document.getElementById("filterDate")?.value || "";
 
 
     filteredSurveys =
@@ -1124,84 +1170,64 @@ document
 
             if(
                 name &&
-                String(survey.name || "") !== name
+                normalizeValue(survey.name) !== name
             ){
-
                 return false;
-
             }
 
 
             if(
                 mobile &&
-                String(survey.mobile || "") !== mobile
+                normalizeValue(survey.mobile) !== mobile
             ){
-
                 return false;
-
             }
 
 
             if(
                 village &&
-                String(survey.village || "") !== village
+                normalizeValue(survey.village) !== village
             ){
-
                 return false;
-
             }
 
 
-            if(surveyor){
-
-                const surveyorIdentity =
+            const surveyorValue =
+                normalizeValue(
                     survey.surveyorEmail ||
-                    survey.createdBy ||
-                    "";
+                    survey.surveyorId ||
+                    survey.createdBy
+                );
 
-                if(
-                    String(surveyorIdentity) !==
-                    String(surveyor)
-                ){
 
-                    return false;
-
-                }
-
+            if(
+                surveyor &&
+                surveyorValue !== surveyor
+            ){
+                return false;
             }
 
 
             const date =
-                getDate(survey.createdAt);
+                getDate(
+                    survey.createdAt ||
+                    survey.timestamp ||
+                    survey.submittedAt
+                );
 
 
-            if(
-                dateFilter === "today" &&
-                !isToday(date)
-            ){
-
+            if(dateFilter === "today" && !isToday(date)){
                 return false;
-
             }
 
 
-            if(
-                dateFilter === "week" &&
-                !isThisWeek(date)
-            ){
-
+            if(dateFilter === "week" && !isThisWeek(date)){
                 return false;
-
             }
 
 
-            if(
-                dateFilter === "month" &&
-                !isThisMonth(date)
-            ){
-
+            if(dateFilter === "month" && !isThisMonth(date)){
                 return false;
-
             }
 
 
@@ -1211,121 +1237,6 @@ document
 
 
     renderSurveyRecords();
-
-});
-
-
-// =====================================================
-// CLEAR FILTER
-// =====================================================
-
-document
-.getElementById("clearSurveyFilter")
-?.addEventListener("click",function(){
-
-    const ids = [
-
-        "filterName",
-
-        "filterMobile",
-
-        "filterVillage",
-
-        "filterSurveyor",
-
-        "filterDate"
-
-    ];
-
-
-    ids.forEach(function(id){
-
-        const element =
-            document.getElementById(id);
-
-        if(element){
-
-            element.value = "";
-
-        }
-
-    });
-
-
-    filteredSurveys =
-        [...allSurveys];
-
-
-    renderSurveyRecords();
-
-});
-
-
-// =====================================================
-// RENDER SURVEY RECORDS
-// =====================================================
-
-function renderSurveyRecords(){
-
-    const table =
-        document.getElementById("surveyTable");
-
-    if(!table) return;
-
-
-    table.innerHTML = "";
-
-
-    filteredSurveys.forEach(function(survey){
-
-        const row =
-            document.createElement("tr");
-
-
-        row.innerHTML = `
-
-<td>${escapeHTML(survey.name)}</td>
-
-<td>${escapeHTML(survey.mobile)}</td>
-
-<td>${escapeHTML(survey.age)}</td>
-
-<td>${escapeHTML(survey.gender)}</td>
-
-<td>${escapeHTML(survey.village)}</td>
-
-<td>${escapeHTML(survey.party || "")}</td>
-
-<td>${escapeHTML(survey.candidate || "")}</td>
-
-<td>
-
-<button
-class="action-btn purple"
-onclick="showAnswers('${survey.id}')">
-📋 Answers
-</button>
-
-<button
-class="action-btn primary"
-onclick="editSurvey('${survey.id}')">
-✏️ Edit
-</button>
-
-<button
-class="action-btn danger"
-onclick="deleteSurvey('${survey.id}')">
-🗑️ Delete
-</button>
-
-</td>
-
-`;
-
-
-        table.appendChild(row);
-
-    });
 
 
     setText(
@@ -1339,193 +1250,179 @@ onclick="deleteSurvey('${survey.id}')">
 }
 
 
-// =====================================================
-// SHOW ANSWERS
-// =====================================================
-
-window.showAnswers = function(id){
-
-    const survey =
-        allSurveys.find(function(item){
-
-            return item.id === id;
-
-        });
-
-
-    if(!survey) return;
-
-
-    const modal =
-        document.getElementById("answerModal");
-
-
-    const body =
-        document.getElementById("answerModalBody");
-
-
-    if(!modal || !body) return;
-
-
-    let html = `
-
-<div class="respondent">
-
-<div class="respondent-grid">
-
-<div>
-<b>Name</b><br>
-${escapeHTML(survey.name)}
-</div>
-
-<div>
-<b>Mobile</b><br>
-${escapeHTML(survey.mobile)}
-</div>
-
-<div>
-<b>Age</b><br>
-${escapeHTML(survey.age)}
-</div>
-
-<div>
-<b>Gender</b><br>
-${escapeHTML(survey.gender)}
-</div>
-
-<div>
-<b>Village</b><br>
-${escapeHTML(survey.village)}
-</div>
-
-</div>
-
-</div>
-
-<h3>Survey Answers</h3>
-
-`;
-
-
-    const answers =
-        survey.answers || {};
-
-
-    const answerEntries =
-        Object.entries(answers);
-
-
-    if(answerEntries.length === 0){
-
-        html +=
-            "<p>No answers found.</p>";
-
-    }
-    else{
-
-        answerEntries.forEach(function(entry,index){
-
-            const questionId =
-                entry[0];
-
-
-            const answer =
-                entry[1];
-
-
-            const question =
-                allQuestions.find(function(q){
-
-                    return q.id === questionId;
-
-                });
-
-
-            const questionText =
-                question
-                ? question.question
-                : "Question " + (index + 1);
-
-
-            let answerText = "";
-
-
-            if(Array.isArray(answer)){
-
-                answerText =
-                    answer.join(", ");
-
-            }
-            else{
-
-                answerText =
-                    String(answer || "");
-
-            }
-
-
-            html += `
-
-<div class="answer-item">
-
-<div class="answer-question">
-${index + 1}. ${escapeHTML(questionText)}
-</div>
-
-<div class="answer-value">
-${escapeHTML(answerText)}
-</div>
-
-</div>
-
-`;
-
-        });
-
-    }
-
-
-    body.innerHTML =
-        html;
-
-
-    modal.classList.add("show");
-
-};
-
+// CLEAR FILTER
 
 document
-.getElementById("closeAnswerModal")
+.getElementById("clearSurveyFilter")
 ?.addEventListener("click",function(){
 
-    const modal =
-        document.getElementById("answerModal");
+    const ids = [
+        "filterName",
+        "filterMobile",
+        "filterVillage",
+        "filterSurveyor",
+        "filterDate"
+    ];
 
-    if(modal){
 
-        modal.classList.remove("show");
+    ids.forEach(function(id){
 
-    }
+        const element =
+            document.getElementById(id);
+
+        if(element){
+            element.value = "";
+        }
+
+    });
+
+
+    filteredSurveys =
+        allSurveys.slice();
+
+
+    renderSurveyRecords();
+
+
+    setText(
+        "filterResultCount",
+        "Showing: " +
+        allSurveys.length +
+        " / " +
+        allSurveys.length
+    );
 
 });
 
 
-document
-.getElementById("answerModal")
-?.addEventListener("click",function(e){
+// ======================================================
+// SURVEY RECORDS
+// ======================================================
 
-    if(e.target === this){
+function renderSurveyRecords(){
 
-        this.classList.remove("show");
+    const table =
+        document.getElementById("surveyTable");
+
+    if(!table){
+        return;
+    }
+
+
+    table.innerHTML = "";
+
+
+    filteredSurveys.forEach(function(survey){
+
+        const row =
+            document.createElement("tr");
+
+
+        const name =
+            escapeHTML(survey.name);
+
+        const mobile =
+            escapeHTML(survey.mobile);
+
+        const age =
+            escapeHTML(survey.age);
+
+        const gender =
+            escapeHTML(survey.gender);
+
+        const village =
+            escapeHTML(survey.village);
+
+
+        row.innerHTML = `
+
+<td>${name}</td>
+
+<td>${mobile}</td>
+
+<td>${age}</td>
+
+<td>${gender}</td>
+
+<td>${village}</td>
+
+<td>
+
+<button
+type="button"
+class="purple action-btn answer-button">
+📋 Answers
+</button>
+
+<button
+type="button"
+class="primary action-btn edit-button">
+✏️ Edit
+</button>
+
+<button
+type="button"
+class="danger action-btn delete-button">
+🗑️ Delete
+</button>
+
+</td>
+
+`;
+
+
+        row
+        .querySelector(".answer-button")
+        .addEventListener("click",function(){
+
+            showSurveyAnswers(survey);
+
+        });
+
+
+        row
+        .querySelector(".edit-button")
+        .addEventListener("click",function(){
+
+            editSurvey(survey.id);
+
+        });
+
+
+        row
+        .querySelector(".delete-button")
+        .addEventListener("click",function(){
+
+            deleteSurvey(survey.id);
+
+        });
+
+
+        table.appendChild(row);
+
+    });
+
+
+    const count =
+        document.getElementById("filterResultCount");
+
+
+    if(count){
+
+        count.textContent =
+            "Showing: " +
+            filteredSurveys.length +
+            " / " +
+            allSurveys.length;
 
     }
 
-});
+}
 
 
-// =====================================================
+// ======================================================
 // EDIT SURVEY
-// =====================================================
+// ======================================================
 
 window.editSurvey = function(id){
 
@@ -1537,7 +1434,9 @@ window.editSurvey = function(id){
         });
 
 
-    if(!survey) return;
+    if(!survey){
+        return;
+    }
 
 
     const name =
@@ -1546,7 +1445,9 @@ window.editSurvey = function(id){
             survey.name || ""
         );
 
-    if(name === null) return;
+    if(name === null){
+        return;
+    }
 
 
     const mobile =
@@ -1555,7 +1456,9 @@ window.editSurvey = function(id){
             survey.mobile || ""
         );
 
-    if(mobile === null) return;
+    if(mobile === null){
+        return;
+    }
 
 
     const age =
@@ -1564,16 +1467,9 @@ window.editSurvey = function(id){
             survey.age || ""
         );
 
-    if(age === null) return;
-
-
-    const gender =
-        prompt(
-            "Gender:",
-            survey.gender || ""
-        );
-
-    if(gender === null) return;
+    if(age === null){
+        return;
+    }
 
 
     const village =
@@ -1582,51 +1478,48 @@ window.editSurvey = function(id){
             survey.village || ""
         );
 
-    if(village === null) return;
+    if(village === null){
+        return;
+    }
 
 
-    const party =
+    const gender =
         prompt(
-            "Party:",
-            survey.party || ""
+            "Gender:",
+            survey.gender || ""
         );
 
-    if(party === null) return;
-
-
-    const candidate =
-        prompt(
-            "Candidate:",
-            survey.candidate || ""
-        );
-
-    if(candidate === null) return;
+    if(gender === null){
+        return;
+    }
 
 
     db.collection("surveys")
     .doc(id)
     .update({
 
-        name:name.trim(),
+        name: name.trim(),
 
-        mobile:mobile.trim(),
+        mobile: mobile.trim(),
 
-        age:age.trim(),
+        age: age.trim(),
 
-        gender:gender.trim(),
+        village: village.trim(),
 
-        village:village.trim(),
-
-        party:party.trim(),
-
-        candidate:candidate.trim()
+        gender: gender.trim()
 
     })
+
     .then(function(){
+
+        alert(
+            "Survey updated successfully."
+        );
 
         loadSurveys();
 
     })
+
     .catch(function(error){
 
         alert(
@@ -1639,18 +1532,16 @@ window.editSurvey = function(id){
 };
 
 
-// =====================================================
-// DELETE ONE SURVEY
-// =====================================================
+// ======================================================
+// DELETE SURVEY
+// ======================================================
 
 window.deleteSurvey = function(id){
 
     if(!confirm(
         "Are you sure you want to delete this survey?"
     )){
-
         return;
-
     }
 
 
@@ -1660,9 +1551,14 @@ window.deleteSurvey = function(id){
 
     .then(function(){
 
+        alert(
+            "Survey deleted successfully."
+        );
+
         loadSurveys();
 
     })
+
     .catch(function(error){
 
         alert(
@@ -1675,70 +1571,118 @@ window.deleteSurvey = function(id){
 };
 
 
-// =====================================================
+// ======================================================
 // DELETE ALL SURVEYS
-// =====================================================
+// ======================================================
 
 document
 .getElementById("deleteAllSurveysBtn")
 ?.addEventListener("click",function(){
 
+    deleteAllSurveys();
+
+});
+
+
+function deleteAllSurveys(){
+
     if(allSurveys.length === 0){
 
-        alert(
-            "There are no surveys to delete."
-        );
+        alert("There are no surveys to delete.");
 
         return;
 
     }
 
 
-    const firstConfirm =
-        confirm(
-            "⚠️ DELETE ALL SURVEYS?\n\n" +
-            "This will permanently delete all " +
-            allSurveys.length +
-            " survey records."
-        );
-
-
-    if(!firstConfirm) return;
-
-
-    const secondConfirm =
+    const confirmed =
         prompt(
-            "Type DELETE to confirm:"
+            "WARNING: This will permanently delete ALL survey records.\n\nType DELETE to confirm:"
         );
 
 
-    if(secondConfirm !== "DELETE"){
-
-        alert(
-            "Delete cancelled."
-        );
-
+    if(confirmed !== "DELETE"){
         return;
-
     }
 
 
     const button =
-        this;
+        document.getElementById(
+            "deleteAllSurveysBtn"
+        );
 
 
-    button.disabled = true;
+    if(button){
 
-    button.textContent =
-        "Deleting...";
+        button.disabled = true;
+        button.textContent = "Deleting...";
+
+    }
 
 
-    deleteSurveyBatch()
+    db.collection("surveys")
+    .get()
+
+    .then(function(snapshot){
+
+        const docs =
+            snapshot.docs;
+
+
+        const batchSize = 400;
+
+
+        function deleteBatch(startIndex){
+
+            if(startIndex >= docs.length){
+
+                return Promise.resolve();
+
+            }
+
+
+            const batch =
+                db.batch();
+
+
+            const end =
+                Math.min(
+                    startIndex + batchSize,
+                    docs.length
+                );
+
+
+            for(
+                let i = startIndex;
+                i < end;
+                i++
+            ){
+
+                batch.delete(
+                    docs[i].ref
+                );
+
+            }
+
+
+            return batch.commit()
+            .then(function(){
+
+                return deleteBatch(end);
+
+            });
+
+        }
+
+
+        return deleteBatch(0);
+
+    })
 
     .then(function(){
 
         alert(
-            "✅ All surveys deleted successfully."
+            "All surveys deleted successfully."
         );
 
         loadSurveys();
@@ -1747,10 +1691,13 @@ document
 
     .catch(function(error){
 
-        console.error(error);
+        console.error(
+            "Delete all surveys error:",
+            error
+        );
 
         alert(
-            "Delete failed: " +
+            "Delete all failed: " +
             error.message
         );
 
@@ -1758,75 +1705,351 @@ document
 
     .finally(function(){
 
-        button.disabled = false;
+        if(button){
 
-        button.textContent =
-            "🗑️ Delete All Surveys";
+            button.disabled = false;
 
-    });
+            button.textContent =
+                "🗑️ Delete All Surveys";
 
-});
-
-
-function deleteSurveyBatch(){
-
-    const chunks = [];
-
-
-    for(
-        let i = 0;
-        i < allSurveys.length;
-        i += 400
-    ){
-
-        chunks.push(
-            allSurveys.slice(i,i + 400)
-        );
-
-    }
-
-
-    let promise =
-        Promise.resolve();
-
-
-    chunks.forEach(function(chunk){
-
-        promise =
-            promise.then(function(){
-
-                const batch =
-                    db.batch();
-
-
-                chunk.forEach(function(survey){
-
-                    batch.delete(
-
-                        db
-                        .collection("surveys")
-                        .doc(survey.id)
-
-                    );
-
-                });
-
-
-                return batch.commit();
-
-            });
+        }
 
     });
-
-
-    return promise;
 
 }
 
 
-// =====================================================
+// ======================================================
+// SURVEY ANSWERS
+// ======================================================
+
+function showSurveyAnswers(survey){
+
+    const modal =
+        document.getElementById("answerModal");
+
+    const body =
+        document.getElementById("answerModalBody");
+
+
+    if(!modal || !body){
+        return;
+    }
+
+
+    body.innerHTML = "";
+
+
+    const respondent =
+        document.createElement("div");
+
+    respondent.className = "respondent";
+
+
+    respondent.innerHTML = `
+
+<h3>👤 Respondent Details</h3>
+
+<div class="respondent-grid">
+
+<div>
+<strong>Name</strong><br>
+${escapeHTML(survey.name)}
+</div>
+
+<div>
+<strong>Mobile</strong><br>
+${escapeHTML(survey.mobile)}
+</div>
+
+<div>
+<strong>Age</strong><br>
+${escapeHTML(survey.age)}
+</div>
+
+<div>
+<strong>Gender</strong><br>
+${escapeHTML(survey.gender)}
+</div>
+
+<div>
+<strong>Village</strong><br>
+${escapeHTML(survey.village)}
+</div>
+
+<div>
+<strong>Surveyor</strong><br>
+${escapeHTML(
+    survey.surveyorEmail ||
+    survey.surveyorId ||
+    survey.createdBy ||
+    ""
+)}
+</div>
+
+</div>
+
+`;
+
+
+    body.appendChild(respondent);
+
+
+    let answers =
+        survey.answers ||
+        survey.responses ||
+        survey.questions ||
+        survey.responsesData ||
+        null;
+
+
+    if(
+        answers &&
+        !Array.isArray(answers) &&
+        typeof answers === "object"
+    ){
+
+        const converted = [];
+
+        Object.keys(answers).forEach(function(key){
+
+            converted.push({
+
+                question: key,
+
+                answer: answers[key]
+
+            });
+
+        });
+
+        answers = converted;
+
+    }
+
+
+    if(Array.isArray(answers)){
+
+        answers.forEach(function(item,index){
+
+            const answerItem =
+                document.createElement("div");
+
+            answerItem.className =
+                "answer-item";
+
+
+            let questionText =
+                item.question ||
+                item.questionText ||
+                item.text ||
+                item.title ||
+                ("Question " + (index + 1));
+
+
+            let answerValue =
+                item.answer;
+
+
+            if(answerValue === undefined){
+                answerValue = item.value;
+            }
+
+
+            if(answerValue === undefined){
+                answerValue = item.response;
+            }
+
+
+            if(Array.isArray(answerValue)){
+                answerValue =
+                    answerValue.join(", ");
+            }
+
+
+            if(
+                answerValue &&
+                typeof answerValue === "object"
+            ){
+
+                answerValue =
+                    JSON.stringify(
+                        answerValue
+                    );
+
+            }
+
+
+            answerItem.innerHTML = `
+
+<div class="answer-question">
+${escapeHTML(questionText)}
+</div>
+
+<div class="answer-value">
+${escapeHTML(
+    answerValue === undefined ||
+    answerValue === null ||
+    answerValue === ""
+    ? "No answer"
+    : answerValue
+)}
+</div>
+
+`;
+
+
+            body.appendChild(answerItem);
+
+        });
+
+    }
+    else{
+
+        const ignoredFields = [
+            "name",
+            "mobile",
+            "age",
+            "gender",
+            "village",
+            "party",
+            "candidate",
+            "feedback",
+            "surveyorEmail",
+            "surveyorId",
+            "surveyorName",
+            "createdBy",
+            "createdAt",
+            "timestamp",
+            "submittedAt"
+        ];
+
+
+        let found = false;
+
+
+        Object.keys(survey).forEach(function(key){
+
+            if(
+                ignoredFields.includes(key) ||
+                key === "id"
+            ){
+                return;
+            }
+
+
+            const value =
+                survey[key];
+
+
+            if(
+                value === null ||
+                value === undefined ||
+                value === ""
+            ){
+                return;
+            }
+
+
+            found = true;
+
+
+            const answerItem =
+                document.createElement("div");
+
+            answerItem.className =
+                "answer-item";
+
+
+            let displayValue = value;
+
+
+            if(Array.isArray(value)){
+
+                displayValue =
+                    value.join(", ");
+
+            }
+            else if(
+                typeof value === "object"
+            ){
+
+                displayValue =
+                    JSON.stringify(value);
+
+            }
+
+
+            answerItem.innerHTML = `
+
+<div class="answer-question">
+${escapeHTML(key)}
+</div>
+
+<div class="answer-value">
+${escapeHTML(displayValue)}
+</div>
+
+`;
+
+
+            body.appendChild(answerItem);
+
+        });
+
+
+        if(!found){
+
+            const noAnswer =
+                document.createElement("p");
+
+            noAnswer.textContent =
+                "No answer data found for this survey.";
+
+            body.appendChild(noAnswer);
+
+        }
+
+    }
+
+
+    modal.classList.add("show");
+
+}
+
+
+// CLOSE ANSWER MODAL
+
+document
+.getElementById("closeAnswerModal")
+?.addEventListener("click",function(){
+
+    const modal =
+        document.getElementById("answerModal");
+
+    if(modal){
+        modal.classList.remove("show");
+    }
+
+});
+
+
+document
+.getElementById("answerModal")
+?.addEventListener("click",function(event){
+
+    if(event.target === this){
+
+        this.classList.remove("show");
+
+    }
+
+});
+
+
+// ======================================================
 // SURVEYOR MANAGEMENT
-// =====================================================
+// ======================================================
 
 function loadSurveyors(){
 
@@ -1837,12 +2060,11 @@ function loadSurveyors(){
 
         allSurveyors = [];
 
-
         snapshot.forEach(function(doc){
 
             allSurveyors.push({
 
-                id:doc.id,
+                id: doc.id,
 
                 ...doc.data()
 
@@ -1857,10 +2079,14 @@ function loadSurveyors(){
         );
 
 
-        // Survey records already loaded hain
-        // to immediately count update karein.
+        /*
+         * If surveys are already loaded,
+         * immediately calculate counts.
+         */
 
         renderSurveyorManagement();
+
+        populateFilterDropdowns();
 
     })
 
@@ -1876,157 +2102,106 @@ function loadSurveyors(){
 }
 
 
-// =====================================================
-// SURVEYOR IDENTITY NORMALIZER
-// =====================================================
+// ======================================================
+// IMPORTANT SURVEYOR MATCHING FIX
+// ======================================================
 
-function normalizeIdentity(value){
+function getSurveyorIdentifiers(surveyor){
 
-    if(
-        value === null ||
-        value === undefined
-    ){
-
-        return "";
-
-    }
-
-
-    return String(value)
-        .trim()
-        .toLowerCase();
-
-}
-
-
-// =====================================================
-// GET ALL IDENTITIES OF A SURVEYOR
-// =====================================================
-
-function getSurveyorIdentities(surveyor){
-
-    const identities = [];
-
-
-    if(!surveyor) return identities;
-
-
-    const possibleValues = [
+    const values = [
 
         surveyor.email,
+
+        surveyor.surveyorEmail,
 
         surveyor.id,
 
         surveyor.uid,
 
-        surveyor.userEmail,
-
-        surveyor.surveyorEmail,
-
-        surveyor.surveyorUid
+        surveyor.userId
 
     ];
 
 
-    possibleValues.forEach(function(value){
+    return values
 
-        const normalized =
-            normalizeIdentity(value);
+        .filter(function(value){
 
+            return value !== undefined &&
+                   value !== null &&
+                   String(value).trim() !== "";
 
-        if(
-            normalized &&
-            identities.indexOf(normalized) === -1
-        ){
+        })
 
-            identities.push(normalized);
+        .map(function(value){
 
-        }
+            return normalizeValue(value);
 
-    });
-
-
-    return identities;
+        });
 
 }
 
 
-// =====================================================
-// GET SURVEYOR IDENTITIES FROM SURVEY RECORD
-// =====================================================
+function getSurveyIdentifiers(survey){
 
-function getSurveyIdentities(survey){
-
-    const identities = [];
-
-
-    if(!survey) return identities;
-
-
-    const possibleValues = [
+    const values = [
 
         survey.surveyorEmail,
 
+        survey.surveyorId,
+
         survey.createdBy,
+
+        survey.createdByEmail,
 
         survey.surveyor,
 
-        survey.email,
-
         survey.userEmail,
 
-        survey.surveyorId,
-
-        survey.surveyorUid,
-
-        survey.uid
+        survey.userId
 
     ];
 
 
-    possibleValues.forEach(function(value){
+    return values
 
-        const normalized =
-            normalizeIdentity(value);
+        .filter(function(value){
 
+            return value !== undefined &&
+                   value !== null &&
+                   String(value).trim() !== "";
 
-        if(
-            normalized &&
-            identities.indexOf(normalized) === -1
-        ){
+        })
 
-            identities.push(normalized);
+        .map(function(value){
 
-        }
+            return normalizeValue(value);
 
-    });
-
-
-    return identities;
+        });
 
 }
 
-
-// =====================================================
-// CHECK SURVEY BELONGS TO SURVEYOR
-// =====================================================
 
 function surveyBelongsToSurveyor(
     survey,
     surveyor
 ){
 
-    const surveyorIdentities =
-        getSurveyorIdentities(surveyor);
+    const surveyorIdentifiers =
+        getSurveyorIdentifiers(
+            surveyor
+        );
 
 
-    const surveyIdentities =
-        getSurveyIdentities(survey);
+    const surveyIdentifiers =
+        getSurveyIdentifiers(
+            survey
+        );
 
 
     if(
-        surveyorIdentities.length === 0 ||
-        surveyIdentities.length === 0
+        surveyorIdentifiers.length === 0 ||
+        surveyIdentifiers.length === 0
     ){
 
         return false;
@@ -2034,22 +2209,18 @@ function surveyBelongsToSurveyor(
     }
 
 
-    return surveyorIdentities.some(
-        function(identity){
+    return surveyorIdentifiers.some(function(id){
 
-            return surveyIdentities.indexOf(
-                identity
-            ) !== -1;
+        return surveyIdentifiers.includes(id);
 
-        }
-    );
+    });
 
 }
 
 
-// =====================================================
+// ======================================================
 // RENDER SURVEYOR MANAGEMENT
-// =====================================================
+// ======================================================
 
 function renderSurveyorManagement(){
 
@@ -2059,7 +2230,9 @@ function renderSurveyorManagement(){
         );
 
 
-    if(!table) return;
+    if(!table){
+        return;
+    }
 
 
     table.innerHTML = "";
@@ -2067,26 +2240,18 @@ function renderSurveyorManagement(){
 
     allSurveyors.forEach(function(surveyor){
 
-        const email =
-            surveyor.email ||
-            surveyor.id ||
-            surveyor.userEmail ||
-            surveyor.surveyorEmail ||
-            "Unknown";
-
-
         let total = 0;
-
         let today = 0;
-
         let week = 0;
-
         let month = 0;
 
 
-        // IMPORTANT FIX:
-        // हर survey को सभी possible surveyor
-        // fields से match किया जा रहा है.
+        /*
+         * FIX:
+         * Do NOT only check survey.surveyorEmail.
+         * Survey records can contain surveyorEmail,
+         * surveyorId or createdBy.
+         */
 
         allSurveys.forEach(function(survey){
 
@@ -2107,28 +2272,24 @@ function renderSurveyorManagement(){
 
             const date =
                 getDate(
-                    survey.createdAt
+                    survey.createdAt ||
+                    survey.timestamp ||
+                    survey.submittedAt
                 );
 
 
             if(isToday(date)){
-
                 today++;
-
             }
 
 
             if(isThisWeek(date)){
-
                 week++;
-
             }
 
 
             if(isThisMonth(date)){
-
                 month++;
-
             }
 
         });
@@ -2138,25 +2299,37 @@ function renderSurveyorManagement(){
             surveyor.enabled !== false;
 
 
+        const email =
+            surveyor.email ||
+            surveyor.surveyorEmail ||
+            surveyor.id;
+
+
         const row =
             document.createElement("tr");
 
 
-        const safeEmail =
-            escapeHTML(email);
-
-
         row.innerHTML = `
 
-<td>${safeEmail}</td>
+<td>
+${escapeHTML(email)}
+</td>
 
-<td>${total}</td>
+<td>
+${total}
+</td>
 
-<td>${today}</td>
+<td>
+${today}
+</td>
 
-<td>${week}</td>
+<td>
+${week}
+</td>
 
-<td>${month}</td>
+<td>
+${month}
+</td>
 
 <td>
 
@@ -2165,10 +2338,8 @@ enabled
 
 ?
 
-`
-<span
-style="
-color:#2e7d32;
+`<span style="
+color:green;
 font-weight:bold;
 ">
 🟢 Active
@@ -2176,17 +2347,15 @@ font-weight:bold;
 
 <button
 class="warning"
-onclick="toggleSurveyor('${safeEmail}',false)">
+type="button"
+>
 Disable
-</button>
-`
+</button>`
 
 :
 
-`
-<span
-style="
-color:#c62828;
+`<span style="
+color:red;
 font-weight:bold;
 ">
 🔴 Disabled
@@ -2194,10 +2363,10 @@ font-weight:bold;
 
 <button
 class="success"
-onclick="toggleSurveyor('${safeEmail}',true)">
+type="button"
+>
 Enable
-</button>
-`
+</button>`
 
 }
 
@@ -2206,40 +2375,62 @@ Enable
 `;
 
 
+        const statusButton =
+            row.querySelector("button");
+
+
+        if(statusButton){
+
+            statusButton.addEventListener(
+                "click",
+                function(){
+
+                    toggleSurveyor(
+                        email,
+                        !enabled
+                    );
+
+                }
+            );
+
+        }
+
+
         table.appendChild(row);
 
     });
 
-
-    console.log(
-        "Surveyor Management updated.",
-        "Surveyors:",
-        allSurveyors.length,
-        "Surveys:",
-        allSurveys.length
-    );
-
 }
 
 
-// =====================================================
+// ======================================================
 // ENABLE / DISABLE SURVEYOR
-// =====================================================
+// ======================================================
 
 window.toggleSurveyor =
 function(email,enabled){
 
-    // पहले email से document update करने की कोशिश
+    /*
+     * Most surveyor documents use email as document ID.
+     * First try that.
+     */
 
     db.collection("surveyors")
     .doc(email)
     .update({
 
-        enabled:enabled
+        enabled: enabled
 
     })
 
     .then(function(){
+
+        alert(
+            enabled
+            ? "Surveyor enabled."
+            : "Surveyor disabled."
+        );
+
 
         loadSurveyors();
 
@@ -2248,13 +2439,15 @@ function(email,enabled){
     .catch(function(error){
 
         console.error(
-            "Direct surveyor update failed:",
+            "Surveyor status update error:",
             error
         );
 
 
-        // अगर document ID email नहीं है,
-        // तो email field से खोजकर update करें.
+        /*
+         * If document ID is not email,
+         * find it by email field.
+         */
 
         db.collection("surveyors")
         .where("email","==",email)
@@ -2264,44 +2457,47 @@ function(email,enabled){
 
             if(snapshot.empty){
 
-                throw new Error(
-                    "Surveyor record not found."
-                );
+                throw error;
 
             }
 
 
-            const batch =
-                db.batch();
+            const updates = [];
 
 
             snapshot.forEach(function(doc){
 
-                batch.update(
-                    doc.ref,
-                    {
-                        enabled:enabled
-                    }
+                updates.push(
+                    doc.ref.update({
+                        enabled: enabled
+                    })
                 );
 
             });
 
 
-            return batch.commit();
+            return Promise.all(updates);
 
         })
 
         .then(function(){
 
+            alert(
+                enabled
+                ? "Surveyor enabled."
+                : "Surveyor disabled."
+            );
+
+
             loadSurveyors();
 
         })
 
-        .catch(function(error2){
+        .catch(function(finalError){
 
             alert(
                 "Status update failed: " +
-                error2.message
+                finalError.message
             );
 
         });
@@ -2311,9 +2507,9 @@ function(email,enabled){
 };
 
 
-// =====================================================
+// ======================================================
 // DAILY LIMIT
-// =====================================================
+// ======================================================
 
 function loadDailyLimit(){
 
@@ -2323,7 +2519,9 @@ function loadDailyLimit(){
         );
 
 
-    if(!input) return;
+    if(!input){
+        return;
+    }
 
 
     db.collection("settings")
@@ -2339,6 +2537,11 @@ function loadDailyLimit(){
 
             input.value =
                 doc.data().dailyLimit;
+
+        }
+        else{
+
+            input.value = 20;
 
         }
 
@@ -2363,14 +2566,15 @@ function saveDailyLimit(){
             "dailyLimitInput"
         );
 
-
     const message =
         document.getElementById(
             "limitMessage"
         );
 
 
-    if(!input) return;
+    if(!input){
+        return;
+    }
 
 
     const limit =
@@ -2401,14 +2605,13 @@ function saveDailyLimit(){
     .doc("config")
     .set({
 
-        dailyLimit:limit,
+        dailyLimit: limit,
 
         updatedAt:
             firebase.firestore.FieldValue.serverTimestamp()
 
     },{
         merge:true
-
     })
 
     .then(function(){
@@ -2450,180 +2653,43 @@ document
 );
 
 
-// =====================================================
+// ======================================================
 // LOGOUT
-// =====================================================
+// ======================================================
 
 document
 .getElementById("logoutBtn")
-?.addEventListener(
-    "click",
-    function(){
+?.addEventListener("click",function(){
 
-        firebase.auth()
-        .signOut()
+    firebase.auth()
+    .signOut()
 
-        .then(function(){
+    .then(function(){
 
-            window.location.replace(
-                "index.html"
-            );
+        window.location.replace(
+            "index.html"
+        );
 
-        });
+    })
 
-    }
-);
+    .catch(function(error){
+
+        console.error(
+            "Logout error:",
+            error
+        );
+
+    });
+
+});
 
 
-// =====================================================
+// ======================================================
 // START
-// =====================================================
+// ======================================================
 
 initializeQuestionBuilder();
 
-
-// =====================================================
-// REMOVE DUPLICATE FILTER
-// =====================================================
-
-function removeDuplicateSurveyFilter(){
-
-    const headings =
-        Array.from(
-            document.querySelectorAll("*")
-        )
-        .filter(function(el){
-
-            return(
-                el.children.length === 0 &&
-                el.textContent
-                .trim()
-                .includes(
-                    "Filter Survey Records"
-                )
-            );
-
-        });
-
-
-    if(headings.length <= 1){
-
-        return;
-
-    }
-
-
-    for(
-        let i = 1;
-        i < headings.length;
-        i++
-    ){
-
-        const heading =
-            headings[i];
-
-
-        const parent =
-            heading.parentElement;
-
-
-        if(!parent) continue;
-
-
-        let container =
-            parent;
-
-
-        for(
-            let j = 0;
-            j < 5;
-            j++
-        ){
-
-            if(
-                !container.parentElement
-            ){
-
-                break;
-
-            }
-
-
-            const text =
-                container.textContent || "";
-
-
-            if(
-                text.includes("All Names") &&
-                text.includes("All Mobiles") &&
-                text.includes("All Villages") &&
-                text.includes("All Surveyors") &&
-                text.includes("All Dates")
-            ){
-
-                container.remove();
-
-                break;
-
-            }
-
-
-            container =
-                container.parentElement;
-
-        }
-
-    }
-
-}
-
-
-// =====================================================
-// DUPLICATE FILTER CLEANUP
-// =====================================================
-
-document
-.addEventListener(
-    "DOMContentLoaded",
-    function(){
-
-        setTimeout(
-            removeDuplicateSurveyFilter,
-            500
-        );
-
-
-        setTimeout(
-            removeDuplicateSurveyFilter,
-            1500
-        );
-
-    }
+console.log(
+    "Admin JS initialized successfully."
 );
-
-
-// =====================================================
-// MUTATION OBSERVER
-// =====================================================
-
-const filterObserver =
-    new MutationObserver(
-        function(){
-
-            removeDuplicateSurveyFilter();
-
-        }
-    );
-
-
-if(document.body){
-
-    filterObserver.observe(
-        document.body,
-        {
-            childList:true,
-            subtree:true
-        }
-    );
-
-}
