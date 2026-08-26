@@ -166,7 +166,7 @@ button{
 
 table{
     width:100%;
-    min-width:950px;
+    min-width:800px;
     border-collapse:collapse;
     background:white;
 }
@@ -294,8 +294,6 @@ tr:hover td{
 
 <div class="container">
 
-<!-- DASHBOARD -->
-
 <div class="dashboard">
 
 <div class="stat">
@@ -343,7 +341,6 @@ type="button">
 
 </div>
 
-
 <div id="questionManagerBody">
 
 <input
@@ -351,12 +348,10 @@ id="questionText"
 type="text"
 placeholder="Enter survey question">
 
-
 <select id="questionType">
 <option value="single">Single Choice</option>
 <option value="multiple">Multiple Choice</option>
 </select>
-
 
 <h3>Options</h3>
 
@@ -537,22 +532,19 @@ type="button">
 
 </div>
 
-
 <div class="table-wrap">
 
-<table>
+<table id="surveyRecordsTable">
 
 <thead>
 
 <tr>
-
 <th>Name</th>
 <th>Mobile</th>
 <th>Age</th>
 <th>Gender</th>
 <th>Village</th>
 <th>Actions</th>
-
 </tr>
 
 </thead>
@@ -616,6 +608,114 @@ type="button">
 
 <script src="firebase.js"></script>
 <script src="admin.js"></script>
+
+<script>
+
+/*
+========================================================
+FINAL SAFETY CLEANUP
+Party और Candidate को table में आने से रोकना
+========================================================
+*/
+
+(function(){
+
+    function removePartyCandidateColumns(){
+
+        const table =
+            document.getElementById("surveyRecordsTable");
+
+        if(!table) return;
+
+        const headRow =
+            table.querySelector("thead tr");
+
+        if(!headRow) return;
+
+        const headers =
+            Array.from(
+                headRow.children
+            );
+
+        const removeIndexes = [];
+
+        headers.forEach(function(th,index){
+
+            const text =
+                String(
+                    th.textContent || ""
+                )
+                .trim()
+                .toLowerCase();
+
+            if(
+                text === "party" ||
+                text === "candidate"
+            ){
+                removeIndexes.push(index);
+            }
+
+        });
+
+        if(removeIndexes.length === 0){
+            return;
+        }
+
+        removeIndexes
+        .sort(function(a,b){
+            return b-a;
+        })
+        .forEach(function(index){
+
+            Array.from(
+                table.rows
+            ).forEach(function(row){
+
+                if(
+                    row.children[index]
+                ){
+                    row.children[index].remove();
+                }
+
+            });
+
+        });
+
+    }
+
+
+    removePartyCandidateColumns();
+
+
+    const table =
+        document.getElementById(
+            "surveyRecordsTable"
+        );
+
+    if(table){
+
+        const observer =
+            new MutationObserver(
+                function(){
+
+                    removePartyCandidateColumns();
+
+                }
+            );
+
+        observer.observe(
+            table,
+            {
+                childList:true,
+                subtree:true
+            }
+        );
+
+    }
+
+})();
+
+</script>
 
 </body>
 </html>
