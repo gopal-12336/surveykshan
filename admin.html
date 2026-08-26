@@ -3,410 +3,284 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Surveykshan Admin Panel</title>
-
-<link rel="stylesheet" href="style.css">
+<title>Surveykshan Admin</title>
 
 <style>
-*{
-    box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
-    background:#f4f6f9;
     margin:0;
+    background:#f3f6fa;
     font-family:Arial,sans-serif;
     color:#222;
 }
 
 .header{
-    background:linear-gradient(135deg,#1565c0,#1976d2);
+    background:linear-gradient(135deg,#0d47a1,#1976d2);
     color:white;
     padding:20px;
     text-align:center;
-    font-size:26px;
+    font-size:27px;
     font-weight:bold;
-}
-
-.admin-info{
-    text-align:center;
-    color:#666;
-    margin:12px;
 }
 
 .container{
-    max-width:1400px;
-    margin:auto;
-    padding:20px;
-}
-
-.section{
-    background:white;
-    padding:20px;
-    margin-bottom:20px;
-    border-radius:14px;
-    box-shadow:0 3px 15px rgba(0,0,0,.08);
-}
-
-.section h2{
-    color:#1565c0;
-    margin-top:0;
-}
-
-input,
-select,
-textarea{
-    width:100%;
-    padding:11px;
-    margin:7px 0;
-    border:1px solid #ccc;
-    border-radius:7px;
-    box-sizing:border-box;
-    font-size:15px;
-}
-
-button{
-    padding:10px 15px;
-    border:0;
-    border-radius:7px;
-    cursor:pointer;
-    margin:4px;
-    font-size:14px;
-    font-weight:600;
-}
-
-button:disabled{
-    opacity:.6;
-    cursor:not-allowed;
-}
-
-.primary{
-    background:#1565c0;
-    color:white;
-}
-
-.success{
-    background:#2e7d32;
-    color:white;
-}
-
-.danger{
-    background:#d32f2f;
-    color:white;
-}
-
-.warning{
-    background:#ef6c00;
-    color:white;
-}
-
-.gray{
-    background:#757575;
-    color:white;
-}
-
-/* QUESTION OPTIONS */
-
-#optionsContainer{
-    width:100%;
-}
-
-.option-row{
-    display:flex !important;
-    align-items:center !important;
-    gap:8px !important;
-    width:100% !important;
-    margin:8px 0 !important;
-}
-
-.option-row input{
-    flex:1 !important;
-    width:auto !important;
-    margin:0 !important;
-}
-
-.option-row button{
-    width:42px !important;
-    min-width:42px !important;
-    max-width:42px !important;
-    height:42px !important;
-    padding:0 !important;
-    margin:0 !important;
-    background:#c62828 !important;
-    color:white !important;
-}
-
-/* QUESTION CARDS */
-
-.question-card{
-    border:1px solid #ddd;
-    border-radius:10px;
-    padding:15px;
-    margin:12px 0;
-    background:#fafafa;
-}
-
-.question-card h3{
-    margin:0 0 10px;
-}
-
-.option-item{
-    background:white;
-    padding:8px;
-    margin:5px 0;
-    border-radius:6px;
-    border:1px solid #eee;
-}
-
-.badge{
-    display:inline-block;
-    padding:5px 9px;
-    border-radius:15px;
-    background:#e3f2fd;
-    color:#1565c0;
-    font-size:12px;
-    font-weight:bold;
-}
-
-/* DASHBOARD */
-
-.dashboard{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-    gap:15px;
-    margin-bottom:20px;
+    width:96%;
+    max-width:1450px;
+    margin:20px auto;
 }
 
 .card{
     background:white;
+    border-radius:15px;
     padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:15px;
+}
+
+.stat{
     text-align:center;
-    border-radius:12px;
-    box-shadow:0 3px 12px rgba(0,0,0,.08);
-}
-
-.card h4{
-    margin:0;
-    color:#555;
-}
-
-.card h2{
-    color:#1565c0;
-    margin:10px 0 0;
-}
-
-/* FILTER AREA */
-
-#recordsFilterArea{
-    background:#f8fbff;
-    border:1px solid #d7e6f7;
+    padding:20px;
+    background:white;
     border-radius:14px;
-    padding:15px;
-    margin-bottom:18px;
+    box-shadow:0 3px 12px rgba(0,0,0,.07);
 }
 
-#recordsFilterArea h3{
-    margin:0 0 12px;
+.stat h3{
+    margin:0;
+    color:#666;
+    font-size:14px;
+}
+
+.stat strong{
+    display:block;
+    margin-top:8px;
+    font-size:28px;
     color:#1565c0;
 }
 
-#recordsFilterArea > div{
-    max-width:100%;
-}
-
-/* Keep dynamically created filter card clean */
-
-#recordsFilterArea select{
-    min-width:150px;
-}
-
-#recordsFilterArea button{
-    min-width:110px;
-}
-
-/* SURVEY RECORDS */
-
-.records-section{
-    overflow:hidden;
-}
-
-.records-title{
+.section-title{
     display:flex;
     justify-content:space-between;
     align-items:center;
     gap:10px;
+    flex-wrap:wrap;
     margin-bottom:15px;
 }
 
-.records-title h2{
+.section-title h2{
+    margin:0;
+    color:#1565c0;
+}
+
+input,select{
+    width:100%;
+    padding:11px;
+    border:1px solid #ccd5df;
+    border-radius:9px;
+    font-size:15px;
+    margin:5px 0;
+}
+
+button{
+    border:0;
+    border-radius:8px;
+    padding:10px 15px;
+    cursor:pointer;
+    font-weight:bold;
+    margin:3px;
+}
+
+.primary{background:#1565c0;color:white}
+.success{background:#2e7d32;color:white}
+.danger{background:#d32f2f;color:white}
+.warning{background:#ef6c00;color:white}
+.purple{background:#6a1b9a;color:white}
+.gray{background:#667085;color:white}
+
+#questionManagerBody{
+    display:block;
+}
+
+.option-row{
+    display:flex;
+    gap:8px;
+    margin:8px 0;
+}
+
+.option-row input{
+    flex:1;
+}
+
+.question-card{
+    background:#f7faff;
+    border:1px solid #dce6f1;
+    border-radius:10px;
+    padding:15px;
+    margin:10px 0;
+}
+
+.question-card h3{
+    margin-top:0;
+    color:#1565c0;
+}
+
+.filter-box{
+    background:#f8fbff;
+    border:1px solid #d7e3ef;
+    border-radius:12px;
+    padding:15px;
+}
+
+.filter-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:10px;
+}
+
+.filter-grid select{
     margin:0;
 }
 
-.records-table-wrapper{
+.filter-buttons{
+    margin-top:10px;
+}
+
+#filterResultCount{
+    font-weight:bold;
+    margin-left:8px;
+}
+
+.table-wrap{
     width:100%;
     overflow-x:auto;
     border:1px solid #ddd;
     border-radius:10px;
 }
 
-#surveyTable{
-    width:100%;
-}
-
 table{
     width:100%;
-    min-width:900px;
+    min-width:950px;
     border-collapse:collapse;
     background:white;
-}
-
-th,
-td{
-    border:1px solid #ddd;
-    padding:11px;
-    text-align:center;
-    white-space:nowrap;
 }
 
 th{
     background:#1565c0;
     color:white;
-    font-weight:bold;
-    position:sticky;
-    top:0;
-    z-index:2;
+    padding:13px;
+    white-space:nowrap;
 }
 
 td{
-    background:white;
+    padding:12px;
+    border-bottom:1px solid #e5e7eb;
+    text-align:center;
+    white-space:nowrap;
 }
 
 tr:hover td{
-    background:#f7fbff;
+    background:#f5faff;
 }
 
-/* ANSWER BUTTON */
-
-.answer-btn{
-    background:#6a1b9a !important;
-    color:white !important;
+.action-btn{
+    padding:7px 10px;
+    font-size:13px;
 }
-
-.answer-btn:hover{
-    background:#4a148c !important;
-}
-
-/* ANSWER POPUP */
 
 .answer-modal{
     display:none;
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,.55);
+    background:rgba(0,0,0,.6);
     z-index:9999;
     align-items:center;
     justify-content:center;
     padding:20px;
 }
 
-.answer-modal-content{
+.answer-modal.show{
+    display:flex;
+}
+
+.modal-box{
     background:white;
-    width:min(700px,95vw);
-    max-height:85vh;
+    width:min(850px,95%);
+    max-height:90vh;
     overflow:auto;
     border-radius:15px;
     padding:20px;
-    box-shadow:0 10px 40px rgba(0,0,0,.3);
 }
 
-.answer-modal-header{
+.modal-header{
     display:flex;
     justify-content:space-between;
     align-items:center;
     border-bottom:1px solid #ddd;
-    padding-bottom:12px;
+    padding-bottom:10px;
     margin-bottom:15px;
 }
 
-.answer-modal-header h2{
-    margin:0;
-    color:#1565c0;
-}
-
-.close-answer{
-    background:#d32f2f;
-    color:white;
-    font-size:18px;
-    width:40px;
-    height:40px;
-    padding:0;
-}
-
 .answer-item{
-    background:#f7f9fc;
-    border:1px solid #e0e0e0;
-    border-radius:9px;
+    border:1px solid #ddd;
+    border-radius:10px;
     padding:12px;
-    margin-bottom:10px;
+    margin:9px 0;
 }
 
 .answer-question{
     font-weight:bold;
-    color:#1565c0;
-    margin-bottom:6px;
 }
 
 .answer-value{
-    color:#222;
+    color:#1565c0;
+    margin-top:5px;
 }
 
-/* MESSAGES */
-
-#limitMessage,
-#questionMessage{
-    font-weight:bold;
+.respondent{
+    background:#f5f8fc;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:15px;
 }
 
-/* MOBILE */
+.respondent-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+}
 
-@media(max-width:700px){
+@media(max-width:900px){
+    .dashboard{
+        grid-template-columns:repeat(3,1fr);
+    }
 
-    .container{
-        padding:10px;
+    .filter-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:600px){
+    .dashboard{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .filter-grid{
+        grid-template-columns:1fr;
+    }
+
+    .respondent-grid{
+        grid-template-columns:1fr;
     }
 
     .header{
-        font-size:20px;
-    }
-
-    .section{
-        padding:15px;
-    }
-
-    .dashboard{
-        grid-template-columns:repeat(2,1fr);
-        gap:10px;
-    }
-
-    .card{
-        padding:14px 8px;
-    }
-
-    .card h4{
-        font-size:13px;
-    }
-
-    .card h2{
-        font-size:22px;
-    }
-
-    .records-title{
-        align-items:flex-start;
-        flex-direction:column;
-    }
-
-    #recordsFilterArea{
-        padding:10px;
+        font-size:21px;
     }
 }
 </style>
@@ -415,11 +289,7 @@ tr:hover td{
 <body>
 
 <div class="header">
-    Surveykshan Admin Dashboard
-</div>
-
-<div class="admin-info">
-    Admin Panel • Survey Management System
+    📊 Surveykshan Admin Dashboard
 </div>
 
 <div class="container">
@@ -428,219 +298,272 @@ tr:hover td{
 
 <div class="dashboard">
 
-    <div class="card">
-        <h4>Total Surveys</h4>
-        <h2 id="totalSurvey">0</h2>
-    </div>
+<div class="stat">
+<h3>Total Surveys</h3>
+<strong id="totalSurvey">0</strong>
+</div>
 
-    <div class="card">
-        <h4>Today's Surveys</h4>
-        <h2 id="todaySurvey">0</h2>
-    </div>
+<div class="stat">
+<h3>Today's Surveys</h3>
+<strong id="todaySurvey">0</strong>
+</div>
 
-    <div class="card">
-        <h4>This Week</h4>
-        <h2 id="weekSurvey">0</h2>
-    </div>
+<div class="stat">
+<h3>This Week</h3>
+<strong id="weekSurvey">0</strong>
+</div>
 
-    <div class="card">
-        <h4>This Month</h4>
-        <h2 id="monthSurvey">0</h2>
-    </div>
+<div class="stat">
+<h3>This Month</h3>
+<strong id="monthSurvey">0</strong>
+</div>
 
-    <div class="card">
-        <h4>Questions</h4>
-        <h2 id="questionCount">0</h2>
-    </div>
+<div class="stat">
+<h3>Total Questions</h3>
+<strong id="questionCount">0</strong>
+</div>
 
 </div>
 
 
-<!-- QUESTION BUILDER -->
+<!-- QUESTION MANAGER -->
 
-<div class="section" id="questionManagerSection">
+<div class="card">
 
-    <h2>📝 Survey Question Manager</h2>
+<div class="section-title">
 
-    <p>
-        यहाँ से survey questions बनाएँ और manage करें।
-    </p>
+<h2>📝 Survey Question Manager</h2>
 
-    <label>
-        <b>Question</b>
-    </label>
-
-    <input
-        type="text"
-        id="questionText"
-        placeholder="Enter your question"
-        autocomplete="off">
-
-    <label>
-        <b>Question Type</b>
-    </label>
-
-    <select id="questionType">
-
-        <option value="single">
-            Single Choice
-        </option>
-
-        <option value="multiple">
-            Multiple Choice
-        </option>
-
-    </select>
-
-    <h3>Options</h3>
-
-    <div id="optionsContainer"></div>
-
-    <button
-        type="button"
-        class="gray"
-        id="addOption">
-        ➕ Add Option
-    </button>
-
-    <br>
-
-    <button
-        type="button"
-        class="success"
-        id="saveQuestion">
-        💾 Save Question
-    </button>
-
-    <button
-        type="button"
-        class="warning"
-        id="cancelEdit"
-        style="display:none;">
-        Cancel Edit
-    </button>
-
-    <p id="questionMessage"></p>
+<button
+id="questionManagerToggle"
+class="primary"
+type="button">
+🙈 Hide
+</button>
 
 </div>
 
 
-<!-- QUESTIONS LIST -->
+<div id="questionManagerBody">
 
-<div class="section" id="questionsListSection">
+<input
+id="questionText"
+type="text"
+placeholder="Enter survey question">
 
-    <h2>📋 Survey Questions</h2>
 
-    <div id="questionsList">
-        <p>Loading questions...</p>
-    </div>
+<select id="questionType">
+<option value="single">Single Choice</option>
+<option value="multiple">Multiple Choice</option>
+</select>
 
+
+<h3>Options</h3>
+
+<div id="optionsContainer"></div>
+
+<button
+id="addOption"
+type="button"
+class="gray">
+➕ Add Option
+</button>
+
+<br>
+
+<button
+id="saveQuestion"
+type="button"
+class="success">
+💾 Save Question
+</button>
+
+<button
+id="cancelEdit"
+type="button"
+class="warning"
+style="display:none">
+Cancel Edit
+</button>
+
+<p id="questionMessage"></p>
+
+<hr>
+
+<h3>📋 Existing Questions</h3>
+
+<div id="questionsList"></div>
+
+</div>
 </div>
 
 
 <!-- DAILY LIMIT -->
 
-<div class="section">
+<div class="card">
 
-    <h2>⚙️ Daily Survey Limit</h2>
+<div class="section-title">
+<h2>⚙️ Daily Survey Limit</h2>
+</div>
 
-    <input
-        type="number"
-        id="dailyLimitInput"
-        min="1"
-        value="20"
-        placeholder="Daily Limit">
+<input
+id="dailyLimitInput"
+type="number"
+min="1"
+value="20">
 
-    <button
-        type="button"
-        class="primary"
-        id="saveDailyLimit">
-        💾 Save Limit
-    </button>
+<button
+id="saveDailyLimit"
+class="primary"
+type="button">
+💾 Save Limit
+</button>
 
-    <span id="limitMessage"></span>
+<span id="limitMessage"></span>
 
 </div>
 
 
 <!-- SURVEYOR MANAGEMENT -->
 
-<div class="section">
+<div class="card">
 
-    <h2>👥 Surveyor Management</h2>
+<div class="section-title">
+<h2>👥 Surveyor Management</h2>
+</div>
 
-    <div class="table-wrapper">
+<div class="table-wrap">
 
-        <table>
+<table>
 
-            <thead>
-                <tr>
-                    <th>Surveyor</th>
-                    <th>Total</th>
-                    <th>Today</th>
-                    <th>This Week</th>
-                    <th>This Month</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
+<thead>
+<tr>
+<th>Surveyor</th>
+<th>Total</th>
+<th>Today</th>
+<th>This Week</th>
+<th>This Month</th>
+<th>Status</th>
+</tr>
+</thead>
 
-            <tbody id="surveyorManagementTable"></tbody>
+<tbody id="surveyorManagementTable"></tbody>
 
-        </table>
+</table>
 
-    </div>
+</div>
 
 </div>
 
 
-<!-- FILTER IS NOW OUTSIDE RECORD TABLE -->
+<!-- FILTER -->
 
-<div id="recordsFilterArea">
+<div class="card">
 
-    <h3>🔎 Filter Survey Records</h3>
+<div class="section-title">
+<h2>🔎 Filter Survey Records</h2>
+</div>
+
+<div class="filter-box">
+
+<div class="filter-grid">
+
+<select id="filterName">
+<option value="">👤 All Names</option>
+</select>
+
+<select id="filterMobile">
+<option value="">📱 All Mobiles</option>
+</select>
+
+<select id="filterVillage">
+<option value="">🏠 All Villages</option>
+</select>
+
+<select id="filterSurveyor">
+<option value="">🧑‍💼 All Surveyors</option>
+</select>
+
+<select id="filterDate">
+<option value="">📅 All Dates</option>
+<option value="today">Today</option>
+<option value="week">This Week</option>
+<option value="month">This Month</option>
+</select>
+
+</div>
+
+<div class="filter-buttons">
+
+<button
+id="applySurveyFilter"
+class="primary"
+type="button">
+🔎 Filter
+</button>
+
+<button
+id="clearSurveyFilter"
+class="warning"
+type="button">
+✖ Clear
+</button>
+
+<span id="filterResultCount">
+Showing: 0 / 0
+</span>
+
+</div>
+
+</div>
 
 </div>
 
 
 <!-- SURVEY RECORDS -->
 
-<div class="section records-section">
+<div class="card">
 
-    <div class="records-title">
+<div class="section-title">
 
-        <h2>📊 Survey Records</h2>
+<h2>📊 Survey Records</h2>
 
-        <button
-            type="button"
-            class="danger"
-            id="deleteAllSurveysBtn">
-            🗑️ Delete All Surveys
-        </button>
+<button
+id="deleteAllSurveysBtn"
+class="danger"
+type="button">
+🗑️ Delete All Surveys
+</button>
 
-    </div>
+</div>
 
-    <div class="records-table-wrapper">
 
-        <table>
+<div class="table-wrap">
 
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Mobile</th>
-                    <th>Age</th>
-                    <th>Gender</th>
-                    <th>Village</th>
-                    <th>Party</th>
-                    <th>Candidate</th>
-                    <th>Answers / Action</th>
-                </tr>
-            </thead>
+<table>
 
-            <tbody id="surveyTable"></tbody>
+<thead>
 
-        </table>
+<tr>
 
-    </div>
+<th>Name</th>
+<th>Mobile</th>
+<th>Age</th>
+<th>Gender</th>
+<th>Village</th>
+<th>Party</th>
+<th>Candidate</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody id="surveyTable"></tbody>
+
+</table>
+
+</div>
 
 </div>
 
@@ -648,197 +571,53 @@ tr:hover td{
 <!-- ANSWER MODAL -->
 
 <div
-    id="answerModal"
-    class="answer-modal">
+id="answerModal"
+class="answer-modal">
 
-    <div class="answer-modal-content">
+<div class="modal-box">
 
-        <div class="answer-modal-header">
+<div class="modal-header">
 
-            <h2>📋 Survey Answers</h2>
+<h2>📋 Survey Answers</h2>
 
-            <button
-                type="button"
-                class="close-answer"
-                onclick="closeAnswerModal()">
-                ×
-            </button>
+<button
+id="closeAnswerModal"
+class="danger"
+type="button">
+✖
+</button>
 
-        </div>
+</div>
 
-        <div id="answerModalBody"></div>
+<div id="answerModalBody"></div>
 
-    </div>
+</div>
 
 </div>
 
 
 <!-- LOGOUT -->
 
-<div style="text-align:center;margin:25px 0;">
+<div style="text-align:center;margin:25px">
 
-    <button
-        type="button"
-        class="danger"
-        id="logoutBtn">
-        🚪 Logout
-    </button>
-
-</div>
+<button
+id="logoutBtn"
+class="danger"
+type="button">
+🚪 Logout
+</button>
 
 </div>
 
+</div>
 
-<!-- FIREBASE -->
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script src="firebase.js"></script>
-
 <script src="admin.js"></script>
-
-
-<!-- FILTER RELOCATION -->
-
-<script>
-
-(function(){
-
-    function moveFilterOutsideRecords(){
-
-        const target =
-            document.getElementById("recordsFilterArea");
-
-        if(!target) return;
-
-        const recordsSection =
-            document.querySelector(".records-section");
-
-        if(!recordsSection) return;
-
-        /*
-         * अगर admin.js ने filter पहले ही बनाया है
-         * तो उसे Survey Records के ऊपर move कर देंगे।
-         */
-
-        const candidates =
-            document.querySelectorAll(
-                "div,section,form"
-            );
-
-        candidates.forEach(function(el){
-
-            if(
-                el === target ||
-                target.contains(el) ||
-                el.contains(target)
-            ){
-                return;
-            }
-
-            const text =
-                (el.innerText || "").toLowerCase();
-
-            const selects =
-                el.querySelectorAll("select").length;
-
-            const hasFilterButton =
-                text.includes("filter") &&
-                text.includes("clear");
-
-            if(
-                selects >= 3 &&
-                hasFilterButton &&
-                el.offsetWidth > 0 &&
-                el.offsetHeight > 0
-            ){
-
-                if(
-                    !recordsSection.contains(el) &&
-                    !target.contains(el)
-                ){
-
-                    target.appendChild(el);
-
-                }
-
-            }
-
-        });
-
-    }
-
-
-    setTimeout(
-        moveFilterOutsideRecords,
-        500
-    );
-
-    setTimeout(
-        moveFilterOutsideRecords,
-        1500
-    );
-
-    setTimeout(
-        moveFilterOutsideRecords,
-        3000
-    );
-
-    const observer =
-        new MutationObserver(function(){
-
-            moveFilterOutsideRecords();
-
-        });
-
-    observer.observe(
-        document.body,
-        {
-            childList:true,
-            subtree:true
-        }
-    );
-
-})();
-
-</script>
-
-
-<!-- ANSWER MODAL HELPERS -->
-
-<script>
-
-function closeAnswerModal(){
-
-    const modal =
-        document.getElementById("answerModal");
-
-    if(modal){
-        modal.style.display = "none";
-    }
-
-}
-
-
-window.addEventListener("click",function(event){
-
-    const modal =
-        document.getElementById("answerModal");
-
-    if(
-        modal &&
-        event.target === modal
-    ){
-
-        modal.style.display = "none";
-
-    }
-
-});
-
-</script>
 
 </body>
 </html>
