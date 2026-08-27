@@ -1,11 +1,15 @@
-console.log("Survey JS Loaded - FINAL FIXED VERSION");
+console.log("Survey JS Loaded - FINAL PHOTO + LOCATION FIXED VERSION");
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
 let DAILY_LIMIT = 0;
 let currentQuestion = 0;
 let surveyQuestions = [];
-let answers = { basic: {}, questions: {} };
+let answers = {
+    basic: {},
+    questions: {}
+};
+
 let surveyStarted = false;
 let submitBtn = null;
 let message = null;
@@ -31,6 +35,18 @@ const PHOTO_QUESTION = {
 
 
 /* =========================================================
+   TEMPORARY PHOTO FILE MEMORY
+========================================================= */
+
+let selectedPhotoFiles = {
+    photoVillage: null,
+    photoProblem: null,
+    photoPerson: null,
+    photoSelfie: null
+};
+
+
+/* =========================================================
    FIREBASE STORAGE LOADER
 ========================================================= */
 
@@ -38,29 +54,55 @@ function loadFirebaseStorageSDK() {
 
     return new Promise(function(resolve) {
 
-        if (
-            firebase.storage &&
-            typeof firebase.storage === "function"
-        ) {
-            try {
-                firebase.storage();
-                firebaseStorageReady = true;
-                console.log("Firebase Storage Ready");
-                resolve(true);
-                return;
+        try {
+
+            if (
+                typeof firebase !== "undefined" &&
+                firebase.storage &&
+                typeof firebase.storage === "function"
+            ) {
+
+                try {
+
+                    firebase.storage();
+
+                    firebaseStorageReady = true;
+
+                    console.log(
+                        "Firebase Storage Ready"
+                    );
+
+                    resolve(true);
+                    return;
+
+                }
+                catch(error) {
+
+                    console.warn(
+                        "Existing Firebase Storage initialization failed:",
+                        error
+                    );
+
+                }
+
             }
-            catch(error) {
-                console.warn(
-                    "Firebase Storage initialization failed:",
-                    error
-                );
-            }
+
         }
+        catch(error) {
+
+            console.warn(
+                "Firebase Storage check failed:",
+                error
+            );
+
+        }
+
 
         const existing =
             document.querySelector(
                 'script[data-firebase-storage="true"]'
             );
+
 
         if(existing) {
 
@@ -69,37 +111,53 @@ function loadFirebaseStorageSDK() {
                 function() {
 
                     try {
+
                         firebase.storage();
+
                         firebaseStorageReady = true;
+
                         console.log(
                             "Firebase Storage Loaded"
                         );
+
                         resolve(true);
+
                     }
                     catch(error) {
+
                         console.error(
                             "Storage initialization error:",
                             error
                         );
+
                         resolve(false);
+
                     }
 
-                }
+                },
+                { once:true }
             );
+
 
             existing.addEventListener(
                 "error",
                 function() {
+
                     resolve(false);
-                }
+
+                },
+                { once:true }
             );
 
+
             return;
+
         }
 
 
         const script =
             document.createElement("script");
+
 
         script.src =
             "https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js";
@@ -112,47 +170,51 @@ function loadFirebaseStorageSDK() {
         );
 
 
-        script.onload = function() {
+        script.onload =
+            function() {
 
-            try {
+                try {
 
-                firebase.storage();
+                    firebase.storage();
 
-                firebaseStorageReady = true;
+                    firebaseStorageReady = true;
 
-                console.log(
-                    "Firebase Storage SDK Loaded Successfully"
-                );
+                    console.log(
+                        "Firebase Storage SDK Loaded Successfully"
+                    );
 
-                resolve(true);
+                    resolve(true);
 
-            }
-            catch(error) {
+                }
+                catch(error) {
+
+                    console.error(
+                        "Storage initialization error:",
+                        error
+                    );
+
+                    resolve(false);
+
+                }
+
+            };
+
+
+        script.onerror =
+            function() {
 
                 console.error(
-                    "Storage initialization error:",
-                    error
+                    "Firebase Storage SDK could not be loaded."
                 );
 
                 resolve(false);
 
-            }
-
-        };
+            };
 
 
-        script.onerror = function() {
-
-            console.error(
-                "Firebase Storage SDK could not be loaded."
-            );
-
-            resolve(false);
-
-        };
-
-
-        document.head.appendChild(script);
+        document.head.appendChild(
+            script
+        );
 
     });
 
@@ -169,15 +231,18 @@ function initializeSurveyPage() {
         "Initializing Survey Page..."
     );
 
+
     submitBtn =
         document.getElementById(
             "submitSurvey"
         );
 
+
     message =
         document.getElementById(
             "message"
         );
+
 
     setupBasicDetails();
 
@@ -206,8 +271,10 @@ function createDailyProgressUI() {
     const box =
         document.createElement("div");
 
+
     box.id =
         "dailyProgressBox";
+
 
     box.style.cssText =
         "background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:15px;margin:15px 0;box-shadow:0 2px 8px rgba(0,0,0,.08);font-family:Arial,sans-serif;";
@@ -216,12 +283,14 @@ function createDailyProgressUI() {
     const titleRow =
         document.createElement("div");
 
+
     titleRow.style.cssText =
         "display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:bold;";
 
 
     const title =
         document.createElement("span");
+
 
     title.textContent =
         "📊 Today's Progress";
@@ -230,8 +299,10 @@ function createDailyProgressUI() {
     const progressText =
         document.createElement("span");
 
+
     progressText.id =
         "dailyProgressText";
+
 
     progressText.textContent =
         "0 / --";
@@ -246,6 +317,7 @@ function createDailyProgressUI() {
     const progressBackground =
         document.createElement("div");
 
+
     progressBackground.style.cssText =
         "width:100%;height:12px;background:#eee;border-radius:20px;overflow:hidden;";
 
@@ -253,8 +325,10 @@ function createDailyProgressUI() {
     const progressBar =
         document.createElement("div");
 
+
     progressBar.id =
         "dailyProgressBar";
+
 
     progressBar.style.cssText =
         "width:0%;height:100%;background:#1565c0;transition:width .4s ease;";
@@ -268,11 +342,14 @@ function createDailyProgressUI() {
     const remainingText =
         document.createElement("div");
 
+
     remainingText.id =
         "dailyRemainingText";
 
+
     remainingText.textContent =
         "Loading daily limit...";
+
 
     remainingText.style.cssText =
         "margin-top:8px;font-size:13px;color:#555;";
@@ -325,11 +402,14 @@ function updateDailyProgress(count) {
 
     count = Number(count);
 
+
     if(
         !Number.isFinite(count) ||
         count < 0
     ) {
+
         count = 0;
+
     }
 
 
@@ -362,20 +442,24 @@ function updateDailyProgress(count) {
             "dailyProgressText"
         );
 
+
     const remainingText =
         document.getElementById(
             "dailyRemainingText"
         );
+
 
     const progressBar =
         document.getElementById(
             "dailyProgressBar"
         );
 
+
     const todayCount =
         document.getElementById(
             "todayCount"
         );
+
 
     const remainingCount =
         document.getElementById(
@@ -408,6 +492,7 @@ function updateDailyProgress(count) {
 
         progressBar.style.width =
             percentage + "%";
+
 
         progressBar.style.background =
             count >= limit
@@ -488,6 +573,7 @@ function loadDailyLimit() {
             DAILY_LIMIT =
                 value;
 
+
             dailyLimitLoaded =
                 true;
 
@@ -512,6 +598,7 @@ function loadDailyLimit() {
 
             dailyLimitLoaded =
                 false;
+
 
             DAILY_LIMIT =
                 0;
@@ -609,6 +696,7 @@ function startAuthentication() {
                                     "🚫 Daily survey limit reached. You cannot submit more surveys today."
                                 );
 
+
                                 disableSurveyButtons();
 
                                 return;
@@ -643,6 +731,7 @@ function startAuthentication() {
                 error
             );
 
+
             showMessage(
                 "Authentication error: " +
                 error.message
@@ -671,6 +760,7 @@ function getTodayCount(user) {
 
     const todayStart =
         new Date();
+
 
     todayStart.setHours(
         0,
@@ -727,6 +817,7 @@ function getTodayCount(user) {
                 "Today count error:",
                 error
             );
+
 
             return 0;
 
@@ -795,20 +886,6 @@ function getFirestoreDate(value) {
 
 function loadQuestionsFromFirestore() {
 
-    const questionText =
-        document.getElementById(
-            "questionText"
-        );
-
-
-    if(questionText) {
-
-        questionText.textContent =
-            "Loading questions...";
-
-    }
-
-
     db.collection("questions")
         .orderBy(
             "createdAt",
@@ -859,6 +936,7 @@ function loadQuestionsFromFirestore() {
                 "Question loading error:",
                 error
             );
+
 
             showMessage(
                 "Questions load failed: " +
@@ -949,6 +1027,7 @@ function buildQuestionsFromSnapshot(
                     a.createdAt
                 );
 
+
             const dateB =
                 getFirestoreDate(
                     b.createdAt
@@ -987,13 +1066,14 @@ function buildQuestionsFromSnapshot(
 
 
     /*
-     * ALWAYS KEEP THESE TWO
-     * AT THE END.
+     * PERMANENT QUESTIONS
+     * ALWAYS AT END
      */
 
     surveyQuestions.push(
         LOCATION_QUESTION
     );
+
 
     surveyQuestions.push(
         PHOTO_QUESTION
@@ -1006,20 +1086,14 @@ function buildQuestionsFromSnapshot(
     );
 
 
-    if(
-        surveyQuestions.length === 2
-    ) {
-
-        showMessage(
-            "No normal questions available. Permanent location and photo questions are ready."
-        );
-
-    }
-
-
     currentQuestion = 0;
 
+
     answers.questions = {};
+
+
+    resetPhotoMemory();
+
 
     renderQuestion();
 
@@ -1065,20 +1139,26 @@ function setupBasicDetails() {
             const name =
                 getValue("name");
 
+
             const mobile =
                 getValue("mobile");
+
 
             const age =
                 getValue("age");
 
+
             const gender =
                 getValue("gender");
+
 
             const village =
                 getValue("village");
 
+
             const district =
                 getValue("district");
+
 
             const pincode =
                 getValue("pincode");
@@ -1185,9 +1265,11 @@ function setupBasicDetails() {
 
                         disableSurveyButtons();
 
+
                         showMessage(
                             "🚫 Daily survey limit reached."
                         );
+
 
                         return;
 
@@ -1215,7 +1297,12 @@ function setupBasicDetails() {
 
                     answers.questions = {};
 
+
+                    resetPhotoMemory();
+
+
                     currentQuestion = 0;
+
 
                     surveyStarted = true;
 
@@ -1230,6 +1317,7 @@ function setupBasicDetails() {
                         "Basic details error:",
                         error
                     );
+
 
                     showMessage(
                         "Unable to continue: " +
@@ -1255,6 +1343,7 @@ function showQuestionPage() {
             "basicDetailsStep"
         );
 
+
     const questionStep =
         document.getElementById(
             "questionStep"
@@ -1270,6 +1359,7 @@ function showQuestionPage() {
             "Basic Details Step or Question Step not found."
         );
 
+
         return;
 
     }
@@ -1278,20 +1368,26 @@ function showQuestionPage() {
     questionStep.style.display =
         "block";
 
+
     questionStep.style.position =
         "absolute";
+
 
     questionStep.style.left =
         "0";
 
+
     questionStep.style.top =
         "0";
+
 
     questionStep.style.width =
         "100%";
 
+
     questionStep.style.transform =
         "translateX(100%)";
+
 
     questionStep.style.opacity =
         "0";
@@ -1300,14 +1396,18 @@ function showQuestionPage() {
     basicStep.style.position =
         "relative";
 
+
     basicStep.style.transform =
         "translateX(0)";
+
 
     basicStep.style.opacity =
         "1";
 
+
     basicStep.style.transition =
         "transform .45s ease, opacity .45s ease";
+
 
     questionStep.style.transition =
         "transform .45s ease, opacity .45s ease";
@@ -1319,11 +1419,14 @@ function showQuestionPage() {
     basicStep.style.transform =
         "translateX(-100%)";
 
+
     basicStep.style.opacity =
         "0";
 
+
     questionStep.style.transform =
         "translateX(0)";
+
 
     questionStep.style.opacity =
         "1";
@@ -1334,14 +1437,18 @@ function showQuestionPage() {
         basicStep.style.display =
             "none";
 
+
         basicStep.style.position =
             "relative";
+
 
         basicStep.style.left =
             "auto";
 
+
         basicStep.style.top =
             "auto";
+
 
         basicStep.style.width =
             "100%";
@@ -1350,11 +1457,14 @@ function showQuestionPage() {
         questionStep.style.position =
             "relative";
 
+
         questionStep.style.left =
             "auto";
 
+
         questionStep.style.top =
             "auto";
+
 
         questionStep.style.width =
             "100%";
@@ -1363,11 +1473,14 @@ function showQuestionPage() {
         basicStep.style.transform =
             "";
 
+
         basicStep.style.opacity =
             "";
 
+
         questionStep.style.transform =
             "";
+
 
         questionStep.style.opacity =
             "";
@@ -1391,25 +1504,30 @@ function renderQuestion() {
             "questionText"
         );
 
+
     const questionNumber =
         document.getElementById(
             "questionNumber"
         );
+
 
     const optionsBox =
         document.getElementById(
             "questionOptions"
         );
 
+
     const nextButton =
         document.getElementById(
             "nextButton"
         );
 
+
     const previousButton =
         document.getElementById(
             "previousButton"
         );
+
 
     const submitButton =
         document.getElementById(
@@ -1430,8 +1548,10 @@ function renderQuestion() {
         questionText.textContent =
             "No questions found.";
 
+
         optionsBox.innerHTML =
             "";
+
 
         return;
 
@@ -1458,10 +1578,6 @@ function renderQuestion() {
     }
 
 
-    /*
-     * LOCATION
-     */
-
     if(
         question.type ===
         "location"
@@ -1474,10 +1590,6 @@ function renderQuestion() {
 
     }
 
-    /*
-     * PHOTOS
-     */
-
     else if(
         question.type ===
         "photos"
@@ -1489,10 +1601,6 @@ function renderQuestion() {
         );
 
     }
-
-    /*
-     * NORMAL QUESTION
-     */
 
     else {
 
@@ -1705,8 +1813,10 @@ function renderLocationQuestion(
     button.type =
         "button";
 
+
     button.className =
         "primary";
+
 
     button.textContent =
         "📍 मेरी Live Location चुनें";
@@ -1730,15 +1840,20 @@ function renderLocationQuestion(
 
     if(
         saved &&
-        saved.latitude &&
-        saved.longitude
+        saved.latitude !== undefined &&
+        saved.longitude !== undefined
     ) {
 
         status.textContent =
             "✅ Location captured";
 
+
         status.style.color =
             "#2e7d32";
+
+
+        button.textContent =
+            "✅ Location Captured";
 
     }
 
@@ -1750,8 +1865,10 @@ function renderLocationQuestion(
             button.disabled =
                 true;
 
+
             button.textContent =
                 "📍 Location प्राप्त हो रही है...";
+
 
             status.textContent =
                 "";
@@ -1763,11 +1880,13 @@ function renderLocationQuestion(
 
                     answers.questions[
                         LOCATION_QUESTION.id
-                    ] = locationData;
+                    ] =
+                        locationData;
 
 
                     status.textContent =
                         "✅ Live Location captured successfully";
+
 
                     status.style.color =
                         "#2e7d32";
@@ -1790,12 +1909,14 @@ function renderLocationQuestion(
                         "❌ " +
                         error.message;
 
+
                     status.style.color =
                         "#c62828";
 
 
                     button.disabled =
                         false;
+
 
                     button.textContent =
                         "📍 मेरी Live Location चुनें";
@@ -1853,28 +1974,32 @@ function renderPhotoQuestion(
             id:"photoVillage",
             title:"1️⃣ गाँव की फोटो",
             description:
-                "गाँव / क्षेत्र की सामान्य स्थिति की फोटो"
+                "गाँव / क्षेत्र की सामान्य स्थिति की फोटो",
+            camera:"environment"
         },
 
         {
             id:"photoProblem",
             title:"2️⃣ गाँव की समस्या की फोटो",
             description:
-                "गाँव में दिखाई देने वाली प्रमुख समस्या की फोटो"
+                "गाँव में दिखाई देने वाली प्रमुख समस्या की फोटो",
+            camera:"environment"
         },
 
         {
             id:"photoPerson",
             title:"3️⃣ व्यक्ति की फोटो",
             description:
-                "सर्वे से संबंधित व्यक्ति की फोटो"
+                "सर्वे से संबंधित व्यक्ति की फोटो",
+            camera:"environment"
         },
 
         {
             id:"photoSelfie",
             title:"4️⃣ Respondent के साथ Selfie",
             description:
-                "Respondent के साथ आपकी selfie"
+                "Respondent के साथ आपकी selfie",
+            camera:"user"
         }
 
     ];
@@ -1930,14 +2055,47 @@ function renderPhotoQuestion(
             input.type =
                 "file";
 
+
             input.id =
                 item.id;
+
+
+            /*
+             * Camera + Gallery
+             */
 
             input.accept =
                 "image/*";
 
+
+            input.setAttribute(
+                "capture",
+                item.camera
+            );
+
+
             input.style.cssText =
                 "width:100%;padding:8px;border:1px solid #ccd5df;border-radius:8px;background:#fff;";
+
+
+            const existingFile =
+                selectedPhotoFiles[
+                    item.id
+                ];
+
+
+            if(existingFile) {
+
+                /*
+                 * Browser security prevents
+                 * assigning File back into
+                 * input.files.
+                 *
+                 * So we only show memory
+                 * status here.
+                 */
+
+            }
 
 
             const preview =
@@ -1947,7 +2105,16 @@ function renderPhotoQuestion(
 
 
             preview.style.cssText =
-                "margin-top:8px;font-size:13px;color:#2e7d32;";
+                "margin-top:8px;font-size:13px;color:#2e7d32;font-weight:bold;";
+
+
+            if(existingFile) {
+
+                preview.textContent =
+                    "✅ Selected: " +
+                    existingFile.name;
+
+            }
 
 
             input.addEventListener(
@@ -1956,11 +2123,18 @@ function renderPhotoQuestion(
 
                     if(
                         input.files &&
-                        input.files.length
+                        input.files.length > 0
                     ) {
 
                         const file =
                             input.files[0];
+
+
+                        selectedPhotoFiles[
+                            item.id
+                        ] =
+                            file;
+
 
                         preview.textContent =
                             "✅ Selected: " +
@@ -1969,8 +2143,30 @@ function renderPhotoQuestion(
                     }
                     else {
 
-                        preview.textContent =
-                            "";
+                        /*
+                         * Do not delete memory
+                         * automatically.
+                         */
+
+                        if(
+                            selectedPhotoFiles[
+                                item.id
+                            ]
+                        ) {
+
+                            preview.textContent =
+                                "✅ Selected: " +
+                                selectedPhotoFiles[
+                                    item.id
+                                ].name;
+
+                        }
+                        else {
+
+                            preview.textContent =
+                                "";
+
+                        }
 
                     }
 
@@ -2001,7 +2197,7 @@ function renderPhotoQuestion(
 
 
     note.textContent =
-        "⚠️ चारों फोटो आवश्यक हैं। सभी फोटो चुनने के बाद आगे बढ़ें।";
+        "⚠️ चारों फोटो आवश्यक हैं। प्रत्येक फोटो के लिए Camera या Gallery से फोटो चुनें।";
 
 
     note.style.cssText =
@@ -2021,7 +2217,7 @@ function renderPhotoQuestion(
 
 
 /* =========================================================
-   CURRENT ANSWER
+   GET CURRENT QUESTION ANSWER
 ========================================================= */
 
 function getCurrentQuestionAnswer() {
@@ -2040,10 +2236,6 @@ function getCurrentQuestionAnswer() {
     if(!question) return null;
 
 
-    /*
-     * LOCATION
-     */
-
     if(
         question.type ===
         "location"
@@ -2056,66 +2248,15 @@ function getCurrentQuestionAnswer() {
     }
 
 
-    /*
-     * PHOTOS
-     */
-
     if(
         question.type ===
         "photos"
     ) {
 
-        const photoIds = [
-
-            "photoVillage",
-            "photoProblem",
-            "photoPerson",
-            "photoSelfie"
-
-        ];
-
-
-        const files = [];
-
-
-        photoIds.forEach(
-            function(id) {
-
-                const input =
-                    document.getElementById(
-                        id
-                    );
-
-
-                if(
-                    input &&
-                    input.files &&
-                    input.files.length > 0
-                ) {
-
-                    files.push({
-
-                        id:id,
-
-                        file:
-                            input.files[0]
-
-                    });
-
-                }
-
-            }
-        );
-
-
-        return files;
+        return getRequiredPhotoFiles();
 
     }
 
-
-    /*
-     * NORMAL
-     */
 
     const inputs =
         document.querySelectorAll(
@@ -2177,6 +2318,79 @@ function getCurrentQuestionAnswer() {
 
 
 /* =========================================================
+   GET PHOTO FILES
+========================================================= */
+
+function getRequiredPhotoFiles() {
+
+    const ids = [
+
+        "photoVillage",
+        "photoProblem",
+        "photoPerson",
+        "photoSelfie"
+
+    ];
+
+
+    const files = [];
+
+
+    ids.forEach(
+        function(id) {
+
+            let file =
+                selectedPhotoFiles[id];
+
+
+            const input =
+                document.getElementById(
+                    id
+                );
+
+
+            /*
+             * Current input has priority
+             */
+
+            if(
+                input &&
+                input.files &&
+                input.files.length > 0
+            ) {
+
+                file =
+                    input.files[0];
+
+
+                selectedPhotoFiles[id] =
+                    file;
+
+            }
+
+
+            if(file) {
+
+                files.push({
+
+                    id:id,
+
+                    file:file
+
+                });
+
+            }
+
+        }
+    );
+
+
+    return files;
+
+}
+
+
+/* =========================================================
    SAVE CURRENT ANSWER
 ========================================================= */
 
@@ -2214,6 +2428,7 @@ function saveCurrentQuestionAnswer() {
                 "📍 Please capture your live location before continuing."
             );
 
+
             return false;
 
         }
@@ -2221,7 +2436,8 @@ function saveCurrentQuestionAnswer() {
 
         answers.questions[
             LOCATION_QUESTION.id
-        ] = answer;
+        ] =
+            answer;
 
 
         return true;
@@ -2247,6 +2463,7 @@ function saveCurrentQuestionAnswer() {
                 "📷 Please select all 4 required photos."
             );
 
+
             return false;
 
         }
@@ -2268,21 +2485,16 @@ function saveCurrentQuestionAnswer() {
             i++
         ) {
 
-            const input =
-                document.getElementById(
-                    requiredIds[i]
-                );
-
-
             if(
-                !input ||
-                !input.files ||
-                input.files.length === 0
+                !selectedPhotoFiles[
+                    requiredIds[i]
+                ]
             ) {
 
                 showMessage(
                     "📷 Please select all 4 required photos."
                 );
+
 
                 return false;
 
@@ -2291,9 +2503,37 @@ function saveCurrentQuestionAnswer() {
         }
 
 
+        /*
+         * Store only metadata.
+         * Actual File objects remain
+         * in selectedPhotoFiles.
+         */
+
         answers.questions[
             PHOTO_QUESTION.id
-        ] = answer;
+        ] = {
+
+            photoVillage:
+                selectedPhotoFiles
+                    .photoVillage
+                    .name,
+
+            photoProblem:
+                selectedPhotoFiles
+                    .photoProblem
+                    .name,
+
+            photoPerson:
+                selectedPhotoFiles
+                    .photoPerson
+                    .name,
+
+            photoSelfie:
+                selectedPhotoFiles
+                    .photoSelfie
+                    .name
+
+        };
 
 
         return true;
@@ -2319,6 +2559,7 @@ function saveCurrentQuestionAnswer() {
                 "Please select at least one option."
             );
 
+
             return false;
 
         }
@@ -2335,6 +2576,7 @@ function saveCurrentQuestionAnswer() {
             "Please select an option."
         );
 
+
         return false;
 
     }
@@ -2342,7 +2584,8 @@ function saveCurrentQuestionAnswer() {
 
     answers.questions[
         question.id
-    ] = answer;
+    ] =
+        answer;
 
 
     return true;
@@ -2361,10 +2604,12 @@ function setupQuestionButtons() {
             "nextButton"
         );
 
+
     const previousButton =
         document.getElementById(
             "previousButton"
         );
+
 
     const submitButton =
         document.getElementById(
@@ -2393,6 +2638,7 @@ function setupQuestionButtons() {
 
                     currentQuestion++;
 
+
                     renderQuestion();
 
                 }
@@ -2420,11 +2666,6 @@ function setupQuestionButtons() {
 
                 if(question) {
 
-                    /*
-                     * For normal questions,
-                     * save current answer.
-                     */
-
                     if(
                         question.type !==
                         "location" &&
@@ -2450,7 +2691,8 @@ function setupQuestionButtons() {
 
                                 answers.questions[
                                     question.id
-                                ] = answer;
+                                ] =
+                                    answer;
 
                             }
 
@@ -2459,7 +2701,29 @@ function setupQuestionButtons() {
 
                             answers.questions[
                                 question.id
-                            ] = answer;
+                            ] =
+                                answer;
+
+                        }
+
+                    }
+
+                    /*
+                     * Save photo memory
+                     */
+
+                    if(
+                        question.type ===
+                        "photos"
+                    ) {
+
+                        const files =
+                            getRequiredPhotoFiles();
+
+
+                        if(files.length === 4) {
+
+                            savePhotoMetadata();
 
                         }
 
@@ -2486,12 +2750,76 @@ function setupQuestionButtons() {
 
     if(submitButton) {
 
+        /*
+         * Important:
+         * prevent default form submit
+         */
+
         submitButton.addEventListener(
             "click",
-            submitSurvey
+            function(event) {
+
+                if(event) {
+
+                    event.preventDefault();
+
+                }
+
+                submitSurvey();
+
+            }
         );
 
     }
+
+}
+
+
+/* =========================================================
+   SAVE PHOTO METADATA
+========================================================= */
+
+function savePhotoMetadata() {
+
+    const files =
+        getRequiredPhotoFiles();
+
+
+    if(files.length !== 4) {
+
+        return false;
+
+    }
+
+
+    answers.questions[
+        PHOTO_QUESTION.id
+    ] = {
+
+        photoVillage:
+            selectedPhotoFiles
+                .photoVillage
+                .name,
+
+        photoProblem:
+            selectedPhotoFiles
+                .photoProblem
+                .name,
+
+        photoPerson:
+            selectedPhotoFiles
+                .photoPerson
+                .name,
+
+        photoSelfie:
+            selectedPhotoFiles
+                .photoSelfie
+                .name
+
+    };
+
+
+    return true;
 
 }
 
@@ -2514,6 +2842,7 @@ function captureCurrentLocation() {
                         "Location is not supported by this browser."
                     )
                 );
+
 
                 return;
 
@@ -2560,6 +2889,28 @@ function captureCurrentLocation() {
                     }
 
 
+                    if(
+                        error &&
+                        error.code === 2
+                    ) {
+
+                        messageText =
+                            "Location unavailable. Please check GPS/location settings.";
+
+                    }
+
+
+                    if(
+                        error &&
+                        error.code === 3
+                    ) {
+
+                        messageText =
+                            "Location request timed out. Please try again.";
+
+                    }
+
+
                     reject(
                         new Error(
                             messageText
@@ -2574,7 +2925,7 @@ function captureCurrentLocation() {
                         true,
 
                     timeout:
-                        15000,
+                        20000,
 
                     maximumAge:
                         0
@@ -2585,60 +2936,6 @@ function captureCurrentLocation() {
 
         }
     );
-
-}
-
-
-/* =========================================================
-   GET PHOTO FILES
-========================================================= */
-
-function getRequiredPhotoFiles() {
-
-    const ids = [
-
-        "photoVillage",
-        "photoProblem",
-        "photoPerson",
-        "photoSelfie"
-
-    ];
-
-
-    const files = [];
-
-
-    ids.forEach(
-        function(id) {
-
-            const input =
-                document.getElementById(
-                    id
-                );
-
-
-            if(
-                input &&
-                input.files &&
-                input.files.length > 0
-            ) {
-
-                files.push({
-
-                    id:id,
-
-                    file:
-                        input.files[0]
-
-                });
-
-            }
-
-        }
-    );
-
-
-    return files;
 
 }
 
@@ -2676,7 +2973,7 @@ function uploadSurveyPhotos(
             if(!ready) {
 
                 throw new Error(
-                    "Firebase Storage is not available. Please enable Firebase Storage."
+                    "Firebase Storage SDK is not available."
                 );
 
             }
@@ -2836,6 +3133,7 @@ function submitSurvey() {
             "Daily limit is not loaded yet."
         );
 
+
         return;
 
     }
@@ -2846,6 +3144,7 @@ function submitSurvey() {
         showMessage(
             "Please start the survey first."
         );
+
 
         return;
 
@@ -2903,11 +3202,14 @@ function submitSurvey() {
                 currentQuestion =
                     i;
 
+
                 renderQuestion();
+
 
                 showMessage(
                     "📍 Please capture live location before submitting."
                 );
+
 
                 return;
 
@@ -2939,11 +3241,14 @@ function submitSurvey() {
                 currentQuestion =
                     i;
 
+
                 renderQuestion();
+
 
                 showMessage(
                     "📷 Please upload all 4 required photos before submitting."
                 );
+
 
                 return;
 
@@ -2972,13 +3277,16 @@ function submitSurvey() {
                 currentQuestion =
                     i;
 
+
                 renderQuestion();
+
 
                 showMessage(
                     "Please answer Question " +
                     (i + 1) +
                     " before submitting."
                 );
+
 
                 return;
 
@@ -2997,13 +3305,16 @@ function submitSurvey() {
                 currentQuestion =
                     i;
 
+
                 renderQuestion();
+
 
                 showMessage(
                     "Please answer Question " +
                     (i + 1) +
                     " before submitting."
                 );
+
 
                 return;
 
@@ -3025,6 +3336,7 @@ function submitSurvey() {
             "Session expired. Please login again."
         );
 
+
         return;
 
     }
@@ -3040,6 +3352,7 @@ function submitSurvey() {
 
         button.disabled =
             true;
+
 
         button.textContent =
             "Saving Survey...";
@@ -3073,11 +3386,7 @@ function submitSurvey() {
 
 
             /*
-             * CAPTURE LOCATION
-             *
-             * If already captured from
-             * the permanent question,
-             * use that location.
+             * LOCATION
              */
 
             const savedLocation =
@@ -3139,7 +3448,11 @@ function submitSurvey() {
                     "",
 
                 answers:
-                    answers.questions,
+                    JSON.parse(
+                        JSON.stringify(
+                            answers.questions
+                        )
+                    ),
 
                 surveyorEmail:
                     user.email ||
@@ -3175,14 +3488,20 @@ function submitSurvey() {
                         .Timestamp
                         .fromDate(
                             new Date()
-                        )
+                        ),
+
+                photoCount:
+                    0,
+
+                photos:
+                    {}
 
             };
 
 
             /*
-             * REMOVE FILE OBJECTS
-             * FROM FIRESTORE DATA
+             * Remove photo metadata
+             * from normal answers.
              */
 
             delete surveyData.answers[
@@ -3191,7 +3510,7 @@ function submitSurvey() {
 
 
             /*
-             * SAVE SURVEY
+             * SAVE SURVEY FIRST
              */
 
             return db
@@ -3210,8 +3529,16 @@ function submitSurvey() {
             );
 
 
+            if(button) {
+
+                button.textContent =
+                    "Uploading Photos...";
+
+            }
+
+
             /*
-             * UPLOAD 4 PHOTOS
+             * Upload photos
              */
 
             return uploadSurveyPhotos(
@@ -3243,60 +3570,147 @@ function submitSurvey() {
 
                     .then(function() {
 
-                        return docRef;
+                        return {
+
+                            docRef:
+                                docRef,
+
+                            photosUploaded:
+                                true
+
+                        };
 
                     });
+
+            })
+
+            .catch(function(photoError) {
+
+                /*
+                 * Survey itself has already
+                 * been saved.
+                 *
+                 * Do NOT delete it.
+                 */
+
+                console.error(
+                    "Photo upload failed:",
+                    photoError
+                );
+
+
+                return {
+
+                    docRef:
+                        docRef,
+
+                    photosUploaded:
+                        false,
+
+                    photoError:
+                        photoError
+
+                };
 
             });
 
         })
 
-        .then(function(docRef) {
+        .then(function(result) {
 
             console.log(
                 "Survey completed:",
-                docRef.id
+                result.docRef.id
             );
 
 
             return getTodayCount(
                 user
-            );
+            )
+
+            .then(function(newCount) {
+
+                return {
+
+                    result:
+                        result,
+
+                    newCount:
+                        newCount
+
+                };
+
+            });
 
         })
 
-        .then(function(newCount) {
+        .then(function(data) {
+
+            const result =
+                data.result;
+
+
+            const newCount =
+                data.newCount;
+
 
             updateDailyProgress(
                 newCount
             );
 
 
-            showSuccessMessage(
-                "✅ Survey submitted successfully!"
-            );
+            /*
+             * SUCCESS
+             */
+
+            if(
+                result.photosUploaded
+            ) {
+
+                showSuccessMessage(
+                    "✅ Survey submitted successfully with all 4 photos!"
+                );
+
+            }
+
+            else {
+
+                showSuccessMessage(
+                    "✅ Survey saved, लेकिन photos upload नहीं हो सकीं।"
+                );
+
+            }
 
 
             /*
              * IMPORTANT:
-             * OPEN NEW SURVEY AUTOMATICALLY
+             * Always open a new survey
+             * after Firestore save.
              */
 
-            resetSurveyForm();
+            setTimeout(
+                function() {
+
+                    resetSurveyForm();
 
 
-            if(
-                newCount >=
-                DAILY_LIMIT
-            ) {
+                    if(
+                        newCount >=
+                        DAILY_LIMIT
+                    ) {
 
-                disableSurveyButtons();
+                        disableSurveyButtons();
 
-                showMessage(
-                    "✅ Survey saved. Daily limit reached."
-                );
 
-            }
+                        showMessage(
+                            "✅ Survey saved. Daily limit reached."
+                        );
+
+                    }
+
+                },
+                1200
+            );
 
         })
 
@@ -3319,12 +3733,34 @@ function submitSurvey() {
                 button.disabled =
                     false;
 
+
                 button.textContent =
                     "Submit Survey";
 
             }
 
         });
+
+}
+
+
+/* =========================================================
+   RESET PHOTO MEMORY
+========================================================= */
+
+function resetPhotoMemory() {
+
+    selectedPhotoFiles = {
+
+        photoVillage:null,
+
+        photoProblem:null,
+
+        photoPerson:null,
+
+        photoSelfie:null
+
+    };
 
 }
 
@@ -3357,6 +3793,9 @@ function resetSurveyForm() {
         false;
 
 
+    resetPhotoMemory();
+
+
     [
         "name",
         "mobile",
@@ -3387,10 +3826,6 @@ function resetSurveyForm() {
     );
 
 
-    /*
-     * REMOVE ALL PHOTO FILES
-     */
-
     document
         .querySelectorAll(
             'input[type="file"]'
@@ -3410,6 +3845,7 @@ function resetSurveyForm() {
             "basicDetailsStep"
         );
 
+
     const questionStep =
         document.getElementById(
             "questionStep"
@@ -3425,23 +3861,30 @@ function resetSurveyForm() {
         basicStep.style.display =
             "block";
 
+
         basicStep.style.position =
             "relative";
+
 
         basicStep.style.left =
             "auto";
 
+
         basicStep.style.top =
             "auto";
+
 
         basicStep.style.width =
             "100%";
 
+
         basicStep.style.transform =
             "";
 
+
         basicStep.style.opacity =
             "1";
+
 
         basicStep.classList.add(
             "active"
@@ -3459,23 +3902,30 @@ function resetSurveyForm() {
         questionStep.style.display =
             "none";
 
+
         questionStep.style.position =
             "relative";
+
 
         questionStep.style.left =
             "auto";
 
+
         questionStep.style.top =
             "auto";
+
 
         questionStep.style.width =
             "100%";
 
+
         questionStep.style.transform =
             "";
 
+
         questionStep.style.opacity =
             "";
+
 
         questionStep.classList.remove(
             "active"
@@ -3495,8 +3945,10 @@ function resetSurveyForm() {
         button.disabled =
             false;
 
+
         button.textContent =
             "Submit Survey";
+
 
         button.style.display =
             "none";
@@ -3514,6 +3966,7 @@ function resetSurveyForm() {
 
         nextButton.style.display =
             "block";
+
 
         nextButton.disabled =
             false;
@@ -3586,15 +4039,18 @@ function disableSurveyButtons() {
             "basicNextButton"
         );
 
+
     const nextButton =
         document.getElementById(
             "nextButton"
         );
 
+
     const previousButton =
         document.getElementById(
             "previousButton"
         );
+
 
     const submitButton =
         document.getElementById(
@@ -3635,15 +4091,18 @@ function enableSurveyButtons() {
             "basicNextButton"
         );
 
+
     const nextButton =
         document.getElementById(
             "nextButton"
         );
 
+
     const previousButton =
         document.getElementById(
             "previousButton"
         );
+
 
     const submitButton =
         document.getElementById(
@@ -3764,6 +4223,7 @@ function clearMessage() {
 
         messageElement.textContent =
             "";
+
 
         messageElement.classList.remove(
             "success-message"
