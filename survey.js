@@ -1,4 +1,4 @@
-console.log("Survey JS Loaded - FINAL VERSION");
+console.log("Survey JS Loaded - FINAL FIXED VERSION");
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
@@ -10,13 +10,153 @@ let surveyStarted = false;
 let submitBtn = null;
 let message = null;
 let dailyLimitLoaded = false;
+let firebaseStorageReady = false;
+
 
 /* =========================================================
-   FIREBASE STORAGE
+   PERMANENT QUESTIONS
 ========================================================= */
 
-const storage =
-    firebase.storage ? firebase.storage() : null;
+const LOCATION_QUESTION = {
+    id: "__permanent_location__",
+    type: "location",
+    question: "📍 अपनी वर्तमान स्थिति का स्थान चुनें"
+};
+
+const PHOTO_QUESTION = {
+    id: "__permanent_photos__",
+    type: "photos",
+    question: "📷 आवश्यक चार फोटो अपलोड करें"
+};
+
+
+/* =========================================================
+   FIREBASE STORAGE LOADER
+========================================================= */
+
+function loadFirebaseStorageSDK() {
+
+    return new Promise(function(resolve) {
+
+        if (
+            firebase.storage &&
+            typeof firebase.storage === "function"
+        ) {
+            try {
+                firebase.storage();
+                firebaseStorageReady = true;
+                console.log("Firebase Storage Ready");
+                resolve(true);
+                return;
+            }
+            catch(error) {
+                console.warn(
+                    "Firebase Storage initialization failed:",
+                    error
+                );
+            }
+        }
+
+        const existing =
+            document.querySelector(
+                'script[data-firebase-storage="true"]'
+            );
+
+        if(existing) {
+
+            existing.addEventListener(
+                "load",
+                function() {
+
+                    try {
+                        firebase.storage();
+                        firebaseStorageReady = true;
+                        console.log(
+                            "Firebase Storage Loaded"
+                        );
+                        resolve(true);
+                    }
+                    catch(error) {
+                        console.error(
+                            "Storage initialization error:",
+                            error
+                        );
+                        resolve(false);
+                    }
+
+                }
+            );
+
+            existing.addEventListener(
+                "error",
+                function() {
+                    resolve(false);
+                }
+            );
+
+            return;
+        }
+
+
+        const script =
+            document.createElement("script");
+
+        script.src =
+            "https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js";
+
+        script.async = false;
+
+        script.setAttribute(
+            "data-firebase-storage",
+            "true"
+        );
+
+
+        script.onload = function() {
+
+            try {
+
+                firebase.storage();
+
+                firebaseStorageReady = true;
+
+                console.log(
+                    "Firebase Storage SDK Loaded Successfully"
+                );
+
+                resolve(true);
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Storage initialization error:",
+                    error
+                );
+
+                resolve(false);
+
+            }
+
+        };
+
+
+        script.onerror = function() {
+
+            console.error(
+                "Firebase Storage SDK could not be loaded."
+            );
+
+            resolve(false);
+
+        };
+
+
+        document.head.appendChild(script);
+
+    });
+
+}
 
 
 /* =========================================================
@@ -25,18 +165,28 @@ const storage =
 
 function initializeSurveyPage() {
 
-    console.log("Initializing Survey Page...");
+    console.log(
+        "Initializing Survey Page..."
+    );
 
     submitBtn =
-        document.getElementById("submitSurvey");
+        document.getElementById(
+            "submitSurvey"
+        );
 
     message =
-        document.getElementById("message");
+        document.getElementById(
+            "message"
+        );
 
     setupBasicDetails();
+
     setupQuestionButtons();
+
     createDailyProgressUI();
+
     startAuthentication();
+
 }
 
 
@@ -46,11 +196,12 @@ function initializeSurveyPage() {
 
 function createDailyProgressUI() {
 
-    if (
+    if(
         document.getElementById(
             "dailyProgressBox"
         )
     ) return;
+
 
     const box =
         document.createElement("div");
@@ -61,17 +212,20 @@ function createDailyProgressUI() {
     box.style.cssText =
         "background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:15px;margin:15px 0;box-shadow:0 2px 8px rgba(0,0,0,.08);font-family:Arial,sans-serif;";
 
+
     const titleRow =
         document.createElement("div");
 
     titleRow.style.cssText =
         "display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:bold;";
 
+
     const title =
         document.createElement("span");
 
     title.textContent =
         "📊 Today's Progress";
+
 
     const progressText =
         document.createElement("span");
@@ -82,16 +236,19 @@ function createDailyProgressUI() {
     progressText.textContent =
         "0 / --";
 
+
     titleRow.append(
         title,
         progressText
     );
+
 
     const progressBackground =
         document.createElement("div");
 
     progressBackground.style.cssText =
         "width:100%;height:12px;background:#eee;border-radius:20px;overflow:hidden;";
+
 
     const progressBar =
         document.createElement("div");
@@ -102,9 +259,11 @@ function createDailyProgressUI() {
     progressBar.style.cssText =
         "width:0%;height:100%;background:#1565c0;transition:width .4s ease;";
 
+
     progressBackground.appendChild(
         progressBar
     );
+
 
     const remainingText =
         document.createElement("div");
@@ -118,30 +277,35 @@ function createDailyProgressUI() {
     remainingText.style.cssText =
         "margin-top:8px;font-size:13px;color:#555;";
 
+
     box.append(
         titleRow,
         progressBackground,
         remainingText
     );
 
+
     const container =
         document.querySelector(".survey-box") ||
         document.querySelector(".container") ||
         document.body;
+
 
     const dailyLimitBox =
         document.getElementById(
             "dailyLimitBox"
         );
 
-    if (dailyLimitBox) {
+
+    if(dailyLimitBox) {
 
         dailyLimitBox.insertAdjacentElement(
             "afterend",
             box
         );
 
-    } else if (container) {
+    }
+    else if(container) {
 
         container.insertBefore(
             box,
@@ -161,20 +325,23 @@ function updateDailyProgress(count) {
 
     count = Number(count);
 
-    if (
+    if(
         !Number.isFinite(count) ||
         count < 0
     ) {
         count = 0;
     }
 
+
     const limit =
         Number(DAILY_LIMIT);
 
-    if (
+
+    if(
         !Number.isFinite(limit) ||
         limit <= 0
     ) return;
+
 
     const remaining =
         Math.max(
@@ -182,11 +349,13 @@ function updateDailyProgress(count) {
             0
         );
 
+
     const percentage =
         Math.min(
             (count / limit) * 100,
             100
         );
+
 
     const progressText =
         document.getElementById(
@@ -213,7 +382,8 @@ function updateDailyProgress(count) {
             "remainingCount"
         );
 
-    if (progressText) {
+
+    if(progressText) {
 
         progressText.textContent =
             count +
@@ -222,7 +392,8 @@ function updateDailyProgress(count) {
 
     }
 
-    if (remainingText) {
+
+    if(remainingText) {
 
         remainingText.textContent =
             remaining <= 0
@@ -232,7 +403,8 @@ function updateDailyProgress(count) {
 
     }
 
-    if (progressBar) {
+
+    if(progressBar) {
 
         progressBar.style.width =
             percentage + "%";
@@ -246,21 +418,24 @@ function updateDailyProgress(count) {
 
     }
 
-    if (todayCount) {
+
+    if(todayCount) {
 
         todayCount.textContent =
             count;
 
     }
 
-    if (remainingCount) {
+
+    if(remainingCount) {
 
         remainingCount.textContent =
             remaining;
 
     }
 
-    if (count >= limit) {
+
+    if(count >= limit) {
 
         disableSurveyButtons();
 
@@ -282,13 +457,14 @@ function loadDailyLimit() {
 
         .then(function(doc) {
 
-            if (!doc.exists) {
+            if(!doc.exists) {
 
                 throw new Error(
-                    "settings/config document not found."
+                    "Daily limit not configured."
                 );
 
             }
+
 
             const value =
                 Number(
@@ -296,16 +472,18 @@ function loadDailyLimit() {
                     .dailyLimit
                 );
 
-            if (
+
+            if(
                 !Number.isFinite(value) ||
                 value <= 0
             ) {
 
                 throw new Error(
-                    "Invalid dailyLimit in settings/config."
+                    "Invalid daily limit."
                 );
 
             }
+
 
             DAILY_LIMIT =
                 value;
@@ -313,10 +491,12 @@ function loadDailyLimit() {
             dailyLimitLoaded =
                 true;
 
+
             console.log(
                 "Daily Limit Loaded:",
                 DAILY_LIMIT
             );
+
 
             return DAILY_LIMIT;
 
@@ -329,15 +509,18 @@ function loadDailyLimit() {
                 error
             );
 
+
             dailyLimitLoaded =
                 false;
 
             DAILY_LIMIT =
                 0;
 
+
             showMessage(
-                "Unable to load daily survey limit. Please contact admin."
+                "Unable to load daily survey limit."
             );
+
 
             throw error;
 
@@ -353,7 +536,6 @@ function loadDailyLimit() {
 function startAuthentication() {
 
     firebase.auth()
-
         .setPersistence(
             firebase.auth.Auth.Persistence.SESSION
         )
@@ -364,7 +546,7 @@ function startAuthentication() {
                 .onAuthStateChanged(
                     function(user) {
 
-                        if (!user) {
+                        if(!user) {
 
                             window.location.replace(
                                 "index.html"
@@ -374,7 +556,8 @@ function startAuthentication() {
 
                         }
 
-                        if (
+
+                        if(
                             user.email &&
                             user.email
                                 .toLowerCase() ===
@@ -390,51 +573,63 @@ function startAuthentication() {
 
                         }
 
-                        loadDailyLimit()
 
-                            .then(function() {
+                        console.log(
+                            "Surveyor logged in:",
+                            user.email
+                        );
 
-                                return getTodayCount(
-                                    user
+
+                        Promise.all([
+                            loadDailyLimit(),
+                            loadFirebaseStorageSDK()
+                        ])
+
+                        .then(function() {
+
+                            return getTodayCount(
+                                user
+                            );
+
+                        })
+
+                        .then(function(count) {
+
+                            updateDailyProgress(
+                                count
+                            );
+
+
+                            if(
+                                count >=
+                                DAILY_LIMIT
+                            ) {
+
+                                showMessage(
+                                    "🚫 Daily survey limit reached. You cannot submit more surveys today."
                                 );
 
-                            })
+                                disableSurveyButtons();
 
-                            .then(function(count) {
+                                return;
 
-                                updateDailyProgress(
-                                    count
-                                );
+                            }
 
-                                if (
-                                    count >=
-                                    DAILY_LIMIT
-                                ) {
 
-                                    showMessage(
-                                        "🚫 Daily survey limit reached. You cannot submit more surveys today."
-                                    );
+                            enableSurveyButtons();
 
-                                    disableSurveyButtons();
+                            loadQuestionsFromFirestore();
 
-                                    return;
+                        })
 
-                                }
+                        .catch(function(error) {
 
-                                enableSurveyButtons();
+                            console.error(
+                                "Startup error:",
+                                error
+                            );
 
-                                loadQuestionsFromFirestore();
-
-                            })
-
-                            .catch(function(error) {
-
-                                console.error(
-                                    "Startup error:",
-                                    error
-                                );
-
-                            });
+                        });
 
                     }
                 );
@@ -464,12 +659,15 @@ function startAuthentication() {
 
 function getTodayCount(user) {
 
-    if (
+    if(
         !user ||
         !user.email
     ) {
+
         return Promise.resolve(0);
+
     }
+
 
     const todayStart =
         new Date();
@@ -480,6 +678,7 @@ function getTodayCount(user) {
         0,
         0
     );
+
 
     return db
         .collection("surveys")
@@ -494,6 +693,7 @@ function getTodayCount(user) {
 
             let count = 0;
 
+
             snapshot.forEach(
                 function(doc) {
 
@@ -503,7 +703,8 @@ function getTodayCount(user) {
                                 .createdAt
                         );
 
-                    if (
+
+                    if(
                         date &&
                         date >= todayStart
                     ) {
@@ -514,6 +715,7 @@ function getTodayCount(user) {
 
                 }
             );
+
 
             return count;
 
@@ -539,11 +741,12 @@ function getTodayCount(user) {
 
 function getFirestoreDate(value) {
 
-    if (!value) return null;
+    if(!value) return null;
+
 
     try {
 
-        if (
+        if(
             typeof value.toDate ===
             "function"
         ) {
@@ -552,7 +755,8 @@ function getFirestoreDate(value) {
 
         }
 
-        if (
+
+        if(
             value.seconds !==
             undefined
         ) {
@@ -563,8 +767,10 @@ function getFirestoreDate(value) {
 
         }
 
+
         const date =
             new Date(value);
+
 
         return isNaN(
             date.getTime()
@@ -594,12 +800,14 @@ function loadQuestionsFromFirestore() {
             "questionText"
         );
 
-    if (questionText) {
+
+    if(questionText) {
 
         questionText.textContent =
             "Loading questions...";
 
     }
+
 
     db.collection("questions")
         .orderBy(
@@ -623,6 +831,7 @@ function loadQuestionsFromFirestore() {
                 error
             );
 
+
             return db
                 .collection("questions")
                 .get();
@@ -631,7 +840,7 @@ function loadQuestionsFromFirestore() {
 
         .then(function(snapshot) {
 
-            if (
+            if(
                 snapshot &&
                 surveyQuestions.length === 0
             ) {
@@ -671,17 +880,20 @@ function buildQuestionsFromSnapshot(
 
     surveyQuestions = [];
 
+
     snapshot.forEach(function(doc) {
 
         const data =
             doc.data();
 
-        if (
+
+        if(
             !data.question ||
             !Array.isArray(
                 data.options
             )
         ) return;
+
 
         const options =
             data.options
@@ -698,9 +910,11 @@ function buildQuestionsFromSnapshot(
 
                 });
 
-        if (
+
+        if(
             options.length < 2
         ) return;
+
 
         surveyQuestions.push({
 
@@ -740,7 +954,8 @@ function buildQuestionsFromSnapshot(
                     b.createdAt
                 );
 
-            if (
+
+            if(
                 dateA &&
                 dateB
             ) {
@@ -752,19 +967,36 @@ function buildQuestionsFromSnapshot(
 
             }
 
-            if (
+
+            if(
                 dateA &&
                 !dateB
             ) return -1;
 
-            if (
+
+            if(
                 !dateA &&
                 dateB
             ) return 1;
 
+
             return 0;
 
         }
+    );
+
+
+    /*
+     * ALWAYS KEEP THESE TWO
+     * AT THE END.
+     */
+
+    surveyQuestions.push(
+        LOCATION_QUESTION
+    );
+
+    surveyQuestions.push(
+        PHOTO_QUESTION
     );
 
 
@@ -774,15 +1006,13 @@ function buildQuestionsFromSnapshot(
     );
 
 
-    if (
-        surveyQuestions.length === 0
+    if(
+        surveyQuestions.length === 2
     ) {
 
         showMessage(
-            "No questions available. Please add questions from Admin Panel."
+            "No normal questions available. Permanent location and photo questions are ready."
         );
-
-        return;
 
     }
 
@@ -807,7 +1037,9 @@ function setupBasicDetails() {
             "basicNextButton"
         );
 
-    if (!button) return;
+
+    if(!button) return;
+
 
     button.addEventListener(
         "click",
@@ -815,7 +1047,8 @@ function setupBasicDetails() {
 
             clearMessage();
 
-            if (
+
+            if(
                 !dailyLimitLoaded ||
                 DAILY_LIMIT <= 0
             ) {
@@ -851,7 +1084,7 @@ function setupBasicDetails() {
                 getValue("pincode");
 
 
-            if (
+            if(
                 !name ||
                 !mobile ||
                 !age ||
@@ -868,7 +1101,7 @@ function setupBasicDetails() {
             }
 
 
-            if (
+            if(
                 !/^[0-9]{10}$/.test(
                     mobile
                 )
@@ -886,7 +1119,8 @@ function setupBasicDetails() {
             const ageNumber =
                 Number(age);
 
-            if (
+
+            if(
                 !Number.isFinite(
                     ageNumber
                 ) ||
@@ -903,7 +1137,7 @@ function setupBasicDetails() {
             }
 
 
-            if (
+            if(
                 pincode &&
                 !/^[0-9]{6}$/.test(
                     pincode
@@ -923,7 +1157,8 @@ function setupBasicDetails() {
                 firebase.auth()
                     .currentUser;
 
-            if (!user) {
+
+            if(!user) {
 
                 showMessage(
                     "Session expired. Please login again."
@@ -942,7 +1177,8 @@ function setupBasicDetails() {
                         count
                     );
 
-                    if (
+
+                    if(
                         count >=
                         DAILY_LIMIT
                     ) {
@@ -960,38 +1196,29 @@ function setupBasicDetails() {
 
                     answers.basic = {
 
-                        name:
-                            name,
+                        name: name,
 
-                        mobile:
-                            mobile,
+                        mobile: mobile,
 
-                        age:
-                            ageNumber,
+                        age: ageNumber,
 
-                        gender:
-                            gender,
+                        gender: gender,
 
-                        village:
-                            village,
+                        village: village,
 
-                        district:
-                            district,
+                        district: district,
 
-                        pincode:
-                            pincode
+                        pincode: pincode
 
                     };
 
 
-                    answers.questions =
-                        {};
+                    answers.questions = {};
 
-                    currentQuestion =
-                        0;
+                    currentQuestion = 0;
 
-                    surveyStarted =
-                        true;
+                    surveyStarted = true;
+
 
                     showQuestionPage();
 
@@ -1033,7 +1260,8 @@ function showQuestionPage() {
             "questionStep"
         );
 
-    if (
+
+    if(
         !basicStep ||
         !questionStep
     ) {
@@ -1118,6 +1346,7 @@ function showQuestionPage() {
         basicStep.style.width =
             "100%";
 
+
         questionStep.style.position =
             "relative";
 
@@ -1130,6 +1359,7 @@ function showQuestionPage() {
         questionStep.style.width =
             "100%";
 
+
         basicStep.style.transform =
             "";
 
@@ -1141,6 +1371,7 @@ function showQuestionPage() {
 
         questionStep.style.opacity =
             "";
+
 
         renderQuestion();
 
@@ -1186,13 +1417,13 @@ function renderQuestion() {
         );
 
 
-    if (
+    if(
         !questionText ||
         !optionsBox
     ) return;
 
 
-    if (
+    if(
         surveyQuestions.length === 0
     ) {
 
@@ -1212,10 +1443,11 @@ function renderQuestion() {
             currentQuestion
         ];
 
-    if (!question) return;
+
+    if(!question) return;
 
 
-    if (questionNumber) {
+    if(questionNumber) {
 
         questionNumber.textContent =
             "Question " +
@@ -1226,8 +1458,101 @@ function renderQuestion() {
     }
 
 
+    /*
+     * LOCATION
+     */
+
+    if(
+        question.type ===
+        "location"
+    ) {
+
+        renderLocationQuestion(
+            questionText,
+            optionsBox
+        );
+
+    }
+
+    /*
+     * PHOTOS
+     */
+
+    else if(
+        question.type ===
+        "photos"
+    ) {
+
+        renderPhotoQuestion(
+            questionText,
+            optionsBox
+        );
+
+    }
+
+    /*
+     * NORMAL QUESTION
+     */
+
+    else {
+
+        renderNormalQuestion(
+            question,
+            questionText,
+            optionsBox
+        );
+
+    }
+
+
+    if(previousButton) {
+
+        previousButton.disabled =
+            currentQuestion === 0;
+
+    }
+
+
+    const isLastQuestion =
+        currentQuestion ===
+        surveyQuestions.length - 1;
+
+
+    if(nextButton) {
+
+        nextButton.style.display =
+            isLastQuestion
+                ? "none"
+                : "block";
+
+    }
+
+
+    if(submitButton) {
+
+        submitButton.style.display =
+            isLastQuestion
+                ? "block"
+                : "none";
+
+    }
+
+}
+
+
+/* =========================================================
+   NORMAL QUESTION
+========================================================= */
+
+function renderNormalQuestion(
+    question,
+    questionText,
+    optionsBox
+) {
+
     questionText.textContent =
         question.question;
+
 
     optionsBox.innerHTML =
         "";
@@ -1239,16 +1564,17 @@ function renderQuestion() {
         ];
 
 
-    question.options.forEach(
-        function(option) {
+    (question.options || [])
+        .forEach(function(option) {
 
             const label =
                 document.createElement(
                     "label"
                 );
 
+
             label.style.cssText =
-                "display:block;margin-bottom:10px;padding:13px;border:1px solid #ddd;border-radius:8px;cursor:pointer;";
+                "display:block;margin-bottom:10px;padding:13px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fff;";
 
 
             const input =
@@ -1256,29 +1582,33 @@ function renderQuestion() {
                     "input"
                 );
 
+
             input.type =
                 question.type ===
                 "multiple"
                     ? "checkbox"
                     : "radio";
 
+
             input.name =
                 "surveyQuestion_" +
                 question.id;
 
+
             input.value =
                 option;
+
 
             input.style.marginRight =
                 "10px";
 
 
-            if (
+            if(
                 question.type ===
                 "multiple"
             ) {
 
-                if (
+                if(
                     Array.isArray(
                         savedAnswer
                     ) &&
@@ -1293,8 +1623,7 @@ function renderQuestion() {
                 }
 
             }
-
-            else if (
+            else if(
                 savedAnswer ===
                 option
             ) {
@@ -1309,51 +1638,384 @@ function renderQuestion() {
                 input
             );
 
+
             label.appendChild(
                 document.createTextNode(
                     option
                 )
             );
 
+
             optionsBox.appendChild(
                 label
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   LOCATION QUESTION
+========================================================= */
+
+function renderLocationQuestion(
+    questionText,
+    optionsBox
+) {
+
+    questionText.textContent =
+        "📍 कृपया अपनी वर्तमान स्थिति का स्थान चुनें";
+
+
+    optionsBox.innerHTML =
+        "";
+
+
+    const box =
+        document.createElement(
+            "div"
+        );
+
+
+    box.style.cssText =
+        "text-align:center;padding:20px;border:1px solid #d7e3ef;border-radius:12px;background:#f8fbff;";
+
+
+    const text =
+        document.createElement(
+            "p"
+        );
+
+
+    text.textContent =
+        "नीचे दिए गए बटन पर क्लिक करते ही आपकी वर्तमान Live Location प्राप्त की जाएगी।";
+
+
+    text.style.cssText =
+        "font-size:15px;color:#555;";
+
+
+    const button =
+        document.createElement(
+            "button"
+        );
+
+
+    button.type =
+        "button";
+
+    button.className =
+        "primary";
+
+    button.textContent =
+        "📍 मेरी Live Location चुनें";
+
+
+    const status =
+        document.createElement(
+            "div"
+        );
+
+
+    status.style.cssText =
+        "margin-top:12px;font-weight:bold;color:#555;";
+
+
+    const saved =
+        answers.questions[
+            LOCATION_QUESTION.id
+        ];
+
+
+    if(
+        saved &&
+        saved.latitude &&
+        saved.longitude
+    ) {
+
+        status.textContent =
+            "✅ Location captured";
+
+        status.style.color =
+            "#2e7d32";
+
+    }
+
+
+    button.addEventListener(
+        "click",
+        function() {
+
+            button.disabled =
+                true;
+
+            button.textContent =
+                "📍 Location प्राप्त हो रही है...";
+
+            status.textContent =
+                "";
+
+
+            captureCurrentLocation()
+
+                .then(function(locationData) {
+
+                    answers.questions[
+                        LOCATION_QUESTION.id
+                    ] = locationData;
+
+
+                    status.textContent =
+                        "✅ Live Location captured successfully";
+
+                    status.style.color =
+                        "#2e7d32";
+
+
+                    button.textContent =
+                        "✅ Location Captured";
+
+                })
+
+                .catch(function(error) {
+
+                    console.error(
+                        "Location error:",
+                        error
+                    );
+
+
+                    status.textContent =
+                        "❌ " +
+                        error.message;
+
+                    status.style.color =
+                        "#c62828";
+
+
+                    button.disabled =
+                        false;
+
+                    button.textContent =
+                        "📍 मेरी Live Location चुनें";
+
+                });
+
+        }
+    );
+
+
+    box.append(
+        text,
+        button,
+        status
+    );
+
+
+    optionsBox.appendChild(
+        box
+    );
+
+}
+
+
+/* =========================================================
+   PHOTO QUESTION
+========================================================= */
+
+function renderPhotoQuestion(
+    questionText,
+    optionsBox
+) {
+
+    questionText.textContent =
+        "📷 चार आवश्यक फोटो अपलोड करें";
+
+
+    optionsBox.innerHTML =
+        "";
+
+
+    const box =
+        document.createElement(
+            "div"
+        );
+
+
+    box.style.cssText =
+        "padding:18px;border:1px solid #d7e3ef;border-radius:12px;background:#f8fbff;";
+
+
+    const photoDefinitions = [
+
+        {
+            id:"photoVillage",
+            title:"1️⃣ गाँव की फोटो",
+            description:
+                "गाँव / क्षेत्र की सामान्य स्थिति की फोटो"
+        },
+
+        {
+            id:"photoProblem",
+            title:"2️⃣ गाँव की समस्या की फोटो",
+            description:
+                "गाँव में दिखाई देने वाली प्रमुख समस्या की फोटो"
+        },
+
+        {
+            id:"photoPerson",
+            title:"3️⃣ व्यक्ति की फोटो",
+            description:
+                "सर्वे से संबंधित व्यक्ति की फोटो"
+        },
+
+        {
+            id:"photoSelfie",
+            title:"4️⃣ Respondent के साथ Selfie",
+            description:
+                "Respondent के साथ आपकी selfie"
+        }
+
+    ];
+
+
+    photoDefinitions.forEach(
+        function(item) {
+
+            const wrapper =
+                document.createElement(
+                    "div"
+                );
+
+
+            wrapper.style.cssText =
+                "margin-bottom:15px;padding:14px;background:white;border:1px solid #ddd;border-radius:10px;";
+
+
+            const label =
+                document.createElement(
+                    "label"
+                );
+
+
+            label.textContent =
+                item.title;
+
+
+            label.style.cssText =
+                "display:block;font-weight:bold;margin-bottom:5px;color:#1565c0;";
+
+
+            const description =
+                document.createElement(
+                    "div"
+                );
+
+
+            description.textContent =
+                item.description;
+
+
+            description.style.cssText =
+                "font-size:13px;color:#666;margin-bottom:8px;";
+
+
+            const input =
+                document.createElement(
+                    "input"
+                );
+
+
+            input.type =
+                "file";
+
+            input.id =
+                item.id;
+
+            input.accept =
+                "image/*";
+
+            input.style.cssText =
+                "width:100%;padding:8px;border:1px solid #ccd5df;border-radius:8px;background:#fff;";
+
+
+            const preview =
+                document.createElement(
+                    "div"
+                );
+
+
+            preview.style.cssText =
+                "margin-top:8px;font-size:13px;color:#2e7d32;";
+
+
+            input.addEventListener(
+                "change",
+                function() {
+
+                    if(
+                        input.files &&
+                        input.files.length
+                    ) {
+
+                        const file =
+                            input.files[0];
+
+                        preview.textContent =
+                            "✅ Selected: " +
+                            file.name;
+
+                    }
+                    else {
+
+                        preview.textContent =
+                            "";
+
+                    }
+
+                }
+            );
+
+
+            wrapper.append(
+                label,
+                description,
+                input,
+                preview
+            );
+
+
+            box.appendChild(
+                wrapper
             );
 
         }
     );
 
 
-    if (previousButton) {
-
-        previousButton.disabled =
-            currentQuestion === 0;
-
-    }
+    const note =
+        document.createElement(
+            "div"
+        );
 
 
-    const isLastQuestion =
-        currentQuestion ===
-        surveyQuestions.length - 1;
+    note.textContent =
+        "⚠️ चारों फोटो आवश्यक हैं। सभी फोटो चुनने के बाद आगे बढ़ें।";
 
 
-    if (nextButton) {
-
-        nextButton.style.display =
-            isLastQuestion
-                ? "none"
-                : "block";
-
-    }
+    note.style.cssText =
+        "font-weight:bold;color:#c62828;margin-top:5px;";
 
 
-    if (submitButton) {
+    box.appendChild(
+        note
+    );
 
-        submitButton.style.display =
-            isLastQuestion
-                ? "block"
-                : "none";
 
-    }
+    optionsBox.appendChild(
+        box
+    );
 
 }
 
@@ -1364,7 +2026,7 @@ function renderQuestion() {
 
 function getCurrentQuestionAnswer() {
 
-    if (
+    if(
         surveyQuestions.length === 0
     ) return null;
 
@@ -1374,8 +2036,86 @@ function getCurrentQuestionAnswer() {
             currentQuestion
         ];
 
-    if (!question) return null;
 
+    if(!question) return null;
+
+
+    /*
+     * LOCATION
+     */
+
+    if(
+        question.type ===
+        "location"
+    ) {
+
+        return answers.questions[
+            LOCATION_QUESTION.id
+        ] || null;
+
+    }
+
+
+    /*
+     * PHOTOS
+     */
+
+    if(
+        question.type ===
+        "photos"
+    ) {
+
+        const photoIds = [
+
+            "photoVillage",
+            "photoProblem",
+            "photoPerson",
+            "photoSelfie"
+
+        ];
+
+
+        const files = [];
+
+
+        photoIds.forEach(
+            function(id) {
+
+                const input =
+                    document.getElementById(
+                        id
+                    );
+
+
+                if(
+                    input &&
+                    input.files &&
+                    input.files.length > 0
+                ) {
+
+                    files.push({
+
+                        id:id,
+
+                        file:
+                            input.files[0]
+
+                    });
+
+                }
+
+            }
+        );
+
+
+        return files;
+
+    }
+
+
+    /*
+     * NORMAL
+     */
 
     const inputs =
         document.querySelectorAll(
@@ -1385,19 +2125,18 @@ function getCurrentQuestionAnswer() {
         );
 
 
-    if (
+    if(
         question.type ===
         "multiple"
     ) {
 
         const selected = [];
 
+
         inputs.forEach(
             function(input) {
 
-                if (
-                    input.checked
-                ) {
+                if(input.checked) {
 
                     selected.push(
                         input.value
@@ -1407,6 +2146,7 @@ function getCurrentQuestionAnswer() {
 
             }
         );
+
 
         return selected;
 
@@ -1420,9 +2160,7 @@ function getCurrentQuestionAnswer() {
     inputs.forEach(
         function(input) {
 
-            if (
-                input.checked
-            ) {
+            if(input.checked) {
 
                 selected =
                     input.value;
@@ -1449,19 +2187,130 @@ function saveCurrentQuestionAnswer() {
             currentQuestion
         ];
 
-    if (!question) return false;
+
+    if(!question) return false;
 
 
     const answer =
         getCurrentQuestionAnswer();
 
 
-    if (
+    /*
+     * LOCATION
+     */
+
+    if(
+        question.type ===
+        "location"
+    ) {
+
+        if(
+            !answer ||
+            answer.latitude === undefined ||
+            answer.longitude === undefined
+        ) {
+
+            showMessage(
+                "📍 Please capture your live location before continuing."
+            );
+
+            return false;
+
+        }
+
+
+        answers.questions[
+            LOCATION_QUESTION.id
+        ] = answer;
+
+
+        return true;
+
+    }
+
+
+    /*
+     * PHOTOS
+     */
+
+    if(
+        question.type ===
+        "photos"
+    ) {
+
+        if(
+            !Array.isArray(answer) ||
+            answer.length !== 4
+        ) {
+
+            showMessage(
+                "📷 Please select all 4 required photos."
+            );
+
+            return false;
+
+        }
+
+
+        const requiredIds = [
+
+            "photoVillage",
+            "photoProblem",
+            "photoPerson",
+            "photoSelfie"
+
+        ];
+
+
+        for(
+            let i = 0;
+            i < requiredIds.length;
+            i++
+        ) {
+
+            const input =
+                document.getElementById(
+                    requiredIds[i]
+                );
+
+
+            if(
+                !input ||
+                !input.files ||
+                input.files.length === 0
+            ) {
+
+                showMessage(
+                    "📷 Please select all 4 required photos."
+                );
+
+                return false;
+
+            }
+
+        }
+
+
+        answers.questions[
+            PHOTO_QUESTION.id
+        ] = answer;
+
+
+        return true;
+
+    }
+
+
+    /*
+     * MULTIPLE
+     */
+
+    if(
         question.type ===
         "multiple"
     ) {
 
-        if (
+        if(
             !Array.isArray(answer) ||
             answer.length === 0
         ) {
@@ -1476,7 +2325,11 @@ function saveCurrentQuestionAnswer() {
 
     }
 
-    else if (!answer) {
+    /*
+     * SINGLE
+     */
+
+    else if(!answer) {
 
         showMessage(
             "Please select an option."
@@ -1519,7 +2372,7 @@ function setupQuestionButtons() {
         );
 
 
-    if (nextButton) {
+    if(nextButton) {
 
         nextButton.addEventListener(
             "click",
@@ -1527,12 +2380,13 @@ function setupQuestionButtons() {
 
                 clearMessage();
 
-                if (
+
+                if(
                     !saveCurrentQuestionAnswer()
                 ) return;
 
 
-                if (
+                if(
                     currentQuestion <
                     surveyQuestions.length - 1
                 ) {
@@ -1549,7 +2403,7 @@ function setupQuestionButtons() {
     }
 
 
-    if (previousButton) {
+    if(previousButton) {
 
         previousButton.addEventListener(
             "click",
@@ -1564,23 +2418,44 @@ function setupQuestionButtons() {
                     ];
 
 
-                if (question) {
+                if(question) {
 
-                    const answer =
-                        getCurrentQuestionAnswer();
+                    /*
+                     * For normal questions,
+                     * save current answer.
+                     */
 
-
-                    if (
-                        question.type ===
-                        "multiple"
+                    if(
+                        question.type !==
+                        "location" &&
+                        question.type !==
+                        "photos"
                     ) {
 
-                        if (
-                            Array.isArray(
-                                answer
-                            ) &&
-                            answer.length > 0
+                        const answer =
+                            getCurrentQuestionAnswer();
+
+
+                        if(
+                            question.type ===
+                            "multiple"
                         ) {
+
+                            if(
+                                Array.isArray(
+                                    answer
+                                ) &&
+                                answer.length > 0
+                            ) {
+
+                                answers.questions[
+                                    question.id
+                                ] = answer;
+
+                            }
+
+                        }
+                        else if(answer) {
 
                             answers.questions[
                                 question.id
@@ -1590,18 +2465,10 @@ function setupQuestionButtons() {
 
                     }
 
-                    else if (answer) {
-
-                        answers.questions[
-                            question.id
-                        ] = answer;
-
-                    }
-
                 }
 
 
-                if (
+                if(
                     currentQuestion > 0
                 ) {
 
@@ -1617,7 +2484,7 @@ function setupQuestionButtons() {
     }
 
 
-    if (submitButton) {
+    if(submitButton) {
 
         submitButton.addEventListener(
             "click",
@@ -1630,249 +2497,7 @@ function setupQuestionButtons() {
 
 
 /* =========================================================
-   PHOTO HELPERS
-========================================================= */
-
-function getPhotoFiles() {
-
-    const selectors = [
-        "photoVillage",
-        "photoProblem",
-        "photoPerson",
-        "photoSelfie",
-        "villagePhoto",
-        "problemPhoto",
-        "personPhoto",
-        "selfiePhoto"
-    ];
-
-    const found = [];
-
-    selectors.forEach(function(id) {
-
-        const input =
-            document.getElementById(id);
-
-        if (
-            input &&
-            input.files &&
-            input.files.length > 0
-        ) {
-
-            found.push({
-                id: id,
-                file: input.files[0]
-            });
-
-        }
-
-    });
-
-    return found;
-
-}
-
-
-function getPhotoInputByKeywords() {
-
-    const allInputs =
-        document.querySelectorAll(
-            'input[type="file"]'
-        );
-
-    const files = [];
-
-    allInputs.forEach(
-        function(input,index) {
-
-            if (
-                input.files &&
-                input.files.length > 0
-            ) {
-
-                files.push({
-                    id:
-                        input.id ||
-                        "photo_" + index,
-
-                    file:
-                        input.files[0]
-                });
-
-            }
-
-        }
-    );
-
-    return files;
-
-}
-
-
-/* =========================================================
-   UPLOAD PHOTOS TO FIREBASE STORAGE
-========================================================= */
-
-function uploadSurveyPhotos(
-    surveyId,
-    user
-) {
-
-    if (!storage) {
-
-        console.warn(
-            "Firebase Storage is not available."
-        );
-
-        return Promise.resolve({});
-
-    }
-
-
-    let photoFiles =
-        getPhotoFiles();
-
-
-    if (
-        photoFiles.length === 0
-    ) {
-
-        photoFiles =
-            getPhotoInputByKeywords();
-
-    }
-
-
-    if (
-        photoFiles.length === 0
-    ) {
-
-        return Promise.resolve({});
-
-    }
-
-
-    const uploads = {};
-
-
-    photoFiles
-        .slice(0,4)
-        .forEach(function(item,index) {
-
-            const file =
-                item.file;
-
-            const safeName =
-                String(
-                    file.name ||
-                    "photo"
-                )
-                .replace(
-                    /[^a-zA-Z0-9._-]/g,
-                    "_"
-                );
-
-
-            const storagePath =
-                "surveyPhotos/" +
-                surveyId +
-                "/photo_" +
-                (index + 1) +
-                "_" +
-                Date.now() +
-                "_" +
-                safeName;
-
-
-            const ref =
-                storage.ref(
-                    storagePath
-                );
-
-
-            uploads[
-                "photo" +
-                (index + 1)
-            ] =
-                ref
-                .put(file)
-                .then(
-                    function(snapshot) {
-
-                        return snapshot.ref
-                            .getDownloadURL();
-
-                    }
-                )
-
-                .then(
-                    function(url) {
-
-                        return {
-
-                            url: url,
-
-                            name:
-                                file.name,
-
-                            type:
-                                file.type,
-
-                            size:
-                                file.size,
-
-                            storagePath:
-                                storagePath
-
-                        };
-
-                    }
-                );
-
-        });
-
-
-    return Promise.all(
-        Object.keys(uploads)
-            .map(function(key) {
-
-                return uploads[key]
-                    .then(function(data) {
-
-                        return {
-                            key:key,
-                            data:data
-                        };
-
-                    });
-
-            })
-    )
-
-    .then(function(results) {
-
-        const photos = {};
-
-        results.forEach(
-            function(result) {
-
-                photos[
-                    result.key
-                ] =
-                    result.data;
-
-            }
-        );
-
-        return photos;
-
-    });
-
-}
-
-
-/* =========================================================
-   LOCATION
+   CAPTURE LIVE LOCATION
 ========================================================= */
 
 function captureCurrentLocation() {
@@ -1880,7 +2505,7 @@ function captureCurrentLocation() {
     return new Promise(
         function(resolve,reject) {
 
-            if (
+            if(
                 !navigator.geolocation
             ) {
 
@@ -1920,20 +2545,39 @@ function captureCurrentLocation() {
 
                 function(error) {
 
+                    let messageText =
+                        "Unable to capture live location. Please allow location permission.";
+
+
+                    if(
+                        error &&
+                        error.code === 1
+                    ) {
+
+                        messageText =
+                            "Location permission denied. Please allow location access.";
+
+                    }
+
+
                     reject(
                         new Error(
-                            "Unable to capture live location. Please allow location permission."
+                            messageText
                         )
                     );
 
                 },
 
                 {
-                    enableHighAccuracy:true,
 
-                    timeout:15000,
+                    enableHighAccuracy:
+                        true,
 
-                    maximumAge:0
+                    timeout:
+                        15000,
+
+                    maximumAge:
+                        0
 
                 }
 
@@ -1941,6 +2585,235 @@ function captureCurrentLocation() {
 
         }
     );
+
+}
+
+
+/* =========================================================
+   GET PHOTO FILES
+========================================================= */
+
+function getRequiredPhotoFiles() {
+
+    const ids = [
+
+        "photoVillage",
+        "photoProblem",
+        "photoPerson",
+        "photoSelfie"
+
+    ];
+
+
+    const files = [];
+
+
+    ids.forEach(
+        function(id) {
+
+            const input =
+                document.getElementById(
+                    id
+                );
+
+
+            if(
+                input &&
+                input.files &&
+                input.files.length > 0
+            ) {
+
+                files.push({
+
+                    id:id,
+
+                    file:
+                        input.files[0]
+
+                });
+
+            }
+
+        }
+    );
+
+
+    return files;
+
+}
+
+
+/* =========================================================
+   UPLOAD PHOTOS
+========================================================= */
+
+function uploadSurveyPhotos(
+    surveyId,
+    user
+) {
+
+    const photoFiles =
+        getRequiredPhotoFiles();
+
+
+    if(
+        photoFiles.length !== 4
+    ) {
+
+        return Promise.reject(
+            new Error(
+                "All 4 photos are required."
+            )
+        );
+
+    }
+
+
+    return loadFirebaseStorageSDK()
+
+        .then(function(ready) {
+
+            if(!ready) {
+
+                throw new Error(
+                    "Firebase Storage is not available. Please enable Firebase Storage."
+                );
+
+            }
+
+
+            const storage =
+                firebase.storage();
+
+
+            const uploads = {};
+
+
+            photoFiles.forEach(
+                function(item,index) {
+
+                    const file =
+                        item.file;
+
+
+                    const safeName =
+                        String(
+                            file.name ||
+                            "photo"
+                        )
+                        .replace(
+                            /[^a-zA-Z0-9._-]/g,
+                            "_"
+                        );
+
+
+                    const storagePath =
+                        "surveyPhotos/" +
+                        surveyId +
+                        "/photo_" +
+                        (index + 1) +
+                        "_" +
+                        Date.now() +
+                        "_" +
+                        safeName;
+
+
+                    const ref =
+                        storage.ref(
+                            storagePath
+                        );
+
+
+                    uploads[
+                        "photo" +
+                        (index + 1)
+                    ] =
+                        ref
+                            .put(file)
+                            .then(
+                                function(snapshot) {
+
+                                    return snapshot.ref
+                                        .getDownloadURL();
+
+                                }
+                            )
+                            .then(
+                                function(url) {
+
+                                    return {
+
+                                        url:url,
+
+                                        name:
+                                            file.name,
+
+                                        type:
+                                            file.type,
+
+                                        size:
+                                            file.size,
+
+                                        storagePath:
+                                            storagePath
+
+                                    };
+
+                                }
+                            );
+
+                }
+            );
+
+
+            return Promise.all(
+
+                Object.keys(uploads)
+                    .map(
+                        function(key) {
+
+                            return uploads[key]
+                                .then(
+                                    function(data) {
+
+                                        return {
+
+                                            key:key,
+
+                                            data:data
+
+                                        };
+
+                                    }
+                                );
+
+                        }
+                    )
+
+            );
+
+        })
+
+        .then(function(results) {
+
+            const photos = {};
+
+
+            results.forEach(
+                function(result) {
+
+                    photos[
+                        result.key
+                    ] =
+                        result.data;
+
+                }
+            );
+
+
+            return photos;
+
+        });
 
 }
 
@@ -1954,7 +2827,7 @@ function submitSurvey() {
     clearMessage();
 
 
-    if (
+    if(
         !dailyLimitLoaded ||
         DAILY_LIMIT <= 0
     ) {
@@ -1968,7 +2841,7 @@ function submitSurvey() {
     }
 
 
-    if (!surveyStarted) {
+    if(!surveyStarted) {
 
         showMessage(
             "Please start the survey first."
@@ -1979,12 +2852,24 @@ function submitSurvey() {
     }
 
 
-    if (
+    /*
+     * SAVE FINAL PHOTO QUESTION
+     */
+
+    if(
         !saveCurrentQuestionAnswer()
-    ) return;
+    ) {
+
+        return;
+
+    }
 
 
-    for (
+    /*
+     * VALIDATE ALL QUESTIONS
+     */
+
+    for(
         let i = 0;
         i < surveyQuestions.length;
         i++
@@ -1993,21 +2878,94 @@ function submitSurvey() {
         const question =
             surveyQuestions[i];
 
+
         const answer =
             answers.questions[
                 question.id
             ];
 
 
-        if (
+        /*
+         * LOCATION
+         */
+
+        if(
+            question.type ===
+            "location"
+        ) {
+
+            if(
+                !answer ||
+                answer.latitude === undefined ||
+                answer.longitude === undefined
+            ) {
+
+                currentQuestion =
+                    i;
+
+                renderQuestion();
+
+                showMessage(
+                    "📍 Please capture live location before submitting."
+                );
+
+                return;
+
+            }
+
+
+            continue;
+
+        }
+
+
+        /*
+         * PHOTOS
+         */
+
+        if(
+            question.type ===
+            "photos"
+        ) {
+
+            const photoFiles =
+                getRequiredPhotoFiles();
+
+
+            if(
+                photoFiles.length !== 4
+            ) {
+
+                currentQuestion =
+                    i;
+
+                renderQuestion();
+
+                showMessage(
+                    "📷 Please upload all 4 required photos before submitting."
+                );
+
+                return;
+
+            }
+
+
+            continue;
+
+        }
+
+
+        /*
+         * MULTIPLE
+         */
+
+        if(
             question.type ===
             "multiple"
         ) {
 
-            if (
-                !Array.isArray(
-                    answer
-                ) ||
+            if(
+                !Array.isArray(answer) ||
                 answer.length === 0
             ) {
 
@@ -2028,20 +2986,28 @@ function submitSurvey() {
 
         }
 
-        else if (!answer) {
+        /*
+         * SINGLE
+         */
 
-            currentQuestion =
-                i;
+        else {
 
-            renderQuestion();
+            if(!answer) {
 
-            showMessage(
-                "Please answer Question " +
-                (i + 1) +
-                " before submitting."
-            );
+                currentQuestion =
+                    i;
 
-            return;
+                renderQuestion();
+
+                showMessage(
+                    "Please answer Question " +
+                    (i + 1) +
+                    " before submitting."
+                );
+
+                return;
+
+            }
 
         }
 
@@ -2053,7 +3019,7 @@ function submitSurvey() {
             .currentUser;
 
 
-    if (!user) {
+    if(!user) {
 
         showMessage(
             "Session expired. Please login again."
@@ -2070,7 +3036,7 @@ function submitSurvey() {
         );
 
 
-    if (button) {
+    if(button) {
 
         button.disabled =
             true;
@@ -2082,108 +3048,157 @@ function submitSurvey() {
 
 
     /*
-     * Capture live location immediately
-     * before saving the survey.
+     * CHECK DAILY LIMIT
      */
 
-    captureCurrentLocation()
+    getTodayCount(user)
+
+        .then(function(count) {
+
+            updateDailyProgress(
+                count
+            );
+
+
+            if(
+                count >=
+                DAILY_LIMIT
+            ) {
+
+                throw new Error(
+                    "Daily survey limit reached."
+                );
+
+            }
+
+
+            /*
+             * CAPTURE LOCATION
+             *
+             * If already captured from
+             * the permanent question,
+             * use that location.
+             */
+
+            const savedLocation =
+                answers.questions[
+                    LOCATION_QUESTION.id
+                ];
+
+
+            if(
+                savedLocation &&
+                savedLocation.latitude !== undefined &&
+                savedLocation.longitude !== undefined
+            ) {
+
+                return savedLocation;
+
+            }
+
+
+            return captureCurrentLocation();
+
+        })
 
         .then(function(locationData) {
 
-            return getTodayCount(user)
-
-                .then(function(count) {
-
-                    updateDailyProgress(
-                        count
-                    );
+            answers.questions[
+                LOCATION_QUESTION.id
+            ] =
+                locationData;
 
 
-                    if (
-                        count >=
-                        DAILY_LIMIT
-                    ) {
+            /*
+             * CREATE SURVEY DATA
+             */
 
-                        throw new Error(
-                            "Daily survey limit reached."
-                        );
+            const surveyData = {
 
-                    }
+                name:
+                    answers.basic.name,
 
+                mobile:
+                    answers.basic.mobile,
 
-                    const surveyData = {
+                age:
+                    answers.basic.age,
 
-                        name:
-                            answers.basic.name,
+                gender:
+                    answers.basic.gender,
 
-                        mobile:
-                            answers.basic.mobile,
+                village:
+                    answers.basic.village,
 
-                        age:
-                            answers.basic.age,
+                district:
+                    answers.basic.district ||
+                    "",
 
-                        gender:
-                            answers.basic.gender,
+                pincode:
+                    answers.basic.pincode ||
+                    "",
 
-                        village:
-                            answers.basic.village,
+                answers:
+                    answers.questions,
 
-                        district:
-                            answers.basic.district ||
-                            "",
+                surveyorEmail:
+                    user.email ||
+                    "",
 
-                        pincode:
-                            answers.basic.pincode ||
-                            "",
+                surveyorUid:
+                    user.uid ||
+                    "",
 
-                        answers:
-                            answers.questions,
+                createdBy:
+                    user.email ||
+                    "",
 
-                        surveyorEmail:
-                            user.email ||
-                            "",
+                createdAt:
+                    firebase.firestore
+                        .FieldValue
+                        .serverTimestamp(),
 
-                        surveyorUid:
-                            user.uid ||
-                            "",
+                location:
+                    locationData,
 
-                        createdBy:
-                            user.email ||
-                            "",
+                latitude:
+                    locationData.latitude,
 
-                        createdAt:
-                            firebase.firestore
-                                .FieldValue
-                                .serverTimestamp(),
+                longitude:
+                    locationData.longitude,
 
-                        location:
-                            locationData,
+                locationAccuracy:
+                    locationData.accuracy,
 
-                        latitude:
-                            locationData.latitude,
+                locationCapturedAt:
+                    firebase.firestore
+                        .Timestamp
+                        .fromDate(
+                            new Date()
+                        )
 
-                        longitude:
-                            locationData.longitude,
-
-                        locationAccuracy:
-                            locationData.accuracy,
-
-                        locationCapturedAt:
-                            firebase.firestore.Timestamp
-                                .fromDate(
-                                    new Date()
-                                )
-
-                    };
+            };
 
 
-                    return db
-                        .collection("surveys")
-                        .add(
-                            surveyData
-                        );
+            /*
+             * REMOVE FILE OBJECTS
+             * FROM FIRESTORE DATA
+             */
 
-                });
+            delete surveyData.answers[
+                PHOTO_QUESTION.id
+            ];
+
+
+            /*
+             * SAVE SURVEY
+             */
+
+            return db
+                .collection("surveys")
+                .add(
+                    surveyData
+                );
 
         })
 
@@ -2196,8 +3211,7 @@ function submitSurvey() {
 
 
             /*
-             * Upload up to four photos
-             * after survey document exists.
+             * UPLOAD 4 PHOTOS
              */
 
             return uploadSurveyPhotos(
@@ -2207,41 +3221,31 @@ function submitSurvey() {
 
             .then(function(photoData) {
 
-                if (
-                    Object.keys(
-                        photoData
-                    ).length > 0
-                ) {
+                return db
+                    .collection("surveys")
+                    .doc(docRef.id)
+                    .update({
 
-                    return db
-                        .collection("surveys")
-                        .doc(docRef.id)
-                        .update({
+                        photos:
+                            photoData,
 
-                            photos:
-                                photoData,
+                        photoCount:
+                            Object.keys(
+                                photoData
+                            ).length,
 
-                            photoCount:
-                                Object.keys(
-                                    photoData
-                                ).length,
+                        photosUploadedAt:
+                            firebase.firestore
+                                .FieldValue
+                                .serverTimestamp()
 
-                            photosUploadedAt:
-                                firebase.firestore
-                                    .FieldValue
-                                    .serverTimestamp()
+                    })
 
-                        });
+                    .then(function() {
 
-                }
+                        return docRef;
 
-                return null;
-
-            })
-
-            .then(function() {
-
-                return docRef;
+                    });
 
             });
 
@@ -2273,10 +3277,15 @@ function submitSurvey() {
             );
 
 
+            /*
+             * IMPORTANT:
+             * OPEN NEW SURVEY AUTOMATICALLY
+             */
+
             resetSurveyForm();
 
 
-            if (
+            if(
                 newCount >=
                 DAILY_LIMIT
             ) {
@@ -2305,7 +3314,7 @@ function submitSurvey() {
             );
 
 
-            if (button) {
+            if(button) {
 
                 button.disabled =
                     false;
@@ -2326,17 +3335,23 @@ function submitSurvey() {
 
 function resetSurveyForm() {
 
+    console.log(
+        "Resetting survey form..."
+    );
+
+
     answers = {
 
-        basic: {},
+        basic:{},
 
-        questions: {}
+        questions:{}
 
     };
 
 
     currentQuestion =
         0;
+
 
     surveyStarted =
         false;
@@ -2351,35 +3366,43 @@ function resetSurveyForm() {
         "district",
         "pincode"
     ]
-    .forEach(function(id) {
 
-        const element =
-            document.getElementById(id);
+    .forEach(
+        function(id) {
 
-        if (element) {
-
-            element.value =
-                "";
-
-        }
-
-    });
+            const element =
+                document.getElementById(
+                    id
+                );
 
 
-    const fileInputs =
-        document.querySelectorAll(
-            'input[type="file"]'
-        );
+            if(element) {
 
+                element.value =
+                    "";
 
-    fileInputs.forEach(
-        function(input) {
-
-            input.value =
-                "";
+            }
 
         }
     );
+
+
+    /*
+     * REMOVE ALL PHOTO FILES
+     */
+
+    document
+        .querySelectorAll(
+            'input[type="file"]'
+        )
+        .forEach(
+            function(input) {
+
+                input.value =
+                    "";
+
+            }
+        );
 
 
     const basicStep =
@@ -2393,18 +3416,68 @@ function resetSurveyForm() {
         );
 
 
-    if (questionStep) {
+    /*
+     * SHOW BASIC FORM
+     */
 
-        questionStep.classList.remove(
+    if(basicStep) {
+
+        basicStep.style.display =
+            "block";
+
+        basicStep.style.position =
+            "relative";
+
+        basicStep.style.left =
+            "auto";
+
+        basicStep.style.top =
+            "auto";
+
+        basicStep.style.width =
+            "100%";
+
+        basicStep.style.transform =
+            "";
+
+        basicStep.style.opacity =
+            "1";
+
+        basicStep.classList.add(
             "active"
         );
 
     }
 
 
-    if (basicStep) {
+    /*
+     * HIDE QUESTIONS
+     */
 
-        basicStep.classList.add(
+    if(questionStep) {
+
+        questionStep.style.display =
+            "none";
+
+        questionStep.style.position =
+            "relative";
+
+        questionStep.style.left =
+            "auto";
+
+        questionStep.style.top =
+            "auto";
+
+        questionStep.style.width =
+            "100%";
+
+        questionStep.style.transform =
+            "";
+
+        questionStep.style.opacity =
+            "";
+
+        questionStep.classList.remove(
             "active"
         );
 
@@ -2417,7 +3490,7 @@ function resetSurveyForm() {
         );
 
 
-    if (button) {
+    if(button) {
 
         button.disabled =
             false;
@@ -2431,12 +3504,47 @@ function resetSurveyForm() {
     }
 
 
+    const nextButton =
+        document.getElementById(
+            "nextButton"
+        );
+
+
+    if(nextButton) {
+
+        nextButton.style.display =
+            "block";
+
+        nextButton.disabled =
+            false;
+
+    }
+
+
+    const previousButton =
+        document.getElementById(
+            "previousButton"
+        );
+
+
+    if(previousButton) {
+
+        previousButton.disabled =
+            true;
+
+    }
+
+
+    /*
+     * REFRESH DAILY COUNT
+     */
+
     const user =
         firebase.auth()
             .currentUser;
 
 
-    if (user) {
+    if(user) {
 
         getTodayCount(user)
             .then(function(count) {
@@ -2445,9 +3553,24 @@ function resetSurveyForm() {
                     count
                 );
 
+
+                if(
+                    count <
+                    DAILY_LIMIT
+                ) {
+
+                    enableSurveyButtons();
+
+                }
+
             });
 
     }
+
+
+    console.log(
+        "Survey form reset successfully. Ready for next survey."
+    );
 
 }
 
@@ -2479,19 +3602,22 @@ function disableSurveyButtons() {
         );
 
 
-    if (basicButton)
+    if(basicButton)
         basicButton.disabled =
             true;
 
-    if (nextButton)
+
+    if(nextButton)
         nextButton.disabled =
             true;
 
-    if (previousButton)
+
+    if(previousButton)
         previousButton.disabled =
             true;
 
-    if (submitButton)
+
+    if(submitButton)
         submitButton.disabled =
             true;
 
@@ -2525,19 +3651,22 @@ function enableSurveyButtons() {
         );
 
 
-    if (basicButton)
+    if(basicButton)
         basicButton.disabled =
             false;
 
-    if (nextButton)
+
+    if(nextButton)
         nextButton.disabled =
             false;
 
-    if (previousButton)
+
+    if(previousButton)
         previousButton.disabled =
             currentQuestion === 0;
 
-    if (submitButton)
+
+    if(submitButton)
         submitButton.disabled =
             false;
 
@@ -2551,10 +3680,14 @@ function enableSurveyButtons() {
 function getValue(id) {
 
     const element =
-        document.getElementById(id);
+        document.getElementById(
+            id
+        );
 
-    if (!element)
+
+    if(!element)
         return "";
+
 
     return String(
         element.value || ""
@@ -2574,15 +3707,18 @@ function showMessage(text) {
             "message"
         );
 
-    if (!message) return;
+
+    if(!message) return;
 
 
     message.classList.remove(
         "success-message"
     );
 
+
     message.textContent =
         text;
+
 
     message.style.color =
         "#c62828";
@@ -2597,15 +3733,18 @@ function showSuccessMessage(text) {
             "message"
         );
 
-    if (!message) return;
+
+    if(!message) return;
 
 
     message.classList.add(
         "success-message"
     );
 
+
     message.textContent =
         text;
+
 
     message.style.color =
         "#2e7d32";
@@ -2620,7 +3759,8 @@ function clearMessage() {
             "message"
         );
 
-    if (messageElement) {
+
+    if(messageElement) {
 
         messageElement.textContent =
             "";
@@ -2638,7 +3778,7 @@ function clearMessage() {
    START
 ========================================================= */
 
-if (
+if(
     document.readyState ===
     "loading"
 ) {
@@ -2649,7 +3789,6 @@ if (
     );
 
 }
-
 else {
 
     initializeSurveyPage();
