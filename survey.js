@@ -30,8 +30,6 @@ let message = null;
 
 let dailyLimitLoaded = false;
 
-let firebaseStorageReady = false;
-
 
 /* =========================================================
    PERMANENT QUESTIONS
@@ -59,203 +57,6 @@ const PHOTO_QUESTION = {
         "📷 आवश्यक चार फोटो अपलोड करें"
 
 };
-
-
-/* =========================================================
-   FIREBASE STORAGE
-========================================================= */
-
-function loadFirebaseStorageSDK() {
-
-    return new Promise(function(resolve) {
-
-        try {
-
-            if (
-                typeof firebase !== "undefined" &&
-                firebase.storage &&
-                typeof firebase.storage === "function"
-            ) {
-
-                try {
-
-                    firebase.storage();
-
-                    firebaseStorageReady = true;
-
-                    console.log(
-                        "Firebase Storage Ready"
-                    );
-
-                    resolve(true);
-
-                    return;
-
-                }
-                catch(error) {
-
-                    console.warn(
-                        "Existing Firebase Storage initialization failed:",
-                        error
-                    );
-
-                }
-
-            }
-
-        }
-        catch(error) {
-
-            console.warn(
-                "Firebase Storage check failed:",
-                error
-            );
-
-        }
-
-
-        const existing =
-            document.querySelector(
-                'script[data-firebase-storage="true"]'
-            );
-
-
-        if(existing) {
-
-            if(
-                firebaseStorageReady
-            ) {
-
-                resolve(true);
-
-                return;
-
-            }
-
-
-            existing.addEventListener(
-                "load",
-                function() {
-
-                    try {
-
-                        firebase.storage();
-
-                        firebaseStorageReady = true;
-
-                        console.log(
-                            "Firebase Storage Loaded"
-                        );
-
-                        resolve(true);
-
-                    }
-                    catch(error) {
-
-                        console.error(
-                            "Storage initialization error:",
-                            error
-                        );
-
-                        resolve(false);
-
-                    }
-
-                },
-                {
-                    once:true
-                }
-            );
-
-
-            existing.addEventListener(
-                "error",
-                function() {
-
-                    resolve(false);
-
-                },
-                {
-                    once:true
-                }
-            );
-
-
-            return;
-
-        }
-
-
-        const script =
-            document.createElement(
-                "script"
-            );
-
-
-        script.src =
-            "https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js";
-
-
-        script.async =
-            false;
-
-
-        script.setAttribute(
-            "data-firebase-storage",
-            "true"
-        );
-
-
-        script.onload =
-            function() {
-
-                try {
-
-                    firebase.storage();
-
-                    firebaseStorageReady =
-                        true;
-
-                    console.log(
-                        "Firebase Storage SDK Loaded Successfully"
-                    );
-
-                    resolve(true);
-
-                }
-                catch(error) {
-
-                    console.error(
-                        "Storage initialization error:",
-                        error
-                    );
-
-                    resolve(false);
-
-                }
-
-            };
-
-
-        script.onerror =
-            function() {
-
-                console.error(
-                    "Firebase Storage SDK could not be loaded."
-                );
-
-                resolve(false);
-
-            };
-
-
-        document.head.appendChild(
-            script
-        );
-
-    });
-
-}
 
 
 /* =========================================================
@@ -746,9 +547,7 @@ function startAuthentication() {
 
                         Promise.all([
 
-                            loadDailyLimit(),
-
-                            loadFirebaseStorageSDK()
+                            loadDailyLimit()
 
                         ])
 
@@ -1202,11 +1001,6 @@ function buildQuestionsFromSnapshot(
         }
     );
 
-
-    /*
-     * IMPORTANT:
-     * Permanent questions ALWAYS LAST
-     */
 
     surveyQuestions.push(
         LOCATION_QUESTION
@@ -1815,8 +1609,10 @@ function renderQuestion() {
                 ? "block"
                 : "none";
 
+
         submitButton.disabled =
             false;
+
 
         submitButton.textContent =
             "Submit Survey";
@@ -2280,12 +2076,6 @@ function renderPhotoQuestion(
                 "image/*";
 
 
-            /*
-             * IMPORTANT:
-             * Mobile browsers can offer
-             * camera option.
-             */
-
             input.setAttribute(
                 "capture",
                 item.capture
@@ -2439,51 +2229,7 @@ function getCurrentQuestionAnswer() {
         "photos"
     ) {
 
-        const photoIds = [
-
-            "photoVillage",
-            "photoProblem",
-            "photoPerson",
-            "photoSelfie"
-
-        ];
-
-
-        const files = [];
-
-
-        photoIds.forEach(
-            function(id) {
-
-                const input =
-                    document.getElementById(
-                        id
-                    );
-
-
-                if(
-                    input &&
-                    input.files &&
-                    input.files.length > 0
-                ) {
-
-                    files.push({
-
-                        id:
-                            id,
-
-                        file:
-                            input.files[0]
-
-                    });
-
-                }
-
-            }
-        );
-
-
-        return files;
+        return getRequiredPhotoFiles();
 
     }
 
@@ -2621,53 +2367,6 @@ function saveCurrentQuestionAnswer() {
 
         }
 
-
-        const requiredIds = [
-
-            "photoVillage",
-            "photoProblem",
-            "photoPerson",
-            "photoSelfie"
-
-        ];
-
-
-        for(
-            let i = 0;
-            i < requiredIds.length;
-            i++
-        ) {
-
-            const input =
-                document.getElementById(
-                    requiredIds[i]
-                );
-
-
-            if(
-                !input ||
-                !input.files ||
-                input.files.length === 0
-            ) {
-
-                showMessage(
-                    "📷 Please select all 4 required photos."
-                );
-
-
-                return false;
-
-            }
-
-        }
-
-
-        /*
-         * IMPORTANT:
-         * File objects are kept only
-         * temporarily in browser memory.
-         * They will NOT be saved to Firestore.
-         */
 
         answers.questions[
             PHOTO_QUESTION.id
@@ -3024,7 +2723,7 @@ function getRequiredPhotoFiles() {
 
 
 /* =========================================================
-   UPLOAD PHOTOS
+   CLOUDINARY PHOTO UPLOAD
 ========================================================= */
 
 function uploadSurveyPhotos(
@@ -3049,139 +2748,191 @@ function uploadSurveyPhotos(
     }
 
 
-    return loadFirebaseStorageSDK()
+    /*
+     * CLOUDINARY
+     */
 
-        .then(function(ready) {
-
-            if(!ready) {
-
-                throw new Error(
-                    "Firebase Storage is not available. Please enable Firebase Storage."
-                );
-
-            }
+    const CLOUDINARY_CLOUD_NAME =
+        "pavz8wb1";
 
 
-            const storage =
-                firebase.storage();
+    const CLOUDINARY_UPLOAD_PRESET =
+        "survey_photos";
 
 
-            const uploads = {};
+    const CLOUDINARY_UPLOAD_URL =
+        "https://api.cloudinary.com/v1_1/" +
+        CLOUDINARY_CLOUD_NAME +
+        "/image/upload";
 
 
-            photoFiles.forEach(
-                function(item,index) {
-
-                    const file =
-                        item.file;
+    const uploads = {};
 
 
-                    const safeName =
-                        String(
-                            file.name ||
-                            "photo"
-                        )
-                        .replace(
-                            /[^a-zA-Z0-9._-]/g,
-                            "_"
-                        );
+    photoFiles.forEach(
+        function(item,index) {
+
+            const file =
+                item.file;
 
 
-                    const storagePath =
-                        "surveyPhotos/" +
-                        surveyId +
-                        "/photo_" +
-                        (index + 1) +
-                        "_" +
-                        Date.now() +
-                        "_" +
-                        safeName;
+            const formData =
+                new FormData();
 
 
-                    const ref =
-                        storage.ref(
-                            storagePath
-                        );
-
-
-                    uploads[
-                        "photo" +
-                        (index + 1)
-                    ] =
-                        ref
-                            .put(file)
-
-                            .then(
-                                function(snapshot) {
-
-                                    return snapshot.ref
-                                        .getDownloadURL();
-
-                                }
-                            )
-
-                            .then(
-                                function(url) {
-
-                                    return {
-
-                                        url:
-                                            url,
-
-                                        name:
-                                            file.name,
-
-                                        type:
-                                            file.type,
-
-                                        size:
-                                            file.size,
-
-                                        storagePath:
-                                            storagePath
-
-                                    };
-
-                                }
-                            );
-
-                }
+            formData.append(
+                "file",
+                file
             );
 
 
-            return Promise.all(
+            formData.append(
+                "upload_preset",
+                CLOUDINARY_UPLOAD_PRESET
+            );
 
-                Object.keys(
-                    uploads
-                )
-                .map(
-                    function(key) {
 
-                        return uploads[key]
-                            .then(
-                                function(data) {
+            formData.append(
+                "folder",
+                "surveyPhotos/" +
+                surveyId
+            );
 
-                                    return {
 
-                                        key:
-                                            key,
+            uploads[
+                "photo" +
+                (index + 1)
+            ] =
+                fetch(
+                    CLOUDINARY_UPLOAD_URL,
+                    {
 
-                                        data:
-                                            data
+                        method:
+                            "POST",
 
-                                    };
-
-                                }
-                            );
+                        body:
+                            formData
 
                     }
                 )
 
-            );
+                .then(
+                    function(response) {
 
-        })
+                        if(
+                            !response.ok
+                        ) {
 
-        .then(function(results) {
+                            return response
+                                .json()
+                                .catch(
+                                    function() {
+
+                                        return {};
+
+                                    }
+                                )
+                                .then(
+                                    function(errorData) {
+
+                                        console.error(
+                                            "Cloudinary error:",
+                                            errorData
+                                        );
+
+
+                                        throw new Error(
+                                            "Cloudinary upload failed for photo " +
+                                            (index + 1)
+                                        );
+
+                                    }
+                                );
+
+                        }
+
+
+                        return response.json();
+
+                    }
+                )
+
+                .then(
+                    function(data) {
+
+                        if(
+                            !data ||
+                            !data.secure_url
+                        ) {
+
+                            throw new Error(
+                                "Cloudinary did not return photo URL."
+                            );
+
+                        }
+
+
+                        return {
+
+                            url:
+                                data.secure_url,
+
+                            name:
+                                file.name,
+
+                            type:
+                                file.type,
+
+                            size:
+                                file.size,
+
+                            publicId:
+                                data.public_id,
+
+                            storagePath:
+                                data.public_id
+
+                        };
+
+                    }
+                );
+
+        }
+    );
+
+
+    return Promise.all(
+
+        Object.keys(
+            uploads
+        )
+        .map(
+            function(key) {
+
+                return uploads[key]
+                    .then(
+                        function(data) {
+
+                            return {
+
+                                key:
+                                    key,
+
+                                data:
+                                    data
+
+                            };
+
+                        }
+                    );
+
+            }
+        )
+
+    )
+
+    .then(
+        function(results) {
 
             const photos =
                 {};
@@ -3201,14 +2952,14 @@ function uploadSurveyPhotos(
 
             return photos;
 
-        });
+        }
+    );
 
 }
 
 
 /* =========================================================
    CLEAN ANSWERS FOR FIRESTORE
-   VERY IMPORTANT FIX
 ========================================================= */
 
 function getCleanFirestoreAnswers() {
@@ -3227,14 +2978,6 @@ function getCleanFirestoreAnswers() {
     )
     .forEach(
         function(key) {
-
-            /*
-             * NEVER SAVE PERMANENT QUESTIONS
-             * TO FIRESTORE answers FIELD.
-             *
-             * Firestore rejects field names
-             * beginning AND ending with "__".
-             */
 
             if(
                 key ===
@@ -3256,12 +2999,6 @@ function getCleanFirestoreAnswers() {
             }
 
 
-            /*
-             * Extra safety:
-             * Ignore any field beginning
-             * and ending with "__".
-             */
-
             if(
                 key.startsWith("__") &&
                 key.endsWith("__")
@@ -3275,11 +3012,6 @@ function getCleanFirestoreAnswers() {
             const value =
                 source[key];
 
-
-            /*
-             * Never save File objects
-             * to Firestore.
-             */
 
             if(
                 value instanceof File
@@ -3370,48 +3102,21 @@ function submitSurvey() {
 
 
     /*
-     * FINAL PHOTO VALIDATION
+     * FINAL VALIDATION
      */
 
     if(
         surveyQuestions[
             currentQuestion
         ] &&
-        surveyQuestions[
-            currentQuestion
-        ].type ===
-        "photos"
-    ) {
-
-        if(
-            !saveCurrentQuestionAnswer()
-        ) {
-
-            console.warn(
-                "Photo validation failed."
-            );
-
-
-            return;
-
-        }
-
-    }
-
-
-    /*
-     * SAVE FINAL LOCATION IF
-     * USER IS ON LOCATION QUESTION
-     */
-
-    if(
-        surveyQuestions[
-            currentQuestion
-        ] &&
-        surveyQuestions[
-            currentQuestion
-        ].type ===
-        "location"
+        (
+            surveyQuestions[
+                currentQuestion
+            ].type === "photos" ||
+            surveyQuestions[
+                currentQuestion
+            ].type === "location"
+        )
     ) {
 
         if(
@@ -3604,11 +3309,6 @@ function submitSurvey() {
     }
 
 
-    console.log(
-        "Checking daily survey count..."
-    );
-
-
     /*
      * CHECK DAILY LIMIT
      */
@@ -3634,10 +3334,6 @@ function submitSurvey() {
             }
 
 
-            /*
-             * GET SAVED LOCATION
-             */
-
             const savedLocation =
                 answers.questions[
                     LOCATION_QUESTION.id
@@ -3650,20 +3346,9 @@ function submitSurvey() {
                 savedLocation.longitude !== undefined
             ) {
 
-                console.log(
-                    "Using saved survey location:",
-                    savedLocation
-                );
-
-
                 return savedLocation;
 
             }
-
-
-            console.log(
-                "Capturing location automatically..."
-            );
 
 
             return captureCurrentLocation();
@@ -3672,7 +3357,7 @@ function submitSurvey() {
 
 
         /*
-         * SAVE SURVEY TO FIRESTORE
+         * SAVE SURVEY DATA
          */
 
         .then(function(locationData) {
@@ -3683,20 +3368,8 @@ function submitSurvey() {
                 locationData;
 
 
-            /*
-             * IMPORTANT FIX:
-             * Only clean normal answers
-             * are sent to Firestore.
-             */
-
             const cleanAnswers =
                 getCleanFirestoreAnswers();
-
-
-            console.log(
-                "Clean answers prepared:",
-                cleanAnswers
-            );
 
 
             const surveyData = {
@@ -3724,11 +3397,6 @@ function submitSurvey() {
                     answers.basic.pincode ||
                     "",
 
-                /*
-                 * ONLY NORMAL QUESTIONS
-                 * ARE SAVED HERE.
-                 */
-
                 answers:
                     cleanAnswers,
 
@@ -3748,11 +3416,6 @@ function submitSurvey() {
                     firebase.firestore
                         .FieldValue
                         .serverTimestamp(),
-
-                /*
-                 * LOCATION IS SAVED
-                 * SEPARATELY.
-                 */
 
                 location:
                     locationData,
@@ -3776,11 +3439,6 @@ function submitSurvey() {
             };
 
 
-            console.log(
-                "Saving survey data to Firestore..."
-            );
-
-
             return db
                 .collection(
                     "surveys"
@@ -3793,7 +3451,7 @@ function submitSurvey() {
 
 
         /*
-         * UPLOAD PHOTOS
+         * UPLOAD PHOTOS TO CLOUDINARY
          */
 
         .then(function(docRef) {
@@ -3812,11 +3470,6 @@ function submitSurvey() {
             }
 
 
-            console.log(
-                "Uploading 4 survey photos..."
-            );
-
-
             return uploadSurveyPhotos(
                 docRef.id,
                 user
@@ -3825,7 +3478,7 @@ function submitSurvey() {
             .then(function(photoData) {
 
                 console.log(
-                    "Photos uploaded:",
+                    "Photos uploaded to Cloudinary:",
                     photoData
                 );
 
@@ -3901,11 +3554,6 @@ function submitSurvey() {
             );
 
 
-            /*
-             * RESET AND OPEN
-             * NEW SURVEY
-             */
-
             resetSurveyForm();
 
 
@@ -3933,12 +3581,6 @@ function submitSurvey() {
                 error
             );
 
-
-            /*
-             * IMPORTANT:
-             * Show actual Firebase error
-             * instead of silently stopping.
-             */
 
             showMessage(
                 "❌ Survey could not be submitted: " +
@@ -4028,10 +3670,6 @@ function resetSurveyForm() {
     );
 
 
-    /*
-     * REMOVE ALL FILES
-     */
-
     document
         .querySelectorAll(
             'input[type="file"]'
@@ -4057,10 +3695,6 @@ function resetSurveyForm() {
             "questionStep"
         );
 
-
-    /*
-     * SHOW BASIC FORM
-     */
 
     if(basicStep) {
 
@@ -4098,10 +3732,6 @@ function resetSurveyForm() {
 
     }
 
-
-    /*
-     * HIDE QUESTIONS
-     */
 
     if(questionStep) {
 
@@ -4193,10 +3823,6 @@ function resetSurveyForm() {
 
     }
 
-
-    /*
-     * REFRESH DAILY COUNT
-     */
 
     const user =
         firebase.auth()
