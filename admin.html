@@ -1,405 +1,959 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
 <title>Surveykshan Admin</title>
 
+
 <style>
-*{box-sizing:border-box}
+
+*{
+    box-sizing:border-box;
+}
+
 
 body{
+
     margin:0;
+
     background:#f3f6fa;
+
     font-family:Arial,sans-serif;
+
     color:#222;
+
 }
+
 
 .header{
-    background:linear-gradient(135deg,#0d47a1,#1976d2);
+
+    background:
+    linear-gradient(
+        135deg,
+        #0d47a1,
+        #1976d2
+    );
+
     color:white;
+
     padding:20px;
+
     text-align:center;
+
     font-size:27px;
+
     font-weight:bold;
+
 }
+
 
 .container{
+
     width:96%;
+
     max-width:1450px;
+
     margin:20px auto;
+
 }
+
 
 .card{
+
     background:white;
+
     border-radius:15px;
+
     padding:20px;
+
     margin-bottom:20px;
-    box-shadow:0 4px 15px rgba(0,0,0,.08);
+
+    box-shadow:
+    0 4px 15px rgba(0,0,0,.08);
+
 }
+
 
 .dashboard{
+
     display:grid;
-    grid-template-columns:repeat(5,1fr);
+
+    grid-template-columns:
+    repeat(5,1fr);
+
     gap:15px;
+
 }
+
 
 .stat{
+
     text-align:center;
+
     padding:20px;
+
     background:white;
+
     border-radius:14px;
-    box-shadow:0 3px 12px rgba(0,0,0,.07);
+
+    box-shadow:
+    0 3px 12px rgba(0,0,0,.07);
+
 }
+
 
 .stat h3{
+
     margin:0;
+
     color:#666;
+
     font-size:14px;
+
 }
+
 
 .stat strong{
+
     display:block;
+
     margin-top:8px;
+
     font-size:28px;
+
     color:#1565c0;
+
 }
+
 
 .section-title{
+
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
+
     gap:10px;
+
     flex-wrap:wrap;
+
     margin-bottom:15px;
+
 }
+
 
 .section-title h2{
+
     margin:0;
+
     color:#1565c0;
+
 }
 
-input,select{
+
+input,
+select{
+
     width:100%;
+
     padding:11px;
+
     border:1px solid #ccd5df;
+
     border-radius:9px;
+
     font-size:15px;
+
     margin:5px 0;
+
 }
+
 
 button{
+
     border:0;
+
     border-radius:8px;
+
     padding:10px 15px;
+
     cursor:pointer;
+
     font-weight:bold;
+
     margin:3px;
+
 }
 
-.primary{background:#1565c0;color:white}
-.success{background:#2e7d32;color:white}
-.danger{background:#d32f2f;color:white}
-.warning{background:#ef6c00;color:white}
-.purple{background:#6a1b9a;color:white}
-.gray{background:#667085;color:white}
+
+button:disabled{
+
+    opacity:.6;
+
+    cursor:not-allowed;
+
+}
+
+
+.primary{
+
+    background:#1565c0;
+
+    color:white;
+
+}
+
+
+.success{
+
+    background:#2e7d32;
+
+    color:white;
+
+}
+
+
+.danger{
+
+    background:#d32f2f;
+
+    color:white;
+
+}
+
+
+.warning{
+
+    background:#ef6c00;
+
+    color:white;
+
+}
+
+
+.purple{
+
+    background:#6a1b9a;
+
+    color:white;
+
+}
+
+
+.gray{
+
+    background:#667085;
+
+    color:white;
+
+}
+
+
+.photo-button{
+
+    background:#00897b;
+
+    color:white;
+
+}
+
 
 #questionManagerBody{
+
     display:block;
+
 }
+
 
 .option-row{
+
     display:flex;
+
     gap:8px;
+
     margin:8px 0;
+
 }
+
 
 .option-row input{
+
     flex:1;
+
 }
+
 
 .question-card{
+
     background:#f7faff;
+
     border:1px solid #dce6f1;
+
     border-radius:10px;
+
     padding:15px;
+
     margin:10px 0;
+
 }
+
 
 .question-card h3{
+
     margin-top:0;
+
     color:#1565c0;
+
 }
+
 
 .filter-box{
+
     background:#f8fbff;
+
     border:1px solid #d7e3ef;
+
     border-radius:12px;
+
     padding:15px;
+
 }
+
 
 .filter-grid{
+
     display:grid;
-    grid-template-columns:repeat(5,1fr);
+
+    grid-template-columns:
+    repeat(5,1fr);
+
     gap:10px;
+
 }
+
 
 .filter-grid select{
+
     margin:0;
+
 }
+
 
 .filter-buttons{
+
     margin-top:10px;
+
 }
+
 
 #filterResultCount{
+
     font-weight:bold;
+
     margin-left:8px;
+
 }
+
 
 .table-wrap{
+
     width:100%;
+
     overflow-x:auto;
+
     border:1px solid #ddd;
+
     border-radius:10px;
+
 }
+
 
 table{
+
     width:100%;
-    min-width:800px;
+
+    min-width:950px;
+
     border-collapse:collapse;
+
     background:white;
+
 }
+
 
 th{
+
     background:#1565c0;
+
     color:white;
+
     padding:13px;
+
     white-space:nowrap;
+
 }
+
 
 td{
+
     padding:12px;
-    border-bottom:1px solid #e5e7eb;
+
+    border-bottom:
+    1px solid #e5e7eb;
+
     text-align:center;
+
     white-space:nowrap;
+
 }
+
 
 tr:hover td{
+
     background:#f5faff;
+
 }
+
 
 .action-btn{
+
     padding:7px 10px;
+
     font-size:13px;
+
 }
+
+
+.photo-thumb{
+
+    width:55px;
+
+    height:55px;
+
+    object-fit:cover;
+
+    border-radius:8px;
+
+    border:2px solid #ddd;
+
+    display:block;
+
+    margin:auto;
+
+}
+
+
+.no-photo{
+
+    color:#999;
+
+    font-size:13px;
+
+}
+
 
 .answer-modal{
+
     display:none;
+
     position:fixed;
+
     inset:0;
-    background:rgba(0,0,0,.6);
+
+    background:
+    rgba(0,0,0,.6);
+
     z-index:9999;
+
     align-items:center;
+
     justify-content:center;
+
     padding:20px;
+
 }
+
 
 .answer-modal.show{
+
     display:flex;
+
 }
+
 
 .modal-box{
+
     background:white;
+
     width:min(850px,95%);
+
     max-height:90vh;
+
     overflow:auto;
+
     border-radius:15px;
+
     padding:20px;
+
 }
+
 
 .modal-header{
+
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
-    border-bottom:1px solid #ddd;
+
+    border-bottom:
+    1px solid #ddd;
+
     padding-bottom:10px;
+
     margin-bottom:15px;
+
 }
+
 
 .answer-item{
+
     border:1px solid #ddd;
+
     border-radius:10px;
+
     padding:12px;
+
     margin:9px 0;
+
 }
+
 
 .answer-question{
+
     font-weight:bold;
+
 }
+
 
 .answer-value{
+
     color:#1565c0;
+
     margin-top:5px;
+
 }
+
 
 .respondent{
+
     background:#f5f8fc;
+
     padding:15px;
+
     border-radius:10px;
+
     margin-bottom:15px;
+
 }
+
 
 .respondent-grid{
+
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+
+    grid-template-columns:
+    repeat(3,1fr);
+
     gap:10px;
+
 }
+
+
+/* =====================================================
+   PHOTO MODAL
+===================================================== */
+
+
+.photo-modal{
+
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:
+    rgba(0,0,0,.85);
+
+    z-index:10000;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:20px;
+
+}
+
+
+.photo-modal.show{
+
+    display:flex;
+
+}
+
+
+.photo-modal-box{
+
+    position:relative;
+
+    background:white;
+
+    width:min(900px,96%);
+
+    max-height:95vh;
+
+    border-radius:15px;
+
+    padding:15px;
+
+    text-align:center;
+
+}
+
+
+.photo-modal-box img{
+
+    max-width:100%;
+
+    max-height:78vh;
+
+    object-fit:contain;
+
+    border-radius:10px;
+
+}
+
+
+.photo-close{
+
+    position:absolute;
+
+    right:10px;
+
+    top:10px;
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    background:#d32f2f;
+
+    color:white;
+
+    font-size:20px;
+
+    padding:0;
+
+}
+
+
+.photo-title{
+
+    margin:5px 50px 15px;
+
+    color:#1565c0;
+
+    font-size:20px;
+
+}
+
+
+.photo-open-link{
+
+    display:inline-block;
+
+    margin-top:10px;
+
+    background:#1565c0;
+
+    color:white;
+
+    text-decoration:none;
+
+    padding:10px 15px;
+
+    border-radius:8px;
+
+    font-weight:bold;
+
+}
+
 
 @media(max-width:900px){
+
     .dashboard{
-        grid-template-columns:repeat(3,1fr);
+
+        grid-template-columns:
+        repeat(3,1fr);
+
     }
 
+
     .filter-grid{
-        grid-template-columns:repeat(2,1fr);
+
+        grid-template-columns:
+        repeat(2,1fr);
+
     }
+
 }
+
 
 @media(max-width:600px){
+
     .dashboard{
-        grid-template-columns:repeat(2,1fr);
+
+        grid-template-columns:
+        repeat(2,1fr);
+
     }
+
 
     .filter-grid{
+
         grid-template-columns:1fr;
+
     }
+
 
     .respondent-grid{
+
         grid-template-columns:1fr;
+
     }
 
+
     .header{
+
         font-size:21px;
+
     }
+
 }
+
 </style>
+
 </head>
+
 
 <body>
 
+
 <div class="header">
-    📊 Surveykshan Admin Dashboard
+
+📊 Surveykshan Admin Dashboard
+
 </div>
+
 
 <div class="container">
 
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+
 <div class="dashboard">
 
+
 <div class="stat">
+
 <h3>Total Surveys</h3>
+
 <strong id="totalSurvey">0</strong>
+
 </div>
 
+
 <div class="stat">
+
 <h3>Today's Surveys</h3>
+
 <strong id="todaySurvey">0</strong>
+
 </div>
 
+
 <div class="stat">
+
 <h3>This Week</h3>
+
 <strong id="weekSurvey">0</strong>
+
 </div>
 
+
 <div class="stat">
+
 <h3>This Month</h3>
+
 <strong id="monthSurvey">0</strong>
+
 </div>
+
 
 <div class="stat">
+
 <h3>Total Questions</h3>
+
 <strong id="questionCount">0</strong>
-</div>
 
 </div>
 
 
-<!-- QUESTION MANAGER -->
+</div>
+
+
+
+<!-- =====================================================
+     QUESTION MANAGER
+===================================================== -->
+
 
 <div class="card">
 
+
 <div class="section-title">
 
-<h2>📝 Survey Question Manager</h2>
+<h2>
+📝 Survey Question Manager
+</h2>
+
 
 <button
 id="questionManagerToggle"
 class="primary"
 type="button">
+
 🙈 Hide
+
 </button>
 
 </div>
 
+
 <div id="questionManagerBody">
+
 
 <input
 id="questionText"
 type="text"
 placeholder="Enter survey question">
 
+
 <select id="questionType">
-<option value="single">Single Choice</option>
-<option value="multiple">Multiple Choice</option>
+
+<option value="single">
+Single Choice
+</option>
+
+<option value="multiple">
+Multiple Choice
+</option>
+
 </select>
 
-<h3>Options</h3>
+
+<h3>
+Options
+</h3>
+
 
 <div id="optionsContainer"></div>
+
 
 <button
 id="addOption"
 type="button"
 class="gray">
+
 ➕ Add Option
+
 </button>
 
+
 <br>
+
 
 <button
 id="saveQuestion"
 type="button"
 class="success">
+
 💾 Save Question
+
 </button>
+
 
 <button
 id="cancelEdit"
 type="button"
 class="warning"
 style="display:none">
+
 Cancel Edit
+
 </button>
+
 
 <p id="questionMessage"></p>
 
+
 <hr>
 
-<h3>📋 Existing Questions</h3>
+
+<h3>
+📋 Existing Questions
+</h3>
+
 
 <div id="questionsList"></div>
 
+
 </div>
+
 </div>
 
 
-<!-- DAILY LIMIT -->
+
+<!-- =====================================================
+     DAILY LIMIT
+===================================================== -->
+
 
 <div class="card">
 
+
 <div class="section-title">
-<h2>⚙️ Daily Survey Limit</h2>
+
+<h2>
+⚙️ Daily Survey Limit
+</h2>
+
 </div>
+
 
 <input
 id="dailyLimitInput"
@@ -407,209 +961,1128 @@ type="number"
 min="1"
 value="20">
 
+
 <button
 id="saveDailyLimit"
 class="primary"
 type="button">
+
 💾 Save Limit
+
 </button>
+
 
 <span id="limitMessage"></span>
 
+
 </div>
 
 
-<!-- SURVEYOR MANAGEMENT -->
+
+<!-- =====================================================
+     SURVEYOR MANAGEMENT
+===================================================== -->
+
 
 <div class="card">
 
+
 <div class="section-title">
-<h2>👥 Surveyor Management</h2>
+
+<h2>
+👥 Surveyor Management
+</h2>
+
 </div>
+
 
 <div class="table-wrap">
 
+
 <table>
 
+
 <thead>
+
 <tr>
-<th>Surveyor</th>
-<th>Total</th>
-<th>Today</th>
-<th>This Week</th>
-<th>This Month</th>
-<th>Status</th>
+
+<th>
+Surveyor
+</th>
+
+<th>
+Total
+</th>
+
+<th>
+Today
+</th>
+
+<th>
+This Week
+</th>
+
+<th>
+This Month
+</th>
+
+<th>
+Status
+</th>
+
 </tr>
+
 </thead>
 
-<tbody id="surveyorManagementTable"></tbody>
+
+<tbody
+id="surveyorManagementTable">
+</tbody>
+
 
 </table>
 
-</div>
 
 </div>
 
+</div>
 
-<!-- FILTER -->
+
+
+<!-- =====================================================
+     FILTER
+===================================================== -->
+
 
 <div class="card">
 
+
 <div class="section-title">
-<h2>🔎 Filter Survey Records</h2>
+
+<h2>
+🔎 Filter Survey Records
+</h2>
+
 </div>
+
 
 <div class="filter-box">
 
+
 <div class="filter-grid">
 
+
 <select id="filterName">
-<option value="">👤 All Names</option>
+
+<option value="">
+👤 All Names
+</option>
+
 </select>
+
 
 <select id="filterMobile">
-<option value="">📱 All Mobiles</option>
+
+<option value="">
+📱 All Mobiles
+</option>
+
 </select>
+
 
 <select id="filterVillage">
-<option value="">🏠 All Villages</option>
+
+<option value="">
+🏠 All Villages
+</option>
+
 </select>
+
 
 <select id="filterSurveyor">
-<option value="">🧑‍💼 All Surveyors</option>
+
+<option value="">
+🧑‍💼 All Surveyors
+</option>
+
 </select>
 
+
 <select id="filterDate">
-<option value="">📅 All Dates</option>
-<option value="today">Today</option>
-<option value="week">This Week</option>
-<option value="month">This Month</option>
+
+<option value="">
+📅 All Dates
+</option>
+
+<option value="today">
+Today
+</option>
+
+<option value="week">
+This Week
+</option>
+
+<option value="month">
+This Month
+</option>
+
 </select>
+
 
 </div>
 
+
 <div class="filter-buttons">
+
 
 <button
 id="applySurveyFilter"
 class="primary"
 type="button">
+
 🔎 Filter
+
 </button>
+
 
 <button
 id="clearSurveyFilter"
 class="warning"
 type="button">
+
 ✖ Clear
+
 </button>
 
+
 <span id="filterResultCount">
+
 Showing: 0 / 0
+
 </span>
 
+
+</div>
+
+
 </div>
 
 </div>
 
-</div>
 
 
-<!-- SURVEY RECORDS -->
+<!-- =====================================================
+     SURVEY RECORDS
+===================================================== -->
+
 
 <div class="card">
 
+
 <div class="section-title">
 
-<h2>📊 Survey Records</h2>
+
+<h2>
+📊 Survey Records
+</h2>
+
 
 <button
 id="deleteAllSurveysBtn"
 class="danger"
 type="button">
+
 🗑️ Delete All Surveys
+
 </button>
 
+
 </div>
+
 
 <div class="table-wrap">
 
+
 <table id="surveyRecordsTable">
+
 
 <thead>
 
+
 <tr>
-<th>Name</th>
-<th>Mobile</th>
-<th>Age</th>
-<th>Gender</th>
-<th>Village</th>
-<th>Actions</th>
+
+<th>
+Photo
+</th>
+
+<th>
+Name
+</th>
+
+<th>
+Mobile
+</th>
+
+<th>
+Age
+</th>
+
+<th>
+Gender
+</th>
+
+<th>
+Village
+</th>
+
+<th>
+Actions
+</th>
+
 </tr>
+
 
 </thead>
 
+
 <tbody id="surveyTable"></tbody>
+
 
 </table>
 
-</div>
 
 </div>
 
 
-<!-- ANSWER MODAL -->
+</div>
+
+
+
+<!-- =====================================================
+     ANSWER MODAL
+===================================================== -->
+
 
 <div
 id="answerModal"
 class="answer-modal">
 
+
 <div class="modal-box">
+
 
 <div class="modal-header">
 
-<h2>📋 Survey Answers</h2>
+
+<h2>
+📋 Survey Answers
+</h2>
+
 
 <button
 id="closeAnswerModal"
 class="danger"
 type="button">
+
 ✖
+
 </button>
 
+
 </div>
+
 
 <div id="answerModalBody"></div>
 
+
+</div>
+
+</div>
+
+
+
+<!-- =====================================================
+     PHOTO MODAL
+===================================================== -->
+
+
+<div
+id="photoModal"
+class="photo-modal">
+
+
+<div class="photo-modal-box">
+
+
+<button
+id="closePhotoModal"
+class="photo-close"
+type="button">
+
+✖
+
+</button>
+
+
+<h2
+id="photoModalTitle"
+class="photo-title">
+
+📷 Survey Photo
+
+</h2>
+
+
+<img
+id="adminPhotoPreview"
+src=""
+alt="Survey Photo">
+
+
+<br>
+
+
+<a
+id="openCloudinaryPhoto"
+class="photo-open-link"
+href="#"
+target="_blank"
+rel="noopener">
+
+🔗 Open Photo
+
+</a>
+
+
 </div>
 
 </div>
 
 
-<!-- LOGOUT -->
 
-<div style="text-align:center;margin:25px">
+<!-- =====================================================
+     LOGOUT
+===================================================== -->
+
+
+<div
+style="
+text-align:center;
+margin:25px;
+">
+
 
 <button
 id="logoutBtn"
 class="danger"
 type="button">
+
 🚪 Logout
+
 </button>
 
-</div>
 
 </div>
 
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</div>
+
+
+
+<!-- =====================================================
+     FIREBASE
+===================================================== -->
+
+
+<script
+src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
+</script>
+
+
+<script
+src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js">
+</script>
+
+
+<script
+src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js">
+</script>
+
 
 <script src="firebase.js"></script>
+
 <script src="admin.js"></script>
 
+
+
+<!-- =====================================================
+     PHOTO + SAFETY SCRIPT
+===================================================== -->
+
+
 <script>
+
+
+/*
+========================================================
+PHOTO FIELD DETECTION
+========================================================
+
+Cloudinary URL survey document में अलग-अलग नाम से
+save हो सकती है। इसलिए कई possible field names
+check किए जा रहे हैं।
+========================================================
+*/
+
+
+function getSurveyPhotoURL(survey){
+
+    if(!survey){
+        return "";
+    }
+
+
+    const possibleFields = [
+
+        "photoURL",
+
+        "photoUrl",
+
+        "photo_url",
+
+        "imageURL",
+
+        "imageUrl",
+
+        "image_url",
+
+        "cloudinaryURL",
+
+        "cloudinaryUrl",
+
+        "cloudinary_url",
+
+        "photo",
+
+        "image",
+
+        "photoURLCloudinary",
+
+        "surveyPhoto",
+
+        "surveyPhotoURL",
+
+        "respondentPhoto",
+
+        "respondentPhotoURL"
+
+    ];
+
+
+    for(
+        let i = 0;
+        i < possibleFields.length;
+        i++
+    ){
+
+        const field =
+            possibleFields[i];
+
+
+        const value =
+            survey[field];
+
+
+        if(
+            typeof value === "string" &&
+            value.trim() !== ""
+        ){
+
+            return value.trim();
+
+        }
+
+    }
+
+
+    return "";
+
+}
+
+
+
+/*
+========================================================
+OPEN PHOTO
+========================================================
+*/
+
+
+window.showAdminPhoto =
+function(photoURL,name){
+
+    const modal =
+        document.getElementById(
+            "photoModal"
+        );
+
+
+    const image =
+        document.getElementById(
+            "adminPhotoPreview"
+        );
+
+
+    const title =
+        document.getElementById(
+            "photoModalTitle"
+        );
+
+
+    const link =
+        document.getElementById(
+            "openCloudinaryPhoto"
+        );
+
+
+    if(!modal || !image){
+        return;
+    }
+
+
+    if(!photoURL){
+
+        alert(
+            "इस survey में photo URL नहीं मिला।"
+        );
+
+        return;
+
+    }
+
+
+    image.src = photoURL;
+
+
+    if(title){
+
+        title.textContent =
+            "📷 " +
+            (
+                name ||
+                "Survey Photo"
+            );
+
+    }
+
+
+    if(link){
+
+        link.href = photoURL;
+
+    }
+
+
+    modal.classList.add("show");
+
+};
+
+
+
+/*
+========================================================
+CLOSE PHOTO
+========================================================
+*/
+
+
+document
+.getElementById("closePhotoModal")
+?.addEventListener(
+    "click",
+    function(){
+
+        const modal =
+            document.getElementById(
+                "photoModal"
+            );
+
+
+        const image =
+            document.getElementById(
+                "adminPhotoPreview"
+            );
+
+
+        if(modal){
+
+            modal.classList.remove(
+                "show"
+            );
+
+        }
+
+
+        if(image){
+
+            image.src = "";
+
+        }
+
+    }
+);
+
+
+
+/*
+========================================================
+CLICK OUTSIDE PHOTO MODAL
+========================================================
+*/
+
+
+document
+.getElementById("photoModal")
+?.addEventListener(
+    "click",
+    function(event){
+
+        if(
+            event.target === this
+        ){
+
+            this.classList.remove(
+                "show"
+            );
+
+        }
+
+    }
+);
+
+
+
+/*
+========================================================
+ESC KEY CLOSE PHOTO
+========================================================
+*/
+
+
+document.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key === "Escape"
+        ){
+
+            const photoModal =
+                document.getElementById(
+                    "photoModal"
+                );
+
+
+            const answerModal =
+                document.getElementById(
+                    "answerModal"
+                );
+
+
+            if(photoModal){
+
+                photoModal.classList.remove(
+                    "show"
+                );
+
+            }
+
+
+            if(answerModal){
+
+                answerModal.classList.remove(
+                    "show"
+                );
+
+            }
+
+        }
+
+    }
+);
+
+
+
+/*
+========================================================
+RENDER PHOTO COLUMN AFTER ADMIN.JS LOADS DATA
+========================================================
+
+admin.js existing renderSurveyRecords() को replace
+नहीं किया जा रहा। MutationObserver से table में photo
+column/action automatically add किया जाएगा।
+========================================================
+*/
+
+
+(function(){
+
+    function addPhotoToSurveyRows(){
+
+        const table =
+            document.getElementById(
+                "surveyRecordsTable"
+            );
+
+
+        if(!table){
+            return;
+        }
+
+
+        const headRow =
+            table.querySelector(
+                "thead tr"
+            );
+
+
+        const body =
+            document.getElementById(
+                "surveyTable"
+            );
+
+
+        if(!headRow || !body){
+            return;
+        }
+
+
+        /*
+         * Header में Photo पहले से मौजूद है।
+         */
+
+
+        Array.from(
+            body.querySelectorAll("tr")
+        ).forEach(function(row){
+
+            /*
+             * यदि photo पहले से add है
+             * तो दोबारा add नहीं करना।
+             */
+
+            if(
+                row.dataset.photoAdded === "true"
+            ){
+
+                return;
+
+            }
+
+
+            /*
+             * admin.js row में Name first cell है।
+             * पहले cell से नाम निकाल रहे हैं।
+             */
+
+            const nameCell =
+                row.children[0];
+
+
+            /*
+             * Existing admin.js के अनुसार:
+             *
+             * 0 = Name
+             * 1 = Mobile
+             * 2 = Age
+             * 3 = Gender
+             * 4 = Village
+             * 5 = Actions
+             *
+             */
+
+
+            if(
+                !nameCell ||
+                row.children.length < 6
+            ){
+
+                return;
+
+            }
+
+
+            const name =
+                nameCell.textContent.trim();
+
+
+            /*
+             * Existing survey को find करने के लिए
+             * global allSurveys array use होगा।
+             */
+
+            let survey = null;
+
+
+            if(
+                typeof allSurveys !== "undefined" &&
+                Array.isArray(allSurveys)
+            ){
+
+                const mobile =
+                    row.children[1]
+                    ?.textContent
+                    ?.trim() || "";
+
+
+                const village =
+                    row.children[4]
+                    ?.textContent
+                    ?.trim() || "";
+
+
+                survey =
+                    allSurveys.find(
+                        function(item){
+
+                            return(
+                                String(
+                                    item.name || ""
+                                ).trim() === name
+                                &&
+                                String(
+                                    item.mobile || ""
+                                ).trim() === mobile
+                                &&
+                                String(
+                                    item.village || ""
+                                ).trim() === village
+                            );
+
+                        }
+                    );
+
+            }
+
+
+            if(!survey){
+
+                return;
+
+            }
+
+
+            const photoURL =
+                getSurveyPhotoURL(
+                    survey
+                );
+
+
+            /*
+             * Photo cell
+             */
+
+            const photoCell =
+                document.createElement(
+                    "td"
+                );
+
+
+            if(photoURL){
+
+                const img =
+                    document.createElement(
+                        "img"
+                    );
+
+
+                img.className =
+                    "photo-thumb";
+
+
+                img.src =
+                    photoURL;
+
+
+                img.alt =
+                    "Survey Photo";
+
+
+                img.loading =
+                    "lazy";
+
+
+                img.style.cursor =
+                    "pointer";
+
+
+                img.title =
+                    "Click to view";
+
+
+                img.addEventListener(
+                    "click",
+                    function(){
+
+                        showAdminPhoto(
+                            photoURL,
+                            survey.name
+                        );
+
+                    }
+                );
+
+
+                photoCell.appendChild(
+                    img
+                );
+
+
+                const viewButton =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                viewButton.type =
+                    "button";
+
+
+                viewButton.className =
+                    "photo-button action-btn";
+
+
+                viewButton.textContent =
+                    "📷 View";
+
+
+                viewButton.addEventListener(
+                    "click",
+                    function(){
+
+                        showAdminPhoto(
+                            photoURL,
+                            survey.name
+                        );
+
+                    }
+                );
+
+
+                photoCell.appendChild(
+                    viewButton
+                );
+
+            }
+            else{
+
+                const noPhoto =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                noPhoto.className =
+                    "no-photo";
+
+
+                noPhoto.textContent =
+                    "No Photo";
+
+
+                photoCell.appendChild(
+                    noPhoto
+                );
+
+            }
+
+
+            /*
+             * Existing row के सबसे आगे
+             * Photo cell insert करें।
+             */
+
+            row.insertBefore(
+                photoCell,
+                row.firstElementChild
+            );
+
+
+            /*
+             * Actions में photo button already
+             * अलग से डालने की जरूरत नहीं।
+             */
+
+
+            row.dataset.photoAdded =
+                "true";
+
+        });
+
+    }
+
+
+    /*
+     * Initial attempt
+     */
+
+    setTimeout(
+        addPhotoToSurveyRows,
+        500
+    );
+
+
+    setTimeout(
+        addPhotoToSurveyRows,
+        1500
+    );
+
+
+    setTimeout(
+        addPhotoToSurveyRows,
+        3000
+    );
+
+
+    /*
+     * Admin.js जब survey table render करे,
+     * तब automatically photo add होगी।
+     */
+
+    const table =
+        document.getElementById(
+            "surveyRecordsTable"
+        );
+
+
+    if(table){
+
+        const observer =
+            new MutationObserver(
+                function(){
+
+                    setTimeout(
+                        addPhotoToSurveyRows,
+                        50
+                    );
+
+                }
+            );
+
+
+        observer.observe(
+            table,
+            {
+                childList:true,
+                subtree:true
+            }
+        );
+
+    }
+
+})();
+
+
 
 /*
 ========================================================
@@ -618,68 +2091,107 @@ Party और Candidate को table में आने से रोकना
 ========================================================
 */
 
+
 (function(){
 
     function removePartyCandidateColumns(){
 
         const table =
-            document.getElementById("surveyRecordsTable");
+            document.getElementById(
+                "surveyRecordsTable"
+            );
 
-        if(!table) return;
+
+        if(!table){
+            return;
+        }
+
 
         const headRow =
-            table.querySelector("thead tr");
+            table.querySelector(
+                "thead tr"
+            );
 
-        if(!headRow) return;
+
+        if(!headRow){
+            return;
+        }
+
 
         const headers =
             Array.from(
                 headRow.children
             );
 
+
         const removeIndexes = [];
 
-        headers.forEach(function(th,index){
 
-            const text =
-                String(
-                    th.textContent || ""
-                )
-                .trim()
-                .toLowerCase();
+        headers.forEach(
+            function(th,index){
 
-            if(
-                text === "party" ||
-                text === "candidate"
-            ){
-                removeIndexes.push(index);
-            }
+                const text =
+                    String(
+                        th.textContent || ""
+                    )
+                    .trim()
+                    .toLowerCase();
 
-        });
-
-        if(removeIndexes.length === 0){
-            return;
-        }
-
-        removeIndexes
-        .sort(function(a,b){
-            return b-a;
-        })
-        .forEach(function(index){
-
-            Array.from(
-                table.rows
-            ).forEach(function(row){
 
                 if(
-                    row.children[index]
+                    text === "party" ||
+                    text === "candidate"
                 ){
-                    row.children[index].remove();
+
+                    removeIndexes.push(
+                        index
+                    );
+
                 }
 
-            });
+            }
+        );
 
-        });
+
+        if(
+            removeIndexes.length === 0
+        ){
+
+            return;
+
+        }
+
+
+        removeIndexes
+        .sort(
+            function(a,b){
+
+                return b-a;
+
+            }
+        )
+        .forEach(
+            function(index){
+
+                Array.from(
+                    table.rows
+                ).forEach(
+                    function(row){
+
+                        if(
+                            row.children[index]
+                        ){
+
+                            row.children[index]
+                            .remove();
+
+                        }
+
+                    }
+                );
+
+            }
+        );
 
     }
 
@@ -692,6 +2204,7 @@ Party और Candidate को table में आने से रोकना
             "surveyRecordsTable"
         );
 
+
     if(table){
 
         const observer =
@@ -702,6 +2215,7 @@ Party और Candidate को table में आने से रोकना
 
                 }
             );
+
 
         observer.observe(
             table,
@@ -717,5 +2231,7 @@ Party और Candidate को table में आने से रोकना
 
 </script>
 
+
 </body>
+
 </html>
