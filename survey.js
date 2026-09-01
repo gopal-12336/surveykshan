@@ -1,10 +1,24 @@
-console.log("Survey JS Loaded - FINAL FIXED VERSION");
+console.log("Survey JS Loaded - PHOTO + FIRESTORE + CLOUDINARY FIXED VERSION");
+
 
 /* =========================================================
    ADMIN
 ========================================================= */
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
+
+
+/* =========================================================
+   CLOUDINARY CONFIG
+========================================================= */
+
+const CLOUDINARY_CLOUD_NAME = "pavz8wb1";
+const CLOUDINARY_UPLOAD_PRESET = "survey_photos";
+
+const CLOUDINARY_UPLOAD_URL =
+    "https://api.cloudinary.com/v1_1/" +
+    CLOUDINARY_CLOUD_NAME +
+    "/image/upload";
 
 
 /* =========================================================
@@ -17,11 +31,6 @@ let currentQuestion = 0;
 
 let surveyQuestions = [];
 
-let answers = {
-    basic: {},
-    questions: {}
-};
-
 let surveyStarted = false;
 
 let submitBtn = null;
@@ -29,6 +38,29 @@ let submitBtn = null;
 let message = null;
 
 let dailyLimitLoaded = false;
+
+
+/* =========================================================
+   ANSWERS
+========================================================= */
+
+let answers = {
+    basic: {},
+    questions: {}
+};
+
+
+/* =========================================================
+   IMPORTANT:
+   PHOTO FILES MUST BE STORED OUTSIDE DOM
+========================================================= */
+
+let selectedSurveyPhotos = {
+    photoVillage: null,
+    photoProblem: null,
+    photoPerson: null,
+    photoSelfie: null
+};
 
 
 /* =========================================================
@@ -65,22 +97,13 @@ const PHOTO_QUESTION = {
 
 function initializeSurveyPage() {
 
-    console.log(
-        "Initializing Survey Page..."
-    );
-
+    console.log("Initializing Survey Page...");
 
     submitBtn =
-        document.getElementById(
-            "submitSurvey"
-        );
-
+        document.getElementById("submitSurvey");
 
     message =
-        document.getElementById(
-            "message"
-        );
-
+        document.getElementById("message");
 
     setupBasicDetails();
 
@@ -89,7 +112,6 @@ function initializeSurveyPage() {
     createDailyProgressUI();
 
     startAuthentication();
-
 }
 
 
@@ -99,117 +121,66 @@ function initializeSurveyPage() {
 
 function createDailyProgressUI() {
 
-    if(
-        document.getElementById(
-            "dailyProgressBox"
-        )
-    ) {
-
+    if (document.getElementById("dailyProgressBox")) {
         return;
-
     }
 
+    const box = document.createElement("div");
 
-    const box =
-        document.createElement(
-            "div"
-        );
-
-
-    box.id =
-        "dailyProgressBox";
-
+    box.id = "dailyProgressBox";
 
     box.style.cssText =
         "background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:15px;margin:15px 0;box-shadow:0 2px 8px rgba(0,0,0,.08);font-family:Arial,sans-serif;";
 
-
-    const titleRow =
-        document.createElement(
-            "div"
-        );
-
+    const titleRow = document.createElement("div");
 
     titleRow.style.cssText =
         "display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:bold;";
 
+    const title = document.createElement("span");
 
-    const title =
-        document.createElement(
-            "span"
-        );
+    title.textContent = "📊 Today's Progress";
 
+    const progressText = document.createElement("span");
 
-    title.textContent =
-        "📊 Today's Progress";
+    progressText.id = "dailyProgressText";
 
-
-    const progressText =
-        document.createElement(
-            "span"
-        );
-
-
-    progressText.id =
-        "dailyProgressText";
-
-
-    progressText.textContent =
-        "0 / --";
-
+    progressText.textContent = "0 / --";
 
     titleRow.append(
         title,
         progressText
     );
 
-
     const progressBackground =
-        document.createElement(
-            "div"
-        );
-
+        document.createElement("div");
 
     progressBackground.style.cssText =
         "width:100%;height:12px;background:#eee;border-radius:20px;overflow:hidden;";
 
-
     const progressBar =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
-
-    progressBar.id =
-        "dailyProgressBar";
-
+    progressBar.id = "dailyProgressBar";
 
     progressBar.style.cssText =
         "width:0%;height:100%;background:#1565c0;transition:width .4s ease;";
-
 
     progressBackground.appendChild(
         progressBar
     );
 
-
     const remainingText =
-        document.createElement(
-            "div"
-        );
-
+        document.createElement("div");
 
     remainingText.id =
         "dailyRemainingText";
 
-
     remainingText.textContent =
         "Loading daily limit...";
 
-
     remainingText.style.cssText =
         "margin-top:8px;font-size:13px;color:#555;";
-
 
     box.append(
         titleRow,
@@ -217,32 +188,22 @@ function createDailyProgressUI() {
         remainingText
     );
 
-
     const container =
-        document.querySelector(
-            ".survey-box"
-        ) ||
-        document.querySelector(
-            ".container"
-        ) ||
+        document.querySelector(".survey-box") ||
+        document.querySelector(".container") ||
         document.body;
 
-
     const dailyLimitBox =
-        document.getElementById(
-            "dailyLimitBox"
-        );
+        document.getElementById("dailyLimitBox");
 
-
-    if(dailyLimitBox) {
+    if (dailyLimitBox) {
 
         dailyLimitBox.insertAdjacentElement(
             "afterend",
             box
         );
 
-    }
-    else if(container) {
+    } else if (container) {
 
         container.insertBefore(
             box,
@@ -250,7 +211,6 @@ function createDailyProgressUI() {
         );
 
     }
-
 }
 
 
@@ -260,36 +220,23 @@ function createDailyProgressUI() {
 
 function updateDailyProgress(count) {
 
-    count =
-        Number(count);
+    count = Number(count);
 
-
-    if(
+    if (
         !Number.isFinite(count) ||
         count < 0
     ) {
-
-        count =
-            0;
-
+        count = 0;
     }
 
+    const limit = Number(DAILY_LIMIT);
 
-    const limit =
-        Number(
-            DAILY_LIMIT
-        );
-
-
-    if(
+    if (
         !Number.isFinite(limit) ||
         limit <= 0
     ) {
-
         return;
-
     }
-
 
     const remaining =
         Math.max(
@@ -297,71 +244,57 @@ function updateDailyProgress(count) {
             0
         );
 
-
     const percentage =
         Math.min(
             (count / limit) * 100,
             100
         );
 
-
     const progressText =
         document.getElementById(
             "dailyProgressText"
         );
-
 
     const remainingText =
         document.getElementById(
             "dailyRemainingText"
         );
 
-
     const progressBar =
         document.getElementById(
             "dailyProgressBar"
         );
-
 
     const todayCount =
         document.getElementById(
             "todayCount"
         );
 
-
     const remainingCount =
         document.getElementById(
             "remainingCount"
         );
 
-
-    if(progressText) {
+    if (progressText) {
 
         progressText.textContent =
-            count +
-            " / " +
-            limit;
+            count + " / " + limit;
 
     }
 
-
-    if(remainingText) {
+    if (remainingText) {
 
         remainingText.textContent =
             remaining <= 0
                 ? "🚫 Daily limit reached"
-                : "Remaining today: " +
-                  remaining;
+                : "Remaining today: " + remaining;
 
     }
 
-
-    if(progressBar) {
+    if (progressBar) {
 
         progressBar.style.width =
-            percentage +
-            "%";
-
+            percentage + "%";
 
         progressBar.style.background =
             count >= limit
@@ -369,34 +302,27 @@ function updateDailyProgress(count) {
                 : percentage >= 80
                     ? "#ef6c00"
                     : "#1565c0";
-
     }
 
-
-    if(todayCount) {
+    if (todayCount) {
 
         todayCount.textContent =
             count;
 
     }
 
-
-    if(remainingCount) {
+    if (remainingCount) {
 
         remainingCount.textContent =
             remaining;
 
     }
 
-
-    if(
-        count >= limit
-    ) {
+    if (count >= limit) {
 
         disableSurveyButtons();
 
     }
-
 }
 
 
@@ -407,17 +333,13 @@ function updateDailyProgress(count) {
 function loadDailyLimit() {
 
     return db
-        .collection(
-            "settings"
-        )
-        .doc(
-            "config"
-        )
+        .collection("settings")
+        .doc("config")
         .get()
 
         .then(function(doc) {
 
-            if(!doc.exists) {
+            if (!doc.exists) {
 
                 throw new Error(
                     "Daily limit not configured."
@@ -425,17 +347,14 @@ function loadDailyLimit() {
 
             }
 
-
             const value =
                 Number(
                     (
-                        doc.data() ||
-                        {}
+                        doc.data() || {}
                     ).dailyLimit
                 );
 
-
-            if(
+            if (
                 !Number.isFinite(value) ||
                 value <= 0
             ) {
@@ -446,20 +365,14 @@ function loadDailyLimit() {
 
             }
 
+            DAILY_LIMIT = value;
 
-            DAILY_LIMIT =
-                value;
-
-
-            dailyLimitLoaded =
-                true;
-
+            dailyLimitLoaded = true;
 
             console.log(
                 "Daily Limit Loaded:",
                 DAILY_LIMIT
             );
-
 
             return DAILY_LIMIT;
 
@@ -472,24 +385,17 @@ function loadDailyLimit() {
                 error
             );
 
+            dailyLimitLoaded = false;
 
-            dailyLimitLoaded =
-                false;
-
-
-            DAILY_LIMIT =
-                0;
-
+            DAILY_LIMIT = 0;
 
             showMessage(
                 "Unable to load daily survey limit."
             );
 
-
             throw error;
 
         });
-
 }
 
 
@@ -511,23 +417,19 @@ function startAuthentication() {
                 .onAuthStateChanged(
                     function(user) {
 
-                        if(!user) {
+                        if (!user) {
 
                             window.location.replace(
                                 "index.html"
                             );
 
                             return;
-
                         }
 
-
-                        if(
+                        if (
                             user.email &&
-                            user.email
-                                .toLowerCase() ===
-                            ADMIN_EMAIL
-                                .toLowerCase()
+                            user.email.toLowerCase() ===
+                            ADMIN_EMAIL.toLowerCase()
                         ) {
 
                             window.location.replace(
@@ -535,68 +437,56 @@ function startAuthentication() {
                             );
 
                             return;
-
                         }
-
 
                         console.log(
                             "Surveyor logged in:",
                             user.email
                         );
 
+                        loadDailyLimit()
 
-                        Promise.all([
+                            .then(function() {
 
-                            loadDailyLimit()
-
-                        ])
-
-                        .then(function() {
-
-                            return getTodayCount(
-                                user
-                            );
-
-                        })
-
-                        .then(function(count) {
-
-                            updateDailyProgress(
-                                count
-                            );
-
-
-                            if(
-                                count >=
-                                DAILY_LIMIT
-                            ) {
-
-                                showMessage(
-                                    "🚫 Daily survey limit reached. You cannot submit more surveys today."
+                                return getTodayCount(
+                                    user
                                 );
 
+                            })
 
-                                disableSurveyButtons();
+                            .then(function(count) {
 
-                                return;
+                                updateDailyProgress(
+                                    count
+                                );
 
-                            }
+                                if (
+                                    count >= DAILY_LIMIT
+                                ) {
 
+                                    showMessage(
+                                        "🚫 Daily survey limit reached. You cannot submit more surveys today."
+                                    );
 
-                            enableSurveyButtons();
+                                    disableSurveyButtons();
 
-                            loadQuestionsFromFirestore();
+                                    return;
+                                }
 
-                        })
+                                enableSurveyButtons();
 
-                        .catch(function(error) {
+                                loadQuestionsFromFirestore();
 
-                            console.error(
-                                "Startup error:",
-                                error
-                            );
+                            })
 
-                        });
+                            .catch(function(error) {
+
+                                console.error(
+                                    "Startup error:",
+                                    error
+                                );
+
+                            });
 
                     }
                 );
@@ -610,14 +500,12 @@ function startAuthentication() {
                 error
             );
 
-
             showMessage(
                 "Authentication error: " +
                 error.message
             );
 
         });
-
 }
 
 
@@ -627,21 +515,16 @@ function startAuthentication() {
 
 function getTodayCount(user) {
 
-    if(
+    if (
         !user ||
         !user.email
     ) {
 
-        return Promise.resolve(
-            0
-        );
+        return Promise.resolve(0);
 
     }
 
-
-    const todayStart =
-        new Date();
-
+    const todayStart = new Date();
 
     todayStart.setHours(
         0,
@@ -650,11 +533,8 @@ function getTodayCount(user) {
         0
     );
 
-
     return db
-        .collection(
-            "surveys"
-        )
+        .collection("surveys")
         .where(
             "surveyorEmail",
             "==",
@@ -664,9 +544,7 @@ function getTodayCount(user) {
 
         .then(function(snapshot) {
 
-            let count =
-                0;
-
+            let count = 0;
 
             snapshot.forEach(
                 function(doc) {
@@ -674,16 +552,13 @@ function getTodayCount(user) {
                     const date =
                         getFirestoreDate(
                             (
-                                doc.data() ||
-                                {}
+                                doc.data() || {}
                             ).createdAt
                         );
 
-
-                    if(
+                    if (
                         date &&
-                        date >=
-                        todayStart
+                        date >= todayStart
                     ) {
 
                         count++;
@@ -692,7 +567,6 @@ function getTodayCount(user) {
 
                 }
             );
-
 
             return count;
 
@@ -705,11 +579,9 @@ function getTodayCount(user) {
                 error
             );
 
-
             return 0;
 
         });
-
 }
 
 
@@ -719,16 +591,13 @@ function getTodayCount(user) {
 
 function getFirestoreDate(value) {
 
-    if(!value) {
-
+    if (!value) {
         return null;
-
     }
-
 
     try {
 
-        if(
+        if (
             typeof value.toDate ===
             "function"
         ) {
@@ -737,39 +606,29 @@ function getFirestoreDate(value) {
 
         }
 
-
-        if(
-            value.seconds !==
-            undefined
+        if (
+            value.seconds !== undefined
         ) {
 
             return new Date(
-                value.seconds *
-                1000
+                value.seconds * 1000
             );
 
         }
 
-
         const date =
-            new Date(
-                value
-            );
+            new Date(value);
 
-
-        return isNaN(
-            date.getTime()
-        )
+        return isNaN(date.getTime())
             ? null
             : date;
 
     }
-    catch(error) {
+    catch (error) {
 
         return null;
 
     }
-
 }
 
 
@@ -784,78 +643,66 @@ function loadQuestionsFromFirestore() {
             "questionText"
         );
 
-
-    if(questionText) {
+    if (questionText) {
 
         questionText.textContent =
             "Loading questions...";
 
     }
 
+    db.collection("questions")
+        .orderBy("createdAt", "asc")
+        .get()
 
-    db.collection(
-        "questions"
-    )
-    .orderBy(
-        "createdAt",
-        "asc"
-    )
-    .get()
-
-    .then(function(snapshot) {
-
-        buildQuestionsFromSnapshot(
-            snapshot
-        );
-
-    })
-
-    .catch(function(error) {
-
-        console.warn(
-            "Ordered question loading failed:",
-            error
-        );
-
-
-        return db
-            .collection(
-                "questions"
-            )
-            .get();
-
-    })
-
-    .then(function(snapshot) {
-
-        if(
-            snapshot &&
-            surveyQuestions.length === 0
-        ) {
+        .then(function(snapshot) {
 
             buildQuestionsFromSnapshot(
                 snapshot
             );
 
-        }
+        })
 
-    })
+        .catch(function(error) {
 
-    .catch(function(error) {
+            console.warn(
+                "Ordered question loading failed:",
+                error
+            );
 
-        console.error(
-            "Question loading error:",
-            error
-        );
+            return db
+                .collection("questions")
+                .get();
 
+        })
 
-        showMessage(
-            "Questions load failed: " +
-            error.message
-        );
+        .then(function(snapshot) {
 
-    });
+            if (
+                snapshot &&
+                surveyQuestions.length === 0
+            ) {
 
+                buildQuestionsFromSnapshot(
+                    snapshot
+                );
+
+            }
+
+        })
+
+        .catch(function(error) {
+
+            console.error(
+                "Question loading error:",
+                error
+            );
+
+            showMessage(
+                "Questions load failed: " +
+                error.message
+            );
+
+        });
 }
 
 
@@ -863,66 +710,49 @@ function loadQuestionsFromFirestore() {
    BUILD QUESTIONS
 ========================================================= */
 
-function buildQuestionsFromSnapshot(
-    snapshot
-) {
+function buildQuestionsFromSnapshot(snapshot) {
 
-    surveyQuestions =
-        [];
-
+    surveyQuestions = [];
 
     snapshot.forEach(
         function(doc) {
 
             const data =
-                doc.data();
+                doc.data() || {};
 
-
-            if(
+            if (
                 !data.question ||
-                !Array.isArray(
-                    data.options
-                )
+                !Array.isArray(data.options)
             ) {
 
                 return;
 
             }
-
 
             const options =
                 data.options
-                    .map(
-                        function(option) {
+                    .map(function(option) {
 
-                            return String(
-                                option
-                            ).trim();
+                        return String(
+                            option
+                        ).trim();
 
-                        }
-                    )
-                    .filter(
-                        function(option) {
+                    })
+                    .filter(function(option) {
 
-                            return option !== "";
+                        return option !== "";
 
-                        }
-                    );
+                    });
 
-
-            if(
-                options.length < 2
-            ) {
+            if (options.length < 2) {
 
                 return;
 
             }
 
-
             surveyQuestions.push({
 
-                id:
-                    doc.id,
+                id: doc.id,
 
                 question:
                     String(
@@ -930,43 +760,34 @@ function buildQuestionsFromSnapshot(
                     ).trim(),
 
                 type:
-                    data.type ===
-                    "multiple"
+                    data.type === "multiple"
                         ? "multiple"
                         : "single",
 
-                options:
-                    options,
+                options: options,
 
                 createdAt:
-                    data.createdAt ||
-                    null
+                    data.createdAt || null
 
             });
 
         }
     );
 
-
     surveyQuestions.sort(
-        function(a,b) {
+        function(a, b) {
 
             const dateA =
                 getFirestoreDate(
                     a.createdAt
                 );
 
-
             const dateB =
                 getFirestoreDate(
                     b.createdAt
                 );
 
-
-            if(
-                dateA &&
-                dateB
-            ) {
+            if (dateA && dateB) {
 
                 return (
                     dateA.getTime() -
@@ -975,59 +796,37 @@ function buildQuestionsFromSnapshot(
 
             }
 
-
-            if(
-                dateA &&
-                !dateB
-            ) {
-
+            if (dateA && !dateB) {
                 return -1;
-
             }
 
-
-            if(
-                !dateA &&
-                dateB
-            ) {
-
+            if (!dateA && dateB) {
                 return 1;
-
             }
-
 
             return 0;
 
         }
     );
 
-
     surveyQuestions.push(
         LOCATION_QUESTION
     );
 
-
     surveyQuestions.push(
         PHOTO_QUESTION
     );
-
 
     console.log(
         "Questions loaded:",
         surveyQuestions
     );
 
+    currentQuestion = 0;
 
-    currentQuestion =
-        0;
-
-
-    answers.questions =
-        {};
-
+    answers.questions = {};
 
     renderQuestion();
-
 }
 
 
@@ -1042,13 +841,9 @@ function setupBasicDetails() {
             "basicNextButton"
         );
 
-
-    if(!button) {
-
+    if (!button) {
         return;
-
     }
-
 
     button.addEventListener(
         "click",
@@ -1056,8 +851,7 @@ function setupBasicDetails() {
 
             clearMessage();
 
-
-            if(
+            if (
                 !dailyLimitLoaded ||
                 DAILY_LIMIT <= 0
             ) {
@@ -1067,53 +861,30 @@ function setupBasicDetails() {
                 );
 
                 return;
-
             }
 
-
             const name =
-                getValue(
-                    "name"
-                );
-
+                getValue("name");
 
             const mobile =
-                getValue(
-                    "mobile"
-                );
-
+                getValue("mobile");
 
             const age =
-                getValue(
-                    "age"
-                );
-
+                getValue("age");
 
             const gender =
-                getValue(
-                    "gender"
-                );
-
+                getValue("gender");
 
             const village =
-                getValue(
-                    "village"
-                );
-
+                getValue("village");
 
             const district =
-                getValue(
-                    "district"
-                );
-
+                getValue("district");
 
             const pincode =
-                getValue(
-                    "pincode"
-                );
+                getValue("pincode");
 
-
-            if(
+            if (
                 !name ||
                 !mobile ||
                 !age ||
@@ -1129,11 +900,8 @@ function setupBasicDetails() {
 
             }
 
-
-            if(
-                !/^[0-9]{10}$/.test(
-                    mobile
-                )
+            if (
+                !/^[0-9]{10}$/.test(mobile)
             ) {
 
                 showMessage(
@@ -1144,17 +912,11 @@ function setupBasicDetails() {
 
             }
 
-
             const ageNumber =
-                Number(
-                    age
-                );
+                Number(age);
 
-
-            if(
-                !Number.isFinite(
-                    ageNumber
-                ) ||
+            if (
+                !Number.isFinite(ageNumber) ||
                 ageNumber < 1 ||
                 ageNumber > 120
             ) {
@@ -1167,12 +929,9 @@ function setupBasicDetails() {
 
             }
 
-
-            if(
+            if (
                 pincode &&
-                !/^[0-9]{6}$/.test(
-                    pincode
-                )
+                !/^[0-9]{6}$/.test(pincode)
             ) {
 
                 showMessage(
@@ -1183,13 +942,11 @@ function setupBasicDetails() {
 
             }
 
-
             const user =
                 firebase.auth()
                     .currentUser;
 
-
-            if(!user) {
+            if (!user) {
 
                 showMessage(
                     "Session expired. Please login again."
@@ -1199,7 +956,6 @@ function setupBasicDetails() {
 
             }
 
-
             getTodayCount(user)
 
                 .then(function(count) {
@@ -1208,62 +964,45 @@ function setupBasicDetails() {
                         count
                     );
 
-
-                    if(
-                        count >=
-                        DAILY_LIMIT
+                    if (
+                        count >= DAILY_LIMIT
                     ) {
 
                         disableSurveyButtons();
-
 
                         showMessage(
                             "🚫 Daily survey limit reached."
                         );
 
-
                         return;
 
                     }
 
-
                     answers.basic = {
 
-                        name:
-                            name,
+                        name: name,
 
-                        mobile:
-                            mobile,
+                        mobile: mobile,
 
-                        age:
-                            ageNumber,
+                        age: ageNumber,
 
-                        gender:
-                            gender,
+                        gender: gender,
 
-                        village:
-                            village,
+                        village: village,
 
-                        district:
-                            district,
+                        district: district,
 
-                        pincode:
-                            pincode
+                        pincode: pincode
 
                     };
 
+                    answers.questions = {};
 
-                    answers.questions =
-                        {};
+                    resetPhotoStorage();
 
+                    currentQuestion = 0;
 
-                    currentQuestion =
-                        0;
-
-
-                    surveyStarted =
-                        true;
-
+                    surveyStarted = true;
 
                     showQuestionPage();
 
@@ -1276,7 +1015,6 @@ function setupBasicDetails() {
                         error
                     );
 
-
                     showMessage(
                         "Unable to continue: " +
                         error.message
@@ -1286,7 +1024,6 @@ function setupBasicDetails() {
 
         }
     );
-
 }
 
 
@@ -1301,14 +1038,12 @@ function showQuestionPage() {
             "basicDetailsStep"
         );
 
-
     const questionStep =
         document.getElementById(
             "questionStep"
         );
 
-
-    if(
+    if (
         !basicStep ||
         !questionStep
     ) {
@@ -1321,73 +1056,46 @@ function showQuestionPage() {
 
     }
 
+    questionStep.style.display = "block";
 
-    questionStep.style.display =
-        "block";
+    questionStep.style.position = "absolute";
 
+    questionStep.style.left = "0";
 
-    questionStep.style.position =
-        "absolute";
+    questionStep.style.top = "0";
 
-
-    questionStep.style.left =
-        "0";
-
-
-    questionStep.style.top =
-        "0";
-
-
-    questionStep.style.width =
-        "100%";
-
+    questionStep.style.width = "100%";
 
     questionStep.style.transform =
         "translateX(100%)";
 
-
-    questionStep.style.opacity =
-        "0";
-
+    questionStep.style.opacity = "0";
 
     basicStep.style.position =
         "relative";
 
-
     basicStep.style.transform =
         "translateX(0)";
 
-
-    basicStep.style.opacity =
-        "1";
-
+    basicStep.style.opacity = "1";
 
     basicStep.style.transition =
         "transform .45s ease, opacity .45s ease";
 
-
     questionStep.style.transition =
         "transform .45s ease, opacity .45s ease";
 
-
     void questionStep.offsetWidth;
-
 
     basicStep.style.transform =
         "translateX(-100%)";
 
-
-    basicStep.style.opacity =
-        "0";
-
+    basicStep.style.opacity = "0";
 
     questionStep.style.transform =
         "translateX(0)";
 
-
-    questionStep.style.opacity =
-        "1";
-
+    questionStep.style.opacity = "1";
 
     setTimeout(
         function() {
@@ -1395,61 +1103,47 @@ function showQuestionPage() {
             basicStep.style.display =
                 "none";
 
-
             basicStep.style.position =
                 "relative";
-
 
             basicStep.style.left =
                 "auto";
 
-
             basicStep.style.top =
                 "auto";
-
 
             basicStep.style.width =
                 "100%";
 
-
             questionStep.style.position =
                 "relative";
-
 
             questionStep.style.left =
                 "auto";
 
-
             questionStep.style.top =
                 "auto";
-
 
             questionStep.style.width =
                 "100%";
 
-
             basicStep.style.transform =
                 "";
-
 
             basicStep.style.opacity =
                 "";
 
-
             questionStep.style.transform =
                 "";
 
-
             questionStep.style.opacity =
                 "";
-
 
             renderQuestion();
 
         },
         450
     );
-
 }
 
 
@@ -1464,38 +1158,32 @@ function renderQuestion() {
             "questionText"
         );
 
-
     const questionNumber =
         document.getElementById(
             "questionNumber"
         );
-
 
     const optionsBox =
         document.getElementById(
             "questionOptions"
         );
 
-
     const nextButton =
         document.getElementById(
             "nextButton"
         );
-
 
     const previousButton =
         document.getElementById(
             "previousButton"
         );
 
-
     const submitButton =
         document.getElementById(
             "submitSurvey"
         );
 
-
-    if(
+    if (
         !questionText ||
         !optionsBox
     ) {
@@ -1504,38 +1192,29 @@ function renderQuestion() {
 
     }
 
-
-    if(
+    if (
         surveyQuestions.length === 0
     ) {
 
         questionText.textContent =
             "No questions found.";
 
-
-        optionsBox.innerHTML =
-            "";
-
+        optionsBox.innerHTML = "";
 
         return;
 
     }
-
 
     const question =
         surveyQuestions[
             currentQuestion
         ];
 
-
-    if(!question) {
-
+    if (!question) {
         return;
-
     }
 
-
-    if(questionNumber) {
+    if (questionNumber) {
 
         questionNumber.textContent =
             "Question " +
@@ -1545,10 +1224,8 @@ function renderQuestion() {
 
     }
 
-
-    if(
-        question.type ===
-        "location"
+    if (
+        question.type === "location"
     ) {
 
         renderLocationQuestion(
@@ -1557,9 +1234,8 @@ function renderQuestion() {
         );
 
     }
-    else if(
-        question.type ===
-        "photos"
+    else if (
+        question.type === "photos"
     ) {
 
         renderPhotoQuestion(
@@ -1578,21 +1254,18 @@ function renderQuestion() {
 
     }
 
-
-    if(previousButton) {
+    if (previousButton) {
 
         previousButton.disabled =
             currentQuestion === 0;
 
     }
 
-
     const isLastQuestion =
         currentQuestion ===
         surveyQuestions.length - 1;
 
-
-    if(nextButton) {
+    if (nextButton) {
 
         nextButton.style.display =
             isLastQuestion
@@ -1601,24 +1274,19 @@ function renderQuestion() {
 
     }
 
-
-    if(submitButton) {
+    if (submitButton) {
 
         submitButton.style.display =
             isLastQuestion
                 ? "block"
                 : "none";
 
-
-        submitButton.disabled =
-            false;
-
+        submitButton.disabled = false;
 
         submitButton.textContent =
             "Submit Survey";
 
     }
-
 }
 
 
@@ -1635,16 +1303,12 @@ function renderNormalQuestion(
     questionText.textContent =
         question.question;
 
-
-    optionsBox.innerHTML =
-        "";
-
+    optionsBox.innerHTML = "";
 
     const savedAnswer =
         answers.questions[
             question.id
         ];
-
 
     (question.options || [])
         .forEach(
@@ -1655,72 +1319,52 @@ function renderNormalQuestion(
                         "label"
                     );
 
-
                 label.style.cssText =
                     "display:block;margin-bottom:10px;padding:13px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fff;";
-
 
                 const input =
                     document.createElement(
                         "input"
                     );
 
-
                 input.type =
-                    question.type ===
-                    "multiple"
+                    question.type === "multiple"
                         ? "checkbox"
                         : "radio";
-
 
                 input.name =
                     "surveyQuestion_" +
                     question.id;
 
-
                 input.value =
                     option;
-
 
                 input.style.marginRight =
                     "10px";
 
-
-                if(
-                    question.type ===
-                    "multiple"
+                if (
+                    question.type === "multiple"
                 ) {
 
-                    if(
-                        Array.isArray(
-                            savedAnswer
-                        ) &&
-                        savedAnswer.includes(
-                            option
-                        )
+                    if (
+                        Array.isArray(savedAnswer) &&
+                        savedAnswer.includes(option)
                     ) {
 
-                        input.checked =
-                            true;
+                        input.checked = true;
 
                     }
 
                 }
-                else if(
-                    savedAnswer ===
-                    option
+                else if (
+                    savedAnswer === option
                 ) {
 
-                    input.checked =
-                        true;
+                    input.checked = true;
 
                 }
 
-
-                label.appendChild(
-                    input
-                );
-
+                label.appendChild(input);
 
                 label.appendChild(
                     document.createTextNode(
@@ -1728,14 +1372,12 @@ function renderNormalQuestion(
                     )
                 );
 
-
                 optionsBox.appendChild(
                     label
                 );
 
             }
         );
-
 }
 
 
@@ -1751,70 +1393,45 @@ function renderLocationQuestion(
     questionText.textContent =
         "📍 कृपया अपनी वर्तमान स्थिति का स्थान चुनें";
 
-
-    optionsBox.innerHTML =
-        "";
-
+    optionsBox.innerHTML = "";
 
     const box =
-        document.createElement(
-            "div"
-        );
-
+        document.createElement("div");
 
     box.style.cssText =
         "text-align:center;padding:20px;border:1px solid #d7e3ef;border-radius:12px;background:#f8fbff;";
 
-
     const text =
-        document.createElement(
-            "p"
-        );
-
+        document.createElement("p");
 
     text.textContent =
         "नीचे दिए गए बटन पर क्लिक करते ही आपकी वर्तमान Live Location प्राप्त की जाएगी।";
 
-
     text.style.cssText =
         "font-size:15px;color:#555;";
 
-
     const button =
-        document.createElement(
-            "button"
-        );
+        document.createElement("button");
 
+    button.type = "button";
 
-    button.type =
-        "button";
-
-
-    button.className =
-        "primary";
-
+    button.className = "primary";
 
     button.textContent =
         "📍 मेरी Live Location चुनें";
 
-
     const status =
-        document.createElement(
-            "div"
-        );
-
+        document.createElement("div");
 
     status.style.cssText =
         "margin-top:12px;font-weight:bold;color:#555;";
-
 
     const saved =
         answers.questions[
             LOCATION_QUESTION.id
         ];
 
-
-    if(
+    if (
         saved &&
         saved.latitude !== undefined &&
         saved.longitude !== undefined
@@ -1823,28 +1440,21 @@ function renderLocationQuestion(
         status.textContent =
             "✅ Location captured";
 
-
         status.style.color =
             "#2e7d32";
 
     }
 
-
     button.addEventListener(
         "click",
         function() {
 
-            button.disabled =
-                true;
-
+            button.disabled = true;
 
             button.textContent =
                 "📍 Location प्राप्त हो रही है...";
 
-
-            status.textContent =
-                "";
-
+            status.textContent = "";
 
             captureCurrentLocation()
 
@@ -1853,17 +1463,13 @@ function renderLocationQuestion(
 
                         answers.questions[
                             LOCATION_QUESTION.id
-                        ] =
-                            locationData;
-
+                        ] = locationData;
 
                         status.textContent =
                             "✅ Live Location captured successfully";
 
-
                         status.style.color =
                             "#2e7d32";
-
 
                         button.textContent =
                             "✅ Location Captured";
@@ -1879,19 +1485,14 @@ function renderLocationQuestion(
                             error
                         );
 
-
                         status.textContent =
                             "❌ " +
                             error.message;
 
-
                         status.style.color =
                             "#c62828";
 
-
-                        button.disabled =
-                            false;
-
+                        button.disabled = false;
 
                         button.textContent =
                             "📍 मेरी Live Location चुनें";
@@ -1902,18 +1503,13 @@ function renderLocationQuestion(
         }
     );
 
-
     box.append(
         text,
         button,
         status
     );
 
-
-    optionsBox.appendChild(
-        box
-    );
-
+    optionsBox.appendChild(box);
 }
 
 
@@ -1929,16 +1525,10 @@ function renderPhotoQuestion(
     questionText.textContent =
         "📷 चार आवश्यक फोटो अपलोड करें";
 
-
-    optionsBox.innerHTML =
-        "";
-
+    optionsBox.innerHTML = "";
 
     const box =
-        document.createElement(
-            "div"
-        );
-
+        document.createElement("div");
 
     box.style.cssText =
         "padding:18px;border:1px solid #d7e3ef;border-radius:12px;background:#f8fbff;";
@@ -1947,67 +1537,35 @@ function renderPhotoQuestion(
     const photoDefinitions = [
 
         {
-
-            id:
-                "photoVillage",
-
-            title:
-                "1️⃣ गाँव की फोटो",
-
+            id: "photoVillage",
+            title: "1️⃣ गाँव की फोटो",
             description:
                 "गाँव / क्षेत्र की सामान्य स्थिति की फोटो",
-
-            capture:
-                "environment"
-
+            capture: "environment"
         },
 
         {
-
-            id:
-                "photoProblem",
-
-            title:
-                "2️⃣ गाँव की समस्या की फोटो",
-
+            id: "photoProblem",
+            title: "2️⃣ गाँव की समस्या की फोटो",
             description:
                 "गाँव में दिखाई देने वाली प्रमुख समस्या की फोटो",
-
-            capture:
-                "environment"
-
+            capture: "environment"
         },
 
         {
-
-            id:
-                "photoPerson",
-
-            title:
-                "3️⃣ व्यक्ति की फोटो",
-
+            id: "photoPerson",
+            title: "3️⃣ व्यक्ति की फोटो",
             description:
                 "सर्वे से संबंधित व्यक्ति की फोटो",
-
-            capture:
-                "environment"
-
+            capture: "environment"
         },
 
         {
-
-            id:
-                "photoSelfie",
-
-            title:
-                "4️⃣ Respondent के साथ Selfie",
-
+            id: "photoSelfie",
+            title: "4️⃣ Respondent के साथ Selfie",
             description:
                 "Respondent के साथ आपकी selfie",
-
-            capture:
-                "user"
-
+            capture: "user"
         }
 
     ];
@@ -2017,128 +1575,162 @@ function renderPhotoQuestion(
         function(item) {
 
             const wrapper =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             wrapper.style.cssText =
                 "margin-bottom:15px;padding:14px;background:white;border:1px solid #ddd;border-radius:10px;";
 
-
             const label =
-                document.createElement(
-                    "label"
-                );
-
+                document.createElement("label");
 
             label.textContent =
                 item.title;
 
-
             label.style.cssText =
                 "display:block;font-weight:bold;margin-bottom:5px;color:#1565c0;";
 
-
             const description =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             description.textContent =
                 item.description;
 
-
             description.style.cssText =
                 "font-size:13px;color:#666;margin-bottom:8px;";
 
-
             const input =
-                document.createElement(
-                    "input"
-                );
+                document.createElement("input");
 
+            input.type = "file";
 
-            input.type =
-                "file";
+            input.id = item.id;
 
+            input.name = item.id;
 
-            input.id =
-                item.id;
-
-
-            input.name =
-                item.id;
-
-
-            input.accept =
-                "image/*";
-
+            input.accept = "image/*";
 
             input.setAttribute(
                 "capture",
                 item.capture
             );
 
-
             input.style.cssText =
                 "width:100%;padding:8px;border:1px solid #ccd5df;border-radius:8px;background:#fff;";
 
 
-            const cameraNote =
-                document.createElement(
-                    "div"
-                );
-
-
-            cameraNote.textContent =
-                item.capture === "user"
-                    ? "📱 मोबाइल पर यहाँ से कैमरा खोलकर Selfie भी ले सकते हैं।"
-                    : "📱 मोबाइल पर यहाँ से कैमरा खोलकर फोटो भी ले सकते हैं।";
-
-
-            cameraNote.style.cssText =
-                "margin-top:6px;font-size:12px;color:#777;";
-
-
             const preview =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             preview.style.cssText =
-                "margin-top:8px;font-size:13px;color:#2e7d32;";
+                "margin-top:10px;font-size:13px;color:#2e7d32;";
 
+
+            /*
+             * IMPORTANT:
+             * Existing selected photo state
+             */
+
+            const existingFile =
+                selectedSurveyPhotos[
+                    item.id
+                ];
+
+            if (existingFile) {
+
+                preview.innerHTML =
+                    "✅ Selected: <b>" +
+                    escapeHtml(
+                        existingFile.name
+                    ) +
+                    "</b>";
+
+            }
+
+
+            /*
+             * PHOTO CHANGE
+             */
 
             input.addEventListener(
                 "change",
                 function() {
 
-                    if(
+                    if (
                         input.files &&
-                        input.files.length
+                        input.files.length > 0
                     ) {
 
                         const file =
                             input.files[0];
 
 
-                        preview.textContent =
-                            "✅ Selected: " +
-                            file.name;
+                        /*
+                         * SAVE FILE OUTSIDE DOM
+                         */
+
+                        selectedSurveyPhotos[
+                            item.id
+                        ] = file;
+
+
+                        /*
+                         * ALSO SAVE PHOTO STATUS
+                         */
+
+                        answers.questions[
+                            PHOTO_QUESTION.id
+                        ] =
+                            getRequiredPhotoFiles();
+
+
+                        preview.innerHTML =
+                            "✅ Selected: <b>" +
+                            escapeHtml(
+                                file.name
+                            ) +
+                            "</b>";
+
+                        console.log(
+                            "Photo stored:",
+                            item.id,
+                            file.name
+                        );
 
                     }
                     else {
 
-                        preview.textContent =
-                            "";
+                        /*
+                         * Do NOT delete old file
+                         * unnecessarily.
+                         */
+
+                        if (
+                            !selectedSurveyPhotos[
+                                item.id
+                            ]
+                        ) {
+
+                            preview.textContent =
+                                "";
+
+                        }
 
                     }
 
                 }
             );
+
+
+            const cameraNote =
+                document.createElement("div");
+
+            cameraNote.textContent =
+                item.capture === "user"
+                    ? "📱 मोबाइल पर यहाँ से कैमरा खोलकर Selfie भी ले सकते हैं।"
+                    : "📱 मोबाइल पर यहाँ से कैमरा खोलकर फोटो भी ले सकते हैं।";
+
+            cameraNote.style.cssText =
+                "margin-top:6px;font-size:12px;color:#777;";
 
 
             wrapper.append(
@@ -2149,48 +1741,95 @@ function renderPhotoQuestion(
                 preview
             );
 
-
-            box.appendChild(
-                wrapper
-            );
+            box.appendChild(wrapper);
 
         }
     );
 
 
-    const note =
-        document.createElement(
-            "div"
-        );
+    const status =
+        document.createElement("div");
 
+    status.id =
+        "photoSelectionStatus";
+
+    status.style.cssText =
+        "padding:12px;margin-top:8px;background:#fff;border-radius:8px;font-weight:bold;color:#1565c0;";
+
+    updatePhotoSelectionStatus(
+        status
+    );
+
+    box.appendChild(status);
+
+
+    const note =
+        document.createElement("div");
 
     note.textContent =
         "⚠️ चारों फोटो आवश्यक हैं। सभी फोटो चुनने के बाद Submit करें।";
 
-
     note.style.cssText =
-        "font-weight:bold;color:#c62828;margin-top:5px;";
+        "font-weight:bold;color:#c62828;margin-top:10px;";
 
+    box.appendChild(note);
 
-    box.appendChild(
-        note
-    );
-
-
-    optionsBox.appendChild(
-        box
-    );
-
+    optionsBox.appendChild(box);
 }
 
 
 /* =========================================================
-   CURRENT ANSWER
+   UPDATE PHOTO STATUS
+========================================================= */
+
+function updatePhotoSelectionStatus(element) {
+
+    if (!element) {
+        return;
+    }
+
+    const files =
+        getRequiredPhotoFiles();
+
+    const count =
+        files.length;
+
+    if (count === 4) {
+
+        element.textContent =
+            "✅ 4 / 4 photos selected. You can submit the survey.";
+
+        element.style.color =
+            "#2e7d32";
+
+        element.style.background =
+            "#e8f5e9";
+
+    }
+    else {
+
+        element.textContent =
+            "📷 " +
+            count +
+            " / 4 photos selected";
+
+        element.style.color =
+            "#c62828";
+
+        element.style.background =
+            "#ffebee";
+
+    }
+}
+
+
+/* =========================================================
+   GET CURRENT QUESTION ANSWER
 ========================================================= */
 
 function getCurrentQuestionAnswer() {
 
-    if(
+    if (
         surveyQuestions.length === 0
     ) {
 
@@ -2198,23 +1837,17 @@ function getCurrentQuestionAnswer() {
 
     }
 
-
     const question =
         surveyQuestions[
             currentQuestion
         ];
 
-
-    if(!question) {
-
+    if (!question) {
         return null;
-
     }
 
-
-    if(
-        question.type ===
-        "location"
+    if (
+        question.type === "location"
     ) {
 
         return answers.questions[
@@ -2223,16 +1856,13 @@ function getCurrentQuestionAnswer() {
 
     }
 
-
-    if(
-        question.type ===
-        "photos"
+    if (
+        question.type === "photos"
     ) {
 
         return getRequiredPhotoFiles();
 
     }
-
 
     const inputs =
         document.querySelectorAll(
@@ -2241,19 +1871,16 @@ function getCurrentQuestionAnswer() {
             '"]'
         );
 
-
-    if(
-        question.type ===
-        "multiple"
+    if (
+        question.type === "multiple"
     ) {
 
         const selected = [];
 
-
         inputs.forEach(
             function(input) {
 
-                if(input.checked) {
+                if (input.checked) {
 
                     selected.push(
                         input.value
@@ -2264,20 +1891,16 @@ function getCurrentQuestionAnswer() {
             }
         );
 
-
         return selected;
 
     }
 
-
-    let selected =
-        null;
-
+    let selected = null;
 
     inputs.forEach(
         function(input) {
 
-            if(input.checked) {
+            if (input.checked) {
 
                 selected =
                     input.value;
@@ -2287,14 +1910,12 @@ function getCurrentQuestionAnswer() {
         }
     );
 
-
     return selected;
-
 }
 
 
 /* =========================================================
-   SAVE CURRENT ANSWER
+   SAVE CURRENT QUESTION ANSWER
 ========================================================= */
 
 function saveCurrentQuestionAnswer() {
@@ -2304,24 +1925,23 @@ function saveCurrentQuestionAnswer() {
             currentQuestion
         ];
 
-
-    if(!question) {
+    if (!question) {
 
         return false;
 
     }
 
-
     const answer =
         getCurrentQuestionAnswer();
 
 
-    if(
-        question.type ===
-        "location"
+    /* LOCATION */
+
+    if (
+        question.type === "location"
     ) {
 
-        if(
+        if (
             !answer ||
             answer.latitude === undefined ||
             answer.longitude === undefined
@@ -2331,60 +1951,61 @@ function saveCurrentQuestionAnswer() {
                 "📍 Please capture your live location before continuing."
             );
 
-
             return false;
 
         }
 
-
         answers.questions[
             LOCATION_QUESTION.id
-        ] =
-            answer;
-
+        ] = answer;
 
         return true;
 
     }
 
 
-    if(
-        question.type ===
-        "photos"
+    /* PHOTOS */
+
+    if (
+        question.type === "photos"
     ) {
 
-        if(
-            !Array.isArray(answer) ||
-            answer.length !== 4
+        const photoFiles =
+            getRequiredPhotoFiles();
+
+        if (
+            photoFiles.length !== 4
         ) {
 
             showMessage(
                 "📷 Please select all 4 required photos."
             );
 
-
             return false;
 
         }
 
-
         answers.questions[
             PHOTO_QUESTION.id
-        ] =
-            answer;
+        ] = photoFiles;
 
+        console.log(
+            "4 photos saved in memory:",
+            photoFiles
+        );
 
         return true;
 
     }
 
 
-    if(
-        question.type ===
-        "multiple"
+    /* MULTIPLE */
+
+    if (
+        question.type === "multiple"
     ) {
 
-        if(
+        if (
             !Array.isArray(answer) ||
             answer.length === 0
         ) {
@@ -2393,32 +2014,29 @@ function saveCurrentQuestionAnswer() {
                 "Please select at least one option."
             );
 
-
             return false;
 
         }
 
     }
-    else if(!answer) {
+
+    /* SINGLE */
+
+    else if (!answer) {
 
         showMessage(
             "Please select an option."
         );
 
-
         return false;
 
     }
 
-
     answers.questions[
         question.id
-    ] =
-        answer;
-
+    ] = answer;
 
     return true;
-
 }
 
 
@@ -2433,12 +2051,10 @@ function setupQuestionButtons() {
             "nextButton"
         );
 
-
     const previousButton =
         document.getElementById(
             "previousButton"
         );
-
 
     const submitButton =
         document.getElementById(
@@ -2446,7 +2062,7 @@ function setupQuestionButtons() {
         );
 
 
-    if(nextButton) {
+    if (nextButton) {
 
         nextButton.addEventListener(
             "click",
@@ -2454,8 +2070,7 @@ function setupQuestionButtons() {
 
                 clearMessage();
 
-
-                if(
+                if (
                     !saveCurrentQuestionAnswer()
                 ) {
 
@@ -2463,14 +2078,12 @@ function setupQuestionButtons() {
 
                 }
 
-
-                if(
+                if (
                     currentQuestion <
                     surveyQuestions.length - 1
                 ) {
 
                     currentQuestion++;
-
 
                     renderQuestion();
 
@@ -2482,7 +2095,7 @@ function setupQuestionButtons() {
     }
 
 
-    if(previousButton) {
+    if (previousButton) {
 
         previousButton.addEventListener(
             "click",
@@ -2490,52 +2103,68 @@ function setupQuestionButtons() {
 
                 clearMessage();
 
-
                 const question =
                     surveyQuestions[
                         currentQuestion
                     ];
 
+                if (question) {
 
-                if(question) {
-
-                    if(
-                        question.type !==
-                        "location" &&
-                        question.type !==
-                        "photos"
+                    if (
+                        question.type === "photos"
                     ) {
+
+                        const photos =
+                            getRequiredPhotoFiles();
+
+                        if (
+                            photos.length > 0
+                        ) {
+
+                            answers.questions[
+                                PHOTO_QUESTION.id
+                            ] = photos;
+
+                        }
+
+                    }
+
+                    else if (
+                        question.type === "location"
+                    ) {
+
+                        /* Location already saved */
+
+                    }
+
+                    else {
 
                         const answer =
                             getCurrentQuestionAnswer();
 
-
-                        if(
+                        if (
                             question.type ===
                             "multiple"
                         ) {
 
-                            if(
-                                Array.isArray(
-                                    answer
-                                ) &&
+                            if (
+                                Array.isArray(answer) &&
                                 answer.length > 0
                             ) {
 
                                 answers.questions[
                                     question.id
-                                ] =
-                                    answer;
+                                ] = answer;
 
                             }
 
                         }
-                        else if(answer) {
+
+                        else if (answer) {
 
                             answers.questions[
                                 question.id
-                            ] =
-                                answer;
+                            ] = answer;
 
                         }
 
@@ -2543,13 +2172,11 @@ function setupQuestionButtons() {
 
                 }
 
-
-                if(
+                if (
                     currentQuestion > 0
                 ) {
 
                     currentQuestion--;
-
 
                     renderQuestion();
 
@@ -2561,7 +2188,7 @@ function setupQuestionButtons() {
     }
 
 
-    if(submitButton) {
+    if (submitButton) {
 
         submitButton.addEventListener(
             "click",
@@ -2569,7 +2196,6 @@ function setupQuestionButtons() {
         );
 
     }
-
 }
 
 
@@ -2580,11 +2206,9 @@ function setupQuestionButtons() {
 function captureCurrentLocation() {
 
     return new Promise(
-        function(resolve,reject) {
+        function(resolve, reject) {
 
-            if(
-                !navigator.geolocation
-            ) {
+            if (!navigator.geolocation) {
 
                 reject(
                     new Error(
@@ -2592,11 +2216,9 @@ function captureCurrentLocation() {
                     )
                 );
 
-
                 return;
 
             }
-
 
             navigator.geolocation.getCurrentPosition(
 
@@ -2614,8 +2236,7 @@ function captureCurrentLocation() {
                             position.coords.accuracy,
 
                         capturedAt:
-                            new Date()
-                                .toISOString()
+                            new Date().toISOString()
 
                     });
 
@@ -2626,8 +2247,7 @@ function captureCurrentLocation() {
                     let messageText =
                         "Unable to capture live location. Please allow location permission.";
 
-
-                    if(
+                    if (
                         error &&
                         error.code === 1
                     ) {
@@ -2636,7 +2256,6 @@ function captureCurrentLocation() {
                             "Location permission denied. Please allow location access.";
 
                     }
-
 
                     reject(
                         new Error(
@@ -2648,14 +2267,11 @@ function captureCurrentLocation() {
 
                 {
 
-                    enableHighAccuracy:
-                        true,
+                    enableHighAccuracy: true,
 
-                    timeout:
-                        15000,
+                    timeout: 15000,
 
-                    maximumAge:
-                        0
+                    maximumAge: 0
 
                 }
 
@@ -2663,12 +2279,32 @@ function captureCurrentLocation() {
 
         }
     );
+}
+
+
+/* =========================================================
+   PHOTO STORAGE
+========================================================= */
+
+function resetPhotoStorage() {
+
+    selectedSurveyPhotos = {
+
+        photoVillage: null,
+
+        photoProblem: null,
+
+        photoPerson: null,
+
+        photoSelfie: null
+
+    };
 
 }
 
 
 /* =========================================================
-   GET PHOTO FILES
+   GET REQUIRED PHOTO FILES
 ========================================================= */
 
 function getRequiredPhotoFiles() {
@@ -2676,38 +2312,33 @@ function getRequiredPhotoFiles() {
     const ids = [
 
         "photoVillage",
+
         "photoProblem",
+
         "photoPerson",
+
         "photoSelfie"
 
     ];
 
-
     const files = [];
-
 
     ids.forEach(
         function(id) {
 
-            const input =
-                document.getElementById(
-                    id
-                );
+            const file =
+                selectedSurveyPhotos[id];
 
-
-            if(
-                input &&
-                input.files &&
-                input.files.length > 0
+            if (
+                file &&
+                file instanceof File
             ) {
 
                 files.push({
 
-                    id:
-                        id,
+                    id: id,
 
-                    file:
-                        input.files[0]
+                    file: file
 
                 });
 
@@ -2716,165 +2347,148 @@ function getRequiredPhotoFiles() {
         }
     );
 
-
     return files;
-
 }
 
 
 /* =========================================================
-   CLOUDINARY PHOTO UPLOAD
+   CHECK ALL PHOTOS
 ========================================================= */
 
-function uploadSurveyPhotos(
+function hasAllRequiredPhotos() {
+
+    return (
+        selectedSurveyPhotos.photoVillage instanceof File &&
+        selectedSurveyPhotos.photoProblem instanceof File &&
+        selectedSurveyPhotos.photoPerson instanceof File &&
+        selectedSurveyPhotos.photoSelfie instanceof File
+    );
+}
+
+
+/* =========================================================
+   CLOUDINARY UPLOAD ONE PHOTO
+========================================================= */
+
+function uploadSinglePhoto(
+    file,
     surveyId,
-    user
+    photoKey
 ) {
 
-    const photoFiles =
-        getRequiredPhotoFiles();
-
-
-    if(
-        photoFiles.length !== 4
+    if (
+        !file ||
+        !(file instanceof File)
     ) {
 
         return Promise.reject(
             new Error(
-                "All 4 photos are required."
+                "Invalid photo file: " +
+                photoKey
             )
         );
 
     }
 
+    const formData =
+        new FormData();
+
+    formData.append(
+        "file",
+        file
+    );
+
+    formData.append(
+        "upload_preset",
+        CLOUDINARY_UPLOAD_PRESET
+    );
+
+    formData.append(
+        "folder",
+        "surveyPhotos/" + surveyId
+    );
 
     /*
-     * CLOUDINARY
+     * Extra context for Cloudinary
      */
 
-    const CLOUDINARY_CLOUD_NAME =
-        "pavz8wb1";
+    formData.append(
+        "context",
+        "survey_id=" +
+        surveyId +
+        "|photo_type=" +
+        photoKey
+    );
 
 
-    const CLOUDINARY_UPLOAD_PRESET =
-        "survey_photos";
+    console.log(
+        "Uploading to Cloudinary:",
+        photoKey,
+        file.name
+    );
 
 
-    const CLOUDINARY_UPLOAD_URL =
-        "https://api.cloudinary.com/v1_1/" +
-        CLOUDINARY_CLOUD_NAME +
-        "/image/upload";
+    return fetch(
+        CLOUDINARY_UPLOAD_URL,
+        {
 
+            method: "POST",
 
-    const uploads = {};
+            body: formData
 
+        }
+    )
 
-    photoFiles.forEach(
-        function(item,index) {
+    .then(
+        function(response) {
 
-            const file =
-                item.file;
-
-
-            const formData =
-                new FormData();
-
-
-            formData.append(
-                "file",
-                file
-            );
-
-
-            formData.append(
-                "upload_preset",
-                CLOUDINARY_UPLOAD_PRESET
-            );
-
-
-            formData.append(
-                "folder",
-                "surveyPhotos/" +
-                surveyId
-            );
-
-
-            uploads[
-                "photo" +
-                (index + 1)
-            ] =
-                fetch(
-                    CLOUDINARY_UPLOAD_URL,
-                    {
-
-                        method:
-                            "POST",
-
-                        body:
-                            formData
-
-                    }
-                )
-
-                .then(
-                    function(response) {
-
-                        if(
-                            !response.ok
-                        ) {
-
-                            return response
-                                .json()
-                                .catch(
-                                    function() {
-
-                                        return {};
-
-                                    }
-                                )
-                                .then(
-                                    function(errorData) {
-
-                                        console.error(
-                                            "Cloudinary error:",
-                                            errorData
-                                        );
-
-
-                                        throw new Error(
-                                            "Cloudinary upload failed for photo " +
-                                            (index + 1)
-                                        );
-
-                                    }
-                                );
-
-                        }
-
-
-                        return response.json();
-
-                    }
-                )
-
+            return response
+                .json()
                 .then(
                     function(data) {
 
-                        if(
+                        if (
+                            !response.ok
+                        ) {
+
+                            console.error(
+                                "Cloudinary response:",
+                                data
+                            );
+
+                            throw new Error(
+                                "Cloudinary upload failed for " +
+                                photoKey +
+                                ": " +
+                                (
+                                    data &&
+                                    data.error &&
+                                    data.error.message
+                                        ? data.error.message
+                                        : "Unknown Cloudinary error"
+                                )
+                            );
+
+                        }
+
+                        if (
                             !data ||
                             !data.secure_url
                         ) {
 
                             throw new Error(
-                                "Cloudinary did not return photo URL."
+                                "Cloudinary did not return secure_url for " +
+                                photoKey
                             );
 
                         }
 
-
                         return {
 
                             url:
+                                data.secure_url,
+
+                            secure_url:
                                 data.secure_url,
 
                             name:
@@ -2887,10 +2501,22 @@ function uploadSurveyPhotos(
                                 file.size,
 
                             publicId:
-                                data.public_id,
+                                data.public_id || "",
 
                             storagePath:
-                                data.public_id
+                                data.public_id || "",
+
+                            resourceType:
+                                data.resource_type || "image",
+
+                            format:
+                                data.format || "",
+
+                            width:
+                                data.width || null,
+
+                            height:
+                                data.height || null
 
                         };
 
@@ -2899,44 +2525,85 @@ function uploadSurveyPhotos(
 
         }
     );
+}
 
 
-    return Promise.all(
+/* =========================================================
+   UPLOAD ALL 4 PHOTOS
+========================================================= */
 
-        Object.keys(
-            uploads
-        )
-        .map(
-            function(key) {
+function uploadSurveyPhotos(
+    surveyId
+) {
 
-                return uploads[key]
+    if (
+        !hasAllRequiredPhotos()
+    ) {
+
+        return Promise.reject(
+            new Error(
+                "All 4 required photos are not selected."
+            )
+        );
+
+    }
+
+
+    const photoMap = {
+
+        photoVillage:
+            selectedSurveyPhotos.photoVillage,
+
+        photoProblem:
+            selectedSurveyPhotos.photoProblem,
+
+        photoPerson:
+            selectedSurveyPhotos.photoPerson,
+
+        photoSelfie:
+            selectedSurveyPhotos.photoSelfie
+
+    };
+
+
+    const uploadPromises =
+        Object.keys(photoMap)
+            .map(
+                function(photoKey) {
+
+                    return uploadSinglePhoto(
+                        photoMap[photoKey],
+                        surveyId,
+                        photoKey
+                    )
                     .then(
-                        function(data) {
+                        function(photoData) {
 
                             return {
 
                                 key:
-                                    key,
+                                    photoKey,
 
                                 data:
-                                    data
+                                    photoData
 
                             };
 
                         }
                     );
 
-            }
-        )
+                }
+            );
 
+
+    return Promise.all(
+        uploadPromises
     )
 
     .then(
         function(results) {
 
-            const photos =
-                {};
-
+            const photos = {};
 
             results.forEach(
                 function(result) {
@@ -2949,12 +2616,15 @@ function uploadSurveyPhotos(
                 }
             );
 
+            console.log(
+                "ALL CLOUDINARY PHOTOS UPLOADED:",
+                photos
+            );
 
             return photos;
 
         }
     );
-
 }
 
 
@@ -2964,99 +2634,88 @@ function uploadSurveyPhotos(
 
 function getCleanFirestoreAnswers() {
 
-    const cleanAnswers =
-        {};
-
+    const cleanAnswers = {};
 
     const source =
-        answers.questions ||
-        {};
+        answers.questions || {};
 
+    Object.keys(source)
+        .forEach(
+            function(key) {
 
-    Object.keys(
-        source
-    )
-    .forEach(
-        function(key) {
-
-            if(
-                key ===
-                LOCATION_QUESTION.id
-            ) {
-
-                return;
-
-            }
-
-
-            if(
-                key ===
-                PHOTO_QUESTION.id
-            ) {
-
-                return;
-
-            }
-
-
-            if(
-                key.startsWith("__") &&
-                key.endsWith("__")
-            ) {
-
-                return;
-
-            }
-
-
-            const value =
-                source[key];
-
-
-            if(
-                value instanceof File
-            ) {
-
-                return;
-
-            }
-
-
-            if(
-                Array.isArray(value)
-            ) {
-
-                const containsFile =
-                    value.some(
-                        function(item) {
-
-                            return (
-                                item &&
-                                item.file instanceof File
-                            );
-
-                        }
-                    );
-
-
-                if(containsFile) {
+                if (
+                    key ===
+                    LOCATION_QUESTION.id
+                ) {
 
                     return;
 
                 }
 
+                if (
+                    key ===
+                    PHOTO_QUESTION.id
+                ) {
+
+                    return;
+
+                }
+
+                if (
+                    key.startsWith("__") &&
+                    key.endsWith("__")
+                ) {
+
+                    return;
+
+                }
+
+                const value =
+                    source[key];
+
+                /*
+                 * Never send File objects to Firestore.
+                 */
+
+                if (
+                    value instanceof File
+                ) {
+
+                    return;
+
+                }
+
+                if (
+                    Array.isArray(value)
+                ) {
+
+                    const containsFile =
+                        value.some(
+                            function(item) {
+
+                                return (
+                                    item &&
+                                    item.file instanceof File
+                                );
+
+                            }
+                        );
+
+                    if (containsFile) {
+
+                        return;
+
+                    }
+
+                }
+
+                cleanAnswers[key] =
+                    value;
+
             }
-
-
-            cleanAnswers[key] =
-                value;
-
-        }
-    );
-
+        );
 
     return cleanAnswers;
-
 }
 
 
@@ -3068,13 +2727,20 @@ function submitSurvey() {
 
     clearMessage();
 
+    console.log(
+        "======================================"
+    );
 
     console.log(
-        "Submit Survey clicked..."
+        "SUBMIT SURVEY STARTED"
+    );
+
+    console.log(
+        "======================================"
     );
 
 
-    if(
+    if (
         !dailyLimitLoaded ||
         DAILY_LIMIT <= 0
     ) {
@@ -3083,18 +2749,16 @@ function submitSurvey() {
             "Daily limit is not loaded yet."
         );
 
-
         return;
 
     }
 
 
-    if(!surveyStarted) {
+    if (!surveyStarted) {
 
         showMessage(
             "Please start the survey first."
         );
-
 
         return;
 
@@ -3102,24 +2766,14 @@ function submitSurvey() {
 
 
     /*
-     * FINAL VALIDATION
+     * SAVE CURRENT QUESTION
      */
 
-    if(
-        surveyQuestions[
-            currentQuestion
-        ] &&
-        (
-            surveyQuestions[
-                currentQuestion
-            ].type === "photos" ||
-            surveyQuestions[
-                currentQuestion
-            ].type === "location"
-        )
+    if (
+        surveyQuestions[currentQuestion]
     ) {
 
-        if(
+        if (
             !saveCurrentQuestionAnswer()
         ) {
 
@@ -3131,10 +2785,57 @@ function submitSurvey() {
 
 
     /*
+     * CHECK PHOTOS FIRST
+     */
+
+    if (
+        !hasAllRequiredPhotos()
+    ) {
+
+        const photoCount =
+            getRequiredPhotoFiles().length;
+
+        /*
+         * Find photo question
+         */
+
+        const photoIndex =
+            surveyQuestions.findIndex(
+                function(question) {
+
+                    return (
+                        question.type ===
+                        "photos"
+                    );
+
+                }
+            );
+
+        if (photoIndex >= 0) {
+
+            currentQuestion =
+                photoIndex;
+
+            renderQuestion();
+
+        }
+
+        showMessage(
+            "📷 Please select all 4 required photos. Currently " +
+            photoCount +
+            " / 4 selected."
+        );
+
+        return;
+
+    }
+
+
+    /*
      * VALIDATE ALL QUESTIONS
      */
 
-    for(
+    for (
         let i = 0;
         i < surveyQuestions.length;
         i++
@@ -3143,127 +2844,122 @@ function submitSurvey() {
         const question =
             surveyQuestions[i];
 
-
         const answer =
             answers.questions[
                 question.id
             ];
 
 
-        if(
+        /*
+         * LOCATION
+         */
+
+        if (
             question.type ===
             "location"
         ) {
 
-            if(
+            if (
                 !answer ||
                 answer.latitude === undefined ||
                 answer.longitude === undefined
             ) {
 
-                currentQuestion =
-                    i;
-
+                currentQuestion = i;
 
                 renderQuestion();
-
 
                 showMessage(
                     "📍 Please capture live location before submitting."
                 );
 
-
                 return;
 
             }
-
 
             continue;
 
         }
 
 
-        if(
+        /*
+         * PHOTOS
+         */
+
+        if (
             question.type ===
             "photos"
         ) {
 
-            const photoFiles =
-                getRequiredPhotoFiles();
-
-
-            if(
-                photoFiles.length !== 4
+            if (
+                !hasAllRequiredPhotos()
             ) {
 
-                currentQuestion =
-                    i;
-
+                currentQuestion = i;
 
                 renderQuestion();
-
 
                 showMessage(
                     "📷 Please upload all 4 required photos before submitting."
                 );
 
-
                 return;
 
             }
-
 
             continue;
 
         }
 
 
-        if(
+        /*
+         * MULTIPLE
+         */
+
+        if (
             question.type ===
             "multiple"
         ) {
 
-            if(
+            if (
                 !Array.isArray(answer) ||
                 answer.length === 0
             ) {
 
-                currentQuestion =
-                    i;
-
+                currentQuestion = i;
 
                 renderQuestion();
-
 
                 showMessage(
                     "Please answer Question " +
                     (i + 1) +
                     " before submitting."
                 );
-
 
                 return;
 
             }
 
         }
+
+
+        /*
+         * SINGLE
+         */
+
         else {
 
-            if(!answer) {
+            if (!answer) {
 
-                currentQuestion =
-                    i;
-
+                currentQuestion = i;
 
                 renderQuestion();
-
 
                 showMessage(
                     "Please answer Question " +
                     (i + 1) +
                     " before submitting."
                 );
-
 
                 return;
 
@@ -3279,12 +2975,11 @@ function submitSurvey() {
             .currentUser;
 
 
-    if(!user) {
+    if (!user) {
 
         showMessage(
             "Session expired. Please login again."
         );
-
 
         return;
 
@@ -3297,314 +2992,408 @@ function submitSurvey() {
         );
 
 
-    if(button) {
+    if (button) {
 
-        button.disabled =
-            true;
-
+        button.disabled = true;
 
         button.textContent =
-            "Saving Survey...";
+            "Checking...";
 
     }
 
 
     /*
-     * CHECK DAILY LIMIT
+     * CHECK DAILY LIMIT AGAIN
      */
 
     getTodayCount(user)
 
-        .then(function(count) {
+        .then(
+            function(count) {
 
-            updateDailyProgress(
-                count
-            );
-
-
-            if(
-                count >=
-                DAILY_LIMIT
-            ) {
-
-                throw new Error(
-                    "Daily survey limit reached."
+                updateDailyProgress(
+                    count
                 );
 
+                if (
+                    count >= DAILY_LIMIT
+                ) {
+
+                    throw new Error(
+                        "Daily survey limit reached."
+                    );
+
+                }
+
+
+                /*
+                 * GET LOCATION
+                 */
+
+                const savedLocation =
+                    answers.questions[
+                        LOCATION_QUESTION.id
+                    ];
+
+                if (
+                    savedLocation &&
+                    savedLocation.latitude !== undefined &&
+                    savedLocation.longitude !== undefined
+                ) {
+
+                    return savedLocation;
+
+                }
+
+                return captureCurrentLocation();
+
             }
-
-
-            const savedLocation =
-                answers.questions[
-                    LOCATION_QUESTION.id
-                ];
-
-
-            if(
-                savedLocation &&
-                savedLocation.latitude !== undefined &&
-                savedLocation.longitude !== undefined
-            ) {
-
-                return savedLocation;
-
-            }
-
-
-            return captureCurrentLocation();
-
-        })
+        )
 
 
         /*
-         * SAVE SURVEY DATA
+         * CREATE FIRESTORE DOC ID
+         * BEFORE CLOUDINARY UPLOAD
          */
 
-        .then(function(locationData) {
+        .then(
+            function(locationData) {
 
-            answers.questions[
-                LOCATION_QUESTION.id
-            ] =
-                locationData;
-
-
-            const cleanAnswers =
-                getCleanFirestoreAnswers();
+                answers.questions[
+                    LOCATION_QUESTION.id
+                ] =
+                    locationData;
 
 
-            const surveyData = {
+                /*
+                 * Generate survey document
+                 * without saving yet.
+                 */
 
-                name:
-                    answers.basic.name,
-
-                mobile:
-                    answers.basic.mobile,
-
-                age:
-                    answers.basic.age,
-
-                gender:
-                    answers.basic.gender,
-
-                village:
-                    answers.basic.village,
-
-                district:
-                    answers.basic.district ||
-                    "",
-
-                pincode:
-                    answers.basic.pincode ||
-                    "",
-
-                answers:
-                    cleanAnswers,
-
-                surveyorEmail:
-                    user.email ||
-                    "",
-
-                surveyorUid:
-                    user.uid ||
-                    "",
-
-                createdBy:
-                    user.email ||
-                    "",
-
-                createdAt:
-                    firebase.firestore
-                        .FieldValue
-                        .serverTimestamp(),
-
-                location:
-                    locationData,
-
-                latitude:
-                    locationData.latitude,
-
-                longitude:
-                    locationData.longitude,
-
-                locationAccuracy:
-                    locationData.accuracy,
-
-                locationCapturedAt:
-                    firebase.firestore
-                        .Timestamp
-                        .fromDate(
-                            new Date()
-                        )
-
-            };
+                const surveyDoc =
+                    db.collection(
+                        "surveys"
+                    ).doc();
 
 
-            return db
-                .collection(
-                    "surveys"
+                const surveyId =
+                    surveyDoc.id;
+
+
+                console.log(
+                    "Generated Survey ID:",
+                    surveyId
+                );
+
+
+                if (button) {
+
+                    button.textContent =
+                        "Uploading Photos...";
+
+                }
+
+
+                /*
+                 * Upload all 4 photos first.
+                 */
+
+                return uploadSurveyPhotos(
+                    surveyId
                 )
-                .add(
+
+                .then(
+                    function(photoData) {
+
+                        return {
+
+                            surveyDoc:
+                                surveyDoc,
+
+                            surveyId:
+                                surveyId,
+
+                            locationData:
+                                locationData,
+
+                            photoData:
+                                photoData
+
+                        };
+
+                    }
+                );
+
+            }
+        )
+
+
+        /*
+         * SAVE COMPLETE SURVEY TO FIRESTORE
+         */
+
+        .then(
+            function(result) {
+
+                const surveyDoc =
+                    result.surveyDoc;
+
+                const surveyId =
+                    result.surveyId;
+
+                const locationData =
+                    result.locationData;
+
+                const photoData =
+                    result.photoData;
+
+
+                if (button) {
+
+                    button.textContent =
+                        "Saving Survey...";
+
+                }
+
+
+                const cleanAnswers =
+                    getCleanFirestoreAnswers();
+
+
+                /*
+                 * COMPLETE SURVEY DATA
+                 */
+
+                const surveyData = {
+
+                    surveyId:
+                        surveyId,
+
+                    name:
+                        answers.basic.name,
+
+                    mobile:
+                        answers.basic.mobile,
+
+                    age:
+                        answers.basic.age,
+
+                    gender:
+                        answers.basic.gender,
+
+                    village:
+                        answers.basic.village,
+
+                    district:
+                        answers.basic.district || "",
+
+                    pincode:
+                        answers.basic.pincode || "",
+
+
+                    /*
+                     * NORMAL QUESTIONS
+                     */
+
+                    answers:
+                        cleanAnswers,
+
+
+                    /*
+                     * SURVEYOR
+                     */
+
+                    surveyorEmail:
+                        user.email || "",
+
+                    surveyorUid:
+                        user.uid || "",
+
+                    createdBy:
+                        user.email || "",
+
+
+                    /*
+                     * LOCATION
+                     */
+
+                    location:
+                        locationData,
+
+                    latitude:
+                        locationData.latitude,
+
+                    longitude:
+                        locationData.longitude,
+
+                    locationAccuracy:
+                        locationData.accuracy,
+
+                    locationCapturedAt:
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp(),
+
+
+                    /*
+                     * CLOUDINARY PHOTOS
+                     */
+
+                    photos:
+                        photoData,
+
+                    photoCount:
+                        Object.keys(
+                            photoData
+                        ).length,
+
+                    photosUploadedAt:
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp(),
+
+
+                    /*
+                     * CREATED TIME
+                     */
+
+                    createdAt:
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp()
+
+                };
+
+
+                console.log(
+                    "FINAL FIRESTORE DATA:",
                     surveyData
                 );
 
-        })
 
+                return surveyDoc
+                    .set(
+                        surveyData
+                    )
 
-        /*
-         * UPLOAD PHOTOS TO CLOUDINARY
-         */
+                    .then(
+                        function() {
 
-        .then(function(docRef) {
+                            console.log(
+                                "Survey successfully saved to Firestore:",
+                                surveyId
+                            );
 
-            console.log(
-                "Survey saved:",
-                docRef.id
-            );
+                            return surveyDoc;
 
-
-            if(button) {
-
-                button.textContent =
-                    "Uploading Photos...";
+                        }
+                    );
 
             }
-
-
-            return uploadSurveyPhotos(
-                docRef.id,
-                user
-            )
-
-            .then(function(photoData) {
-
-                console.log(
-                    "Photos uploaded to Cloudinary:",
-                    photoData
-                );
-
-
-                return db
-                    .collection(
-                        "surveys"
-                    )
-                    .doc(
-                        docRef.id
-                    )
-                    .update({
-
-                        photos:
-                            photoData,
-
-                        photoCount:
-                            Object.keys(
-                                photoData
-                            ).length,
-
-                        photosUploadedAt:
-                            firebase.firestore
-                                .FieldValue
-                                .serverTimestamp()
-
-                    })
-
-                    .then(function() {
-
-                        return docRef;
-
-                    });
-
-            });
-
-        })
+        )
 
 
         /*
          * COMPLETE
          */
 
-        .then(function(docRef) {
+        .then(
+            function(docRef) {
 
-            console.log(
-                "Survey completed:",
-                docRef.id
-            );
+                console.log(
+                    "======================================"
+                );
 
+                console.log(
+                    "SURVEY COMPLETED:",
+                    docRef.id
+                );
 
-            return getTodayCount(
-                user
-            );
-
-        })
-
-
-        .then(function(newCount) {
-
-            updateDailyProgress(
-                newCount
-            );
+                console.log(
+                    "======================================"
+                );
 
 
-            showSuccessMessage(
-                "✅ Survey submitted successfully!"
-            );
-
-
-            console.log(
-                "Survey saved successfully."
-            );
-
-
-            resetSurveyForm();
-
-
-            if(
-                newCount >=
-                DAILY_LIMIT
-            ) {
-
-                disableSurveyButtons();
-
-
-                showMessage(
-                    "✅ Survey saved. Daily limit reached."
+                return getTodayCount(
+                    user
                 );
 
             }
-
-        })
-
-
-        .catch(function(error) {
-
-            console.error(
-                "Survey submission error:",
-                error
-            );
+        )
 
 
-            showMessage(
-                "❌ Survey could not be submitted: " +
-                (
-                    error &&
-                    error.message
-                        ? error.message
-                        : String(error)
-                )
-            );
+        .then(
+            function(newCount) {
+
+                updateDailyProgress(
+                    newCount
+                );
 
 
-            if(button) {
+                showSuccessMessage(
+                    "✅ Survey submitted successfully!"
+                );
 
-                button.disabled =
-                    false;
+
+                console.log(
+                    "Survey saved successfully."
+                );
 
 
-                button.textContent =
-                    "Submit Survey";
+                resetSurveyForm();
+
+
+                if (
+                    newCount >= DAILY_LIMIT
+                ) {
+
+                    disableSurveyButtons();
+
+                }
 
             }
+        )
 
-        });
+
+        .catch(
+            function(error) {
+
+                console.error(
+                    "======================================"
+                );
+
+                console.error(
+                    "SURVEY SUBMISSION ERROR:",
+                    error
+                );
+
+                console.error(
+                    "======================================"
+                );
+
+
+                showMessage(
+                    "❌ Survey could not be submitted: " +
+                    (
+                        error &&
+                        error.message
+                            ? error.message
+                            : String(error)
+                    )
+                );
+
+
+                if (button) {
+
+                    button.disabled = false;
+
+                    button.textContent =
+                        "Submit Survey";
+
+                }
+
+            }
+        );
 
 }
 
@@ -3622,25 +3411,26 @@ function resetSurveyForm() {
 
     answers = {
 
-        basic:
-            {},
+        basic: {},
 
-        questions:
-            {}
+        questions: {}
 
     };
 
 
-    currentQuestion =
-        0;
+    /*
+     * VERY IMPORTANT
+     */
+
+    resetPhotoStorage();
 
 
-    surveyStarted =
-        false;
+    currentQuestion = 0;
+
+    surveyStarted = false;
 
 
     [
-
         "name",
         "mobile",
         "age",
@@ -3648,21 +3438,16 @@ function resetSurveyForm() {
         "village",
         "district",
         "pincode"
-
     ]
     .forEach(
         function(id) {
 
             const element =
-                document.getElementById(
-                    id
-                );
+                document.getElementById(id);
 
+            if (element) {
 
-            if(element) {
-
-                element.value =
-                    "";
+                element.value = "";
 
             }
 
@@ -3677,8 +3462,7 @@ function resetSurveyForm() {
         .forEach(
             function(input) {
 
-                input.value =
-                    "";
+                input.value = "";
 
             }
         );
@@ -3689,42 +3473,34 @@ function resetSurveyForm() {
             "basicDetailsStep"
         );
 
-
     const questionStep =
         document.getElementById(
             "questionStep"
         );
 
 
-    if(basicStep) {
+    if (basicStep) {
 
         basicStep.style.display =
             "block";
 
-
         basicStep.style.position =
             "relative";
-
 
         basicStep.style.left =
             "auto";
 
-
         basicStep.style.top =
             "auto";
-
 
         basicStep.style.width =
             "100%";
 
-
         basicStep.style.transform =
             "";
 
-
         basicStep.style.opacity =
             "1";
-
 
         basicStep.classList.add(
             "active"
@@ -3733,35 +3509,28 @@ function resetSurveyForm() {
     }
 
 
-    if(questionStep) {
+    if (questionStep) {
 
         questionStep.style.display =
             "none";
 
-
         questionStep.style.position =
             "relative";
-
 
         questionStep.style.left =
             "auto";
 
-
         questionStep.style.top =
             "auto";
-
 
         questionStep.style.width =
             "100%";
 
-
         questionStep.style.transform =
             "";
 
-
         questionStep.style.opacity =
             "";
-
 
         questionStep.classList.remove(
             "active"
@@ -3776,15 +3545,12 @@ function resetSurveyForm() {
         );
 
 
-    if(button) {
+    if (button) {
 
-        button.disabled =
-            false;
-
+        button.disabled = false;
 
         button.textContent =
             "Submit Survey";
-
 
         button.style.display =
             "none";
@@ -3798,11 +3564,10 @@ function resetSurveyForm() {
         );
 
 
-    if(nextButton) {
+    if (nextButton) {
 
         nextButton.style.display =
             "block";
-
 
         nextButton.disabled =
             false;
@@ -3816,7 +3581,7 @@ function resetSurveyForm() {
         );
 
 
-    if(previousButton) {
+    if (previousButton) {
 
         previousButton.disabled =
             true;
@@ -3829,35 +3594,34 @@ function resetSurveyForm() {
             .currentUser;
 
 
-    if(user) {
+    if (user) {
 
         getTodayCount(user)
 
-            .then(function(count) {
+            .then(
+                function(count) {
 
-                updateDailyProgress(
-                    count
-                );
+                    updateDailyProgress(
+                        count
+                    );
 
+                    if (
+                        count < DAILY_LIMIT
+                    ) {
 
-                if(
-                    count <
-                    DAILY_LIMIT
-                ) {
+                        enableSurveyButtons();
 
-                    enableSurveyButtons();
+                    }
 
                 }
-
-            });
+            );
 
     }
 
 
     console.log(
-        "Survey form reset successfully. Ready for next survey."
+        "Survey form reset successfully."
     );
-
 }
 
 
@@ -3872,18 +3636,15 @@ function disableSurveyButtons() {
             "basicNextButton"
         );
 
-
     const nextButton =
         document.getElementById(
             "nextButton"
         );
 
-
     const previousButton =
         document.getElementById(
             "previousButton"
         );
-
 
     const submitButton =
         document.getElementById(
@@ -3891,37 +3652,29 @@ function disableSurveyButtons() {
         );
 
 
-    if(basicButton) {
+    if (basicButton) {
 
-        basicButton.disabled =
-            true;
-
-    }
-
-
-    if(nextButton) {
-
-        nextButton.disabled =
-            true;
+        basicButton.disabled = true;
 
     }
 
+    if (nextButton) {
 
-    if(previousButton) {
-
-        previousButton.disabled =
-            true;
+        nextButton.disabled = true;
 
     }
 
+    if (previousButton) {
 
-    if(submitButton) {
-
-        submitButton.disabled =
-            true;
+        previousButton.disabled = true;
 
     }
 
+    if (submitButton) {
+
+        submitButton.disabled = true;
+
+    }
 }
 
 
@@ -3936,18 +3689,15 @@ function enableSurveyButtons() {
             "basicNextButton"
         );
 
-
     const nextButton =
         document.getElementById(
             "nextButton"
         );
 
-
     const previousButton =
         document.getElementById(
             "previousButton"
         );
-
 
     const submitButton =
         document.getElementById(
@@ -3955,37 +3705,30 @@ function enableSurveyButtons() {
         );
 
 
-    if(basicButton) {
+    if (basicButton) {
 
-        basicButton.disabled =
-            false;
-
-    }
-
-
-    if(nextButton) {
-
-        nextButton.disabled =
-            false;
+        basicButton.disabled = false;
 
     }
 
+    if (nextButton) {
 
-    if(previousButton) {
+        nextButton.disabled = false;
+
+    }
+
+    if (previousButton) {
 
         previousButton.disabled =
             currentQuestion === 0;
 
     }
 
+    if (submitButton) {
 
-    if(submitButton) {
-
-        submitButton.disabled =
-            false;
+        submitButton.disabled = false;
 
     }
-
 }
 
 
@@ -3996,23 +3739,32 @@ function enableSurveyButtons() {
 function getValue(id) {
 
     const element =
-        document.getElementById(
-            id
-        );
+        document.getElementById(id);
 
-
-    if(!element) {
+    if (!element) {
 
         return "";
 
     }
 
-
     return String(
-        element.value ||
-        ""
+        element.value || ""
     ).trim();
+}
 
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value) {
+
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 
@@ -4027,26 +3779,21 @@ function showMessage(text) {
             "message"
         );
 
-
-    if(!message) {
+    if (!message) {
 
         return;
 
     }
 
-
     message.classList.remove(
         "success-message"
     );
 
-
     message.textContent =
         text;
 
-
     message.style.color =
         "#c62828";
-
 }
 
 
@@ -4057,26 +3804,21 @@ function showSuccessMessage(text) {
             "message"
         );
 
-
-    if(!message) {
+    if (!message) {
 
         return;
 
     }
 
-
     message.classList.add(
         "success-message"
     );
 
-
     message.textContent =
         text;
 
-
     message.style.color =
         "#2e7d32";
-
 }
 
 
@@ -4087,19 +3829,16 @@ function clearMessage() {
             "message"
         );
 
-
-    if(messageElement) {
+    if (messageElement) {
 
         messageElement.textContent =
             "";
-
 
         messageElement.classList.remove(
             "success-message"
         );
 
     }
-
 }
 
 
@@ -4107,7 +3846,7 @@ function clearMessage() {
    START
 ========================================================= */
 
-if(
+if (
     document.readyState ===
     "loading"
 ) {
