@@ -1,4 +1,4 @@
-console.log("Admin JS Loaded - FINAL VERSION");
+console.log("Admin JS Loaded - FINAL VERSION + PHOTO");
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
@@ -900,17 +900,17 @@ function loadSurveys(){
             allSurveys.slice();
 
 
+        console.log(
+            "Surveys loaded:",
+            allSurveys.length
+        );
+
+
         updateDashboard();
 
         populateFilterDropdowns();
 
         renderSurveyRecords();
-
-        /*
-         * IMPORTANT:
-         * Surveyor Management is rendered AFTER
-         * surveys are loaded so counts are correct.
-         */
 
         renderSurveyorManagement();
 
@@ -1296,6 +1296,83 @@ document
 
 
 // ======================================================
+// GET PHOTO URL
+// ======================================================
+
+function getSurveyPhotoURL(survey){
+
+    if(!survey){
+        return "";
+    }
+
+
+    const possibleFields = [
+
+        "photoURL",
+        "photoUrl",
+        "photo",
+        "imageURL",
+        "imageUrl",
+        "image",
+        "cloudinaryURL",
+        "cloudinaryUrl",
+        "cloudinary",
+        "photoURLCloudinary",
+        "uploadedPhoto",
+        "uploadedImage"
+
+    ];
+
+
+    for(
+        let i = 0;
+        i < possibleFields.length;
+        i++
+    ){
+
+        const value =
+            survey[possibleFields[i]];
+
+
+        if(
+            value !== undefined &&
+            value !== null &&
+            String(value).trim() !== ""
+        ){
+
+            return String(value).trim();
+
+        }
+
+    }
+
+
+    return "";
+
+}
+
+
+// ======================================================
+// OPEN PHOTO
+// ======================================================
+
+window.openSurveyPhoto = function(url){
+
+    if(!url){
+        return;
+    }
+
+
+    window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+    );
+
+};
+
+
+// ======================================================
 // SURVEY RECORDS
 // ======================================================
 
@@ -1334,6 +1411,49 @@ function renderSurveyRecords(){
             escapeHTML(survey.village);
 
 
+        const photoURL =
+            getSurveyPhotoURL(survey);
+
+
+        let photoHTML =
+            '<span style="color:#888;">No Photo</span>';
+
+
+        if(photoURL){
+
+            photoHTML = `
+
+                <img
+                    src="${escapeHTML(photoURL)}"
+                    alt="Survey Photo"
+                    loading="lazy"
+                    style="
+                        width:70px;
+                        height:70px;
+                        object-fit:cover;
+                        border-radius:10px;
+                        border:2px solid #ddd;
+                        cursor:pointer;
+                        display:block;
+                    "
+                    onclick="openSurveyPhoto('${escapeHTML(photoURL)}')"
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='inline';"
+                >
+
+                <span
+                    style="
+                        display:none;
+                        color:red;
+                    "
+                >
+                    Photo unavailable
+                </span>
+
+            `;
+
+        }
+
+
         row.innerHTML = `
 
 <td>${name}</td>
@@ -1345,6 +1465,10 @@ function renderSurveyRecords(){
 <td>${gender}</td>
 
 <td>${village}</td>
+
+<td>
+    ${photoHTML}
+</td>
 
 <td>
 
@@ -1740,6 +1864,10 @@ function showSurveyAnswers(survey){
     body.innerHTML = "";
 
 
+    const photoURL =
+        getSurveyPhotoURL(survey);
+
+
     const respondent =
         document.createElement("div");
 
@@ -1788,6 +1916,58 @@ ${escapeHTML(
 </div>
 
 </div>
+
+${
+photoURL
+?
+`
+<div style="
+    margin-top:20px;
+    text-align:center;
+">
+
+<strong>📷 Survey Photo</strong>
+
+<br><br>
+
+<img
+    src="${escapeHTML(photoURL)}"
+    alt="Survey Photo"
+    style="
+        max-width:100%;
+        width:300px;
+        max-height:400px;
+        object-fit:contain;
+        border-radius:12px;
+        border:2px solid #ddd;
+        cursor:pointer;
+    "
+    onclick="openSurveyPhoto('${escapeHTML(photoURL)}')"
+>
+
+<br><br>
+
+<button
+    type="button"
+    class="primary"
+    onclick="openSurveyPhoto('${escapeHTML(photoURL)}')"
+>
+    🔍 Open Full Photo
+</button>
+
+</div>
+`
+:
+`
+<div style="
+    margin-top:20px;
+    color:#888;
+    text-align:center;
+">
+    📷 No Photo Uploaded
+</div>
+`
+}
 
 `;
 
@@ -1907,21 +2087,40 @@ ${escapeHTML(
     else{
 
         const ignoredFields = [
+
             "name",
             "mobile",
             "age",
             "gender",
             "village",
+
             "party",
             "candidate",
             "feedback",
+
             "surveyorEmail",
             "surveyorId",
             "surveyorName",
             "createdBy",
+            "createdByEmail",
+
             "createdAt",
             "timestamp",
-            "submittedAt"
+            "submittedAt",
+
+            "photoURL",
+            "photoUrl",
+            "photo",
+            "imageURL",
+            "imageUrl",
+            "image",
+            "cloudinaryURL",
+            "cloudinaryUrl",
+            "cloudinary",
+            "photoURLCloudinary",
+            "uploadedPhoto",
+            "uploadedImage"
+
         ];
 
 
@@ -2078,11 +2277,6 @@ function loadSurveyors(){
             allSurveyors.length
         );
 
-
-        /*
-         * If surveys are already loaded,
-         * immediately calculate counts.
-         */
 
         renderSurveyorManagement();
 
@@ -2246,13 +2440,6 @@ function renderSurveyorManagement(){
         let month = 0;
 
 
-        /*
-         * FIX:
-         * Do NOT only check survey.surveyorEmail.
-         * Survey records can contain surveyorEmail,
-         * surveyorId or createdBy.
-         */
-
         allSurveys.forEach(function(survey){
 
             if(
@@ -2410,11 +2597,6 @@ Enable
 window.toggleSurveyor =
 function(email,enabled){
 
-    /*
-     * Most surveyor documents use email as document ID.
-     * First try that.
-     */
-
     db.collection("surveyors")
     .doc(email)
     .update({
@@ -2443,11 +2625,6 @@ function(email,enabled){
             error
         );
 
-
-        /*
-         * If document ID is not email,
-         * find it by email field.
-         */
 
         db.collection("surveyors")
         .where("email","==",email)
