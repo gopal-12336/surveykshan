@@ -211,6 +211,7 @@ tr:hover td { background: #f5faff; }
     </div>
 </div>
 
+<!-- Answers Modal -->
 <div id="answerModal" class="answer-modal">
     <div class="modal-box">
         <div class="modal-header">
@@ -221,6 +222,7 @@ tr:hover td { background: #f5faff; }
     </div>
 </div>
 
+<!-- Photos Modal -->
 <div id="photosModal" class="photos-modal">
     <div class="photos-modal-box">
         <div class="modal-header">
@@ -231,12 +233,41 @@ tr:hover td { background: #f5faff; }
     </div>
 </div>
 
+<!-- Edit Survey Modal -->
+<div id="editSurveyModal" class="answer-modal">
+    <div class="modal-box" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2 style="margin:0; color:#1565c0;">✏️ Edit Survey Record</h2>
+            <button type="button" class="danger" onclick="closeEditModal()">✖</button>
+        </div>
+        <form id="editSurveyForm">
+            <label style="font-weight: bold; font-size: 13px;">Name:</label>
+            <input id="editName" type="text" required>
+
+            <label style="font-weight: bold; font-size: 13px;">Mobile:</label>
+            <input id="editMobile" type="text" required>
+
+            <label style="font-weight: bold; font-size: 13px;">Age:</label>
+            <input id="editAge" type="number">
+
+            <label style="font-weight: bold; font-size: 13px;">Village:</label>
+            <input id="editVillage" type="text">
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
+                <button type="button" class="gray" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="success">💾 Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div style="text-align:center; margin:25px;">
     <button id="logoutBtn" class="danger" type="button">🚪 Logout</button>
 </div>
 
 </div>
 
+<!-- Firebase Scripts -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
