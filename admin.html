@@ -6,309 +6,60 @@
 <title>Surveykshan Admin</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
+body { margin: 0; background: #f3f6fa; font-family: Arial, sans-serif; color: #222; }
+.header { background: linear-gradient(135deg, #0d47a1, #1976d2); color: white; padding: 20px; text-align: center; font-size: 27px; font-weight: bold; }
+.container { width: 96%; max-width: 1450px; margin: 20px auto; }
+.card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,.08); }
+.dashboard { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
+.stat { text-align: center; padding: 20px; background: white; border-radius: 14px; box-shadow: 0 3px 12px rgba(0,0,0,.07); }
+.stat h3 { margin: 0; color: #666; font-size: 14px; }
+.stat strong { display: block; margin-top: 8px; font-size: 28px; color: #1565c0; }
+.section-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+.section-title h2 { margin: 0; color: #1565c0; }
+input, select { width: 100%; padding: 11px; border: 1px solid #ccd5df; border-radius: 9px; font-size: 15px; margin: 5px 0; }
+button { border: 0; border-radius: 8px; padding: 10px 15px; cursor: pointer; font-weight: bold; margin: 3px; }
+button:disabled { opacity: .6; cursor: not-allowed; }
+.primary { background: #1565c0; color: white; }
+.success { background: #2e7d32; color: white; }
+.danger { background: #d32f2f; color: white; }
+.warning { background: #ef6c00; color: white; }
+.purple { background: #6a1b9a; color: white; }
+.gray { background: #667085; color: white; }
+#questionManagerBody { display: block; }
+.option-row { display: flex; gap: 8px; margin: 8px 0; }
+.option-row input { flex: 1; }
+.question-card { background: #f7faff; border: 1px solid #dce6f1; border-radius: 10px; padding: 15px; margin: 10px 0; }
+.question-card h3 { margin-top: 0; color: #1565c0; }
+.filter-box { background: #f8fbff; border: 1px solid #d7e3ef; border-radius: 12px; padding: 15px; }
+.filter-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.filter-grid select { margin: 0; }
+.filter-buttons { margin-top: 10px; }
+#filterResultCount { font-weight: bold; margin-left: 8px; }
+.table-wrap { width: 100%; overflow-x: auto; border: 1px solid #ddd; border-radius: 10px; }
+table { width: 100%; min-width: 950px; border-collapse: collapse; background: white; }
+th { background: #1565c0; color: white; padding: 13px; white-space: nowrap; }
+td { padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center; white-space: nowrap; }
+tr:hover td { background: #f5faff; }
 
-body {
-    margin: 0;
-    background: #f3f6fa;
-    font-family: Arial, sans-serif;
-    color: #222;
-}
+.answer-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+.answer-modal.show { display: flex; }
+.modal-box { background: white; width: min(850px, 95%); max-height: 90vh; overflow: auto; border-radius: 15px; padding: 20px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
 
-.header {
-    background: linear-gradient(135deg, #0d47a1, #1976d2);
-    color: white;
-    padding: 20px;
-    text-align: center;
-    font-size: 27px;
-    font-weight: bold;
-}
-
-.container {
-    width: 96%;
-    max-width: 1450px;
-    margin: 20px auto;
-}
-
-.card {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,.08);
-}
-
-.dashboard {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 15px;
-}
-
-.stat {
-    text-align: center;
-    padding: 20px;
-    background: white;
-    border-radius: 14px;
-    box-shadow: 0 3px 12px rgba(0,0,0,.07);
-}
-
-.stat h3 {
-    margin: 0;
-    color: #666;
-    font-size: 14px;
-}
-
-.stat strong {
-    display: block;
-    margin-top: 8px;
-    font-size: 28px;
-    color: #1565c0;
-}
-
-.section-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 15px;
-}
-
-.section-title h2 {
-    margin: 0;
-    color: #1565c0;
-}
-
-input,
-select {
-    width: 100%;
-    padding: 11px;
-    border: 1px solid #ccd5df;
-    border-radius: 9px;
-    font-size: 15px;
-    margin: 5px 0;
-}
-
-button {
-    border: 0;
-    border-radius: 8px;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-weight: bold;
-    margin: 3px;
-}
-
-button:disabled {
-    opacity: .6;
-    cursor: not-allowed;
-}
-
-.primary {
-    background: #1565c0;
-    color: white;
-}
-
-.success {
-    background: #2e7d32;
-    color: white;
-}
-
-.danger {
-    background: #d32f2f;
-    color: white;
-}
-
-.warning {
-    background: #ef6c00;
-    color: white;
-}
-
-.purple {
-    background: #6a1b9a;
-    color: white;
-}
-
-.gray {
-    background: #667085;
-    color: white;
-}
-
-#questionManagerBody {
-    display: block;
-}
-
-.option-row {
-    display: flex;
-    gap: 8px;
-    margin: 8px 0;
-}
-
-.option-row input {
-    flex: 1;
-}
-
-.question-card {
-    background: #f7faff;
-    border: 1px solid #dce6f1;
-    border-radius: 10px;
-    padding: 15px;
-    margin: 10px 0;
-}
-
-.question-card h3 {
-    margin-top: 0;
-    color: #1565c0;
-}
-
-.filter-box {
-    background: #f8fbff;
-    border: 1px solid #d7e3ef;
-    border-radius: 12px;
-    padding: 15px;
-}
-
-.filter-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-}
-
-.filter-grid select {
-    margin: 0;
-}
-
-.filter-buttons {
-    margin-top: 10px;
-}
-
-#filterResultCount {
-    font-weight: bold;
-    margin-left: 8px;
-}
-
-.table-wrap {
-    width: 100%;
-    overflow-x: auto;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-}
-
-table {
-    width: 100%;
-    min-width: 950px;
-    border-collapse: collapse;
-    background: white;
-}
-
-th {
-    background: #1565c0;
-    color: white;
-    padding: 13px;
-    white-space: nowrap;
-}
-
-td {
-    padding: 12px;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: center;
-    white-space: nowrap;
-}
-
-tr:hover td {
-    background: #f5faff;
-}
-
-/* =====================================================
-   ANSWER MODAL
-===================================================== */
-.answer-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.6);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.answer-modal.show {
-    display: flex;
-}
-
-.modal-box {
-    background: white;
-    width: min(850px, 95%);
-    max-height: 90vh;
-    overflow: auto;
-    border-radius: 15px;
-    padding: 20px;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
-
-/* =====================================================
-   4-PHOTO MODAL
-===================================================== */
-.photos-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.75);
-    z-index: 10000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.photos-modal-box {
-    background: white;
-    width: min(800px, 95%);
-    max-height: 90vh;
-    overflow: auto;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-.photos-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin-top: 15px;
-}
+.photos-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 10000; align-items: center; justify-content: center; padding: 20px; }
+.photos-modal-box { background: white; width: min(800px, 95%); max-height: 90vh; overflow: auto; border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.photos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
 
 @media(max-width: 900px) {
-    .dashboard {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .filter-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .dashboard { grid-template-columns: repeat(3, 1fr); }
+    .filter-grid { grid-template-columns: repeat(2, 1fr); }
 }
-
 @media(max-width: 600px) {
-    .dashboard {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .filter-grid {
-        grid-template-columns: 1fr;
-    }
-    .photos-grid {
-        grid-template-columns: 1fr;
-    }
-    .header {
-        font-size: 21px;
-    }
+    .dashboard { grid-template-columns: repeat(2, 1fr); }
+    .filter-grid { grid-template-columns: 1fr; }
+    .photos-grid { grid-template-columns: 1fr; }
+    .header { font-size: 21px; }
 }
 </style>
 </head>
@@ -321,7 +72,6 @@ tr:hover td {
 
 <div class="container">
 
-<!-- DASHBOARD COUNTS -->
 <div class="dashboard">
     <div class="stat">
         <h3>Total Surveys</h3>
@@ -345,7 +95,6 @@ tr:hover td {
     </div>
 </div>
 
-<!-- QUESTION MANAGER -->
 <div class="card">
     <div class="section-title">
         <h2>📝 Survey Question Manager</h2>
@@ -374,7 +123,6 @@ tr:hover td {
     </div>
 </div>
 
-<!-- DAILY LIMIT -->
 <div class="card">
     <div class="section-title">
         <h2>⚙️ Daily Survey Limit</h2>
@@ -384,7 +132,6 @@ tr:hover td {
     <span id="limitMessage"></span>
 </div>
 
-<!-- SURVEYOR MANAGEMENT -->
 <div class="card">
     <div class="section-title">
         <h2>👥 Surveyor Management</h2>
@@ -406,7 +153,6 @@ tr:hover td {
     </div>
 </div>
 
-<!-- FILTER -->
 <div class="card">
     <div class="section-title">
         <h2>🔎 Filter Survey Records</h2>
@@ -440,7 +186,6 @@ tr:hover td {
     </div>
 </div>
 
-<!-- SURVEY RECORDS (9 COLUMNS) -->
 <div class="card">
     <div class="section-title">
         <h2>📊 Survey Records</h2>
@@ -466,7 +211,6 @@ tr:hover td {
     </div>
 </div>
 
-<!-- ANSWER MODAL -->
 <div id="answerModal" class="answer-modal">
     <div class="modal-box">
         <div class="modal-header">
@@ -477,7 +221,6 @@ tr:hover td {
     </div>
 </div>
 
-<!-- 4-PHOTO MODAL -->
 <div id="photosModal" class="photos-modal">
     <div class="photos-modal-box">
         <div class="modal-header">
@@ -488,14 +231,12 @@ tr:hover td {
     </div>
 </div>
 
-<!-- LOGOUT -->
 <div style="text-align:center; margin:25px;">
     <button id="logoutBtn" class="danger" type="button">🚪 Logout</button>
 </div>
 
 </div>
 
-<!-- SCRIPTS -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
