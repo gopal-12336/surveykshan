@@ -1,12 +1,8 @@
 /* =========================================================
-   SURVEYKSHAN - ADMIN PANEL (BULLETPROOF & ERROR-FREE)
+   SURVEYKSHAN - ADMIN PANEL (FIXED & PRODUCTION READY)
    ========================================================= */
 
-// 1. Safe Firebase Init (अगर पहले से बना है तो वही यूज़ करेगा)
-const auth = window.auth || firebase.auth();
-const db = window.db || firebase.firestore();
-
-// 2. Global State
+// State variables
 let allSurveys = [];
 let allSurveyors = [];
 let allQuestions = [];
@@ -19,7 +15,7 @@ const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 const getEl = (id) => document.getElementById(id);
 
 /* =========================================================
-   3. UNIVERSAL PHOTO EXTRACTOR (Cloudinary & Base64 Safe)
+   1. UNIVERSAL PHOTO EXTRACTOR (Cloudinary & Base64 Safe)
    ========================================================= */
 function getSurveyPhotosArray(survey) {
     if (!survey) return [];
@@ -75,7 +71,7 @@ function getSurveyPhotosArray(survey) {
 }
 
 /* =========================================================
-   4. RENDER SURVEYS TABLE
+   2. RENDER SURVEYS TABLE
    ========================================================= */
 function renderSurveys(surveys) {
     const surveysTableBody = getEl("surveysTableBody");
@@ -147,16 +143,15 @@ function renderSurveys(surveys) {
 }
 
 /* =========================================================
-   5. REALTIME LISTENERS
+   3. REALTIME DATA LISTENERS
    ========================================================= */
 function loadSurveysRealtime() {
-    db.collection("surveys").onSnapshot((snapshot) => {
+    firebase.firestore().collection("surveys").onSnapshot((snapshot) => {
         allSurveys = [];
         snapshot.forEach((doc) => {
             allSurveys.push({ id: doc.id, ...doc.data() });
         });
 
-        // Safe client sort
         allSurveys.sort((a, b) => {
             const tA = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
             const tB = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
@@ -171,7 +166,7 @@ function loadSurveysRealtime() {
 }
 
 function loadSurveyorsRealtime() {
-    db.collection("surveyors").onSnapshot((snapshot) => {
+    firebase.firestore().collection("surveyors").onSnapshot((snapshot) => {
         allSurveyors = [];
         const filterSurveyor = getEl("filterSurveyor");
         if (filterSurveyor) {
@@ -213,7 +208,7 @@ function loadSurveyorsRealtime() {
 }
 
 function loadQuestionsRealtime() {
-    db.collection("questions").onSnapshot((snapshot) => {
+    firebase.firestore().collection("questions").onSnapshot((snapshot) => {
         allQuestions = [];
         snapshot.forEach((doc) => {
             allQuestions.push({ id: doc.id, ...doc.data() });
@@ -239,7 +234,7 @@ function loadQuestionsRealtime() {
 }
 
 function loadDailyLimit() {
-    db.collection("settings").doc("config").get().then((doc) => {
+    firebase.firestore().collection("settings").doc("config").get().then((doc) => {
         if (doc.exists && doc.data().dailyLimit !== undefined) {
             dailyLimit = doc.data().dailyLimit;
             const input = getEl("dailyLimitInput");
@@ -249,7 +244,7 @@ function loadDailyLimit() {
 }
 
 /* =========================================================
-   6. CARDS METRICS AUTO-UPDATE
+   4. DASHBOARD CARDS SYNC
    ========================================================= */
 function updateDashboardCards() {
     const now = new Date();
@@ -274,7 +269,6 @@ function updateDashboardCards() {
         }
     });
 
-    // 1. Direct IDs Update (अगर मौजूद हों)
     const setIfExists = (id, val) => { const el = getEl(id); if (el) el.textContent = val; };
     setIfExists("totalSurveysCard", allSurveys.length);
     setIfExists("todaySurveysCard", countToday);
@@ -282,28 +276,26 @@ function updateDashboardCards() {
     setIfExists("thisMonthSurveysCard", countMonth);
     setIfExists("totalQuestionsCard", allQuestions.length);
 
-    // 2. DOM Structure Scan (आपके स्क्रीनशॉट वाले 5 बड़े कार्ड्स के लिए)
-    const statCards = document.querySelectorAll(".card, .stat-card, div[class*='card']");
-    const matchedNumbers = [];
-    document.querySelectorAll("h1, h2, h3, div, span").forEach(el => {
+    // Scan stat numbers on screen
+    const numbersOnPage = [];
+    document.querySelectorAll("h1, h2, h3, div, p, span").forEach(el => {
         const text = el.textContent.trim();
-        // अगर कोई एलिमेंट केवल 0 या नंबर है और उसका पैरेंट कार्ड है
-        if (/^\d+$/.test(text) && el.children.length === 0 && (el.className.includes('count') || el.className.includes('number') || el.style.fontSize || el.tagName.startsWith('H'))) {
-            matchedNumbers.push(el);
+        if (/^\d+$/.test(text) && el.children.length === 0 && (el.className.includes("stat") || el.className.includes("count") || el.className.includes("number") || el.tagName.startsWith("H"))) {
+            numbersOnPage.push(el);
         }
     });
 
-    if (matchedNumbers.length >= 5) {
-        matchedNumbers[0].textContent = allSurveys.length;
-        matchedNumbers[1].textContent = countToday;
-        matchedNumbers[2].textContent = countWeek;
-        matchedNumbers[3].textContent = countMonth;
-        matchedNumbers[4].textContent = allQuestions.length;
+    if (numbersOnPage.length >= 5) {
+        numbersOnPage[0].textContent = allSurveys.length;
+        numbersOnPage[1].textContent = countToday;
+        numbersOnPage[2].textContent = countWeek;
+        numbersOnPage[3].textContent = countMonth;
+        numbersOnPage[4].textContent = allQuestions.length;
     }
 }
 
 /* =========================================================
-   7. MODALS & POPUPS
+   5. MODALS & POPUPS
    ========================================================= */
 window.openPhotosModal = function(surveyId) {
     const survey = allSurveys.find(s => s.id === surveyId);
@@ -381,7 +373,7 @@ window.closeAnswersModal = function() {
 };
 
 /* =========================================================
-   8. ACTIONS (EDIT, DELETE, STATUS)
+   6. ACTIONS (EDIT, DELETE, STATUS)
    ========================================================= */
 let currentEditId = null;
 
@@ -409,7 +401,7 @@ window.closeEditModal = function() {
 window.deleteSurvey = async function(surveyId) {
     if (confirm("क्या आप वाकई इस सर्वे को हमेशा के लिए हटाना चाहते हैं?")) {
         try {
-            await db.collection("surveys").doc(surveyId).delete();
+            await firebase.firestore().collection("surveys").doc(surveyId).delete();
             alert("सर्वे हटा दिया गया।");
         } catch (e) {
             alert("त्रुटि: " + e.message);
@@ -420,7 +412,7 @@ window.deleteSurvey = async function(surveyId) {
 window.toggleSurveyorStatus = async function(id, currentStatus) {
     const nextStatus = currentStatus === "approved" ? "pending" : "approved";
     try {
-        await db.collection("surveyors").doc(id).set({
+        await firebase.firestore().collection("surveyors").doc(id).set({
             status: nextStatus,
             active: nextStatus === "approved"
         }, { merge: true });
@@ -432,7 +424,7 @@ window.toggleSurveyorStatus = async function(id, currentStatus) {
 window.deleteSurveyor = async function(id) {
     if (confirm("क्या आप इस सर्वेक्षक को हटाना चाहते हैं?")) {
         try {
-            await db.collection("surveyors").doc(id).delete();
+            await firebase.firestore().collection("surveyors").doc(id).delete();
         } catch (e) {
             alert("त्रुटि: " + e.message);
         }
@@ -442,7 +434,7 @@ window.deleteSurveyor = async function(id) {
 window.deleteQuestion = async function(id) {
     if (confirm("क्या आप इस प्रश्न को हटाना चाहते हैं?")) {
         try {
-            await db.collection("questions").doc(id).delete();
+            await firebase.firestore().collection("questions").doc(id).delete();
         } catch (e) {
             alert("त्रुटि: " + e.message);
         }
@@ -450,27 +442,26 @@ window.deleteQuestion = async function(id) {
 };
 
 /* =========================================================
-   9. HIDE / TOGGLE BUTTON FIX
+   7. HIDE & TOGGLE BUTTONS
    ========================================================= */
-// यह आपके स्क्रीनशॉट वाले Hide बटन को तुरंत ठीक करेगा
 document.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
     if (!btn) return;
 
     const text = btn.textContent.toLowerCase();
     if (text.includes("hide") || text.includes("show") || text.includes("छिपाएं")) {
-        // Question Manager Container खोजकर टॉगल करेगा
-        const container = btn.closest(".card, div")?.querySelector("form, .form-group, #questionForm, #addQuestionForm") || getEl("addQuestionForm");
-        if (container) {
-            const isHidden = container.style.display === "none";
-            container.style.display = isHidden ? "block" : "none";
+        const card = btn.closest(".card") || btn.closest("div[class*='card']") || btn.parentElement.parentElement;
+        const formOrContent = card?.querySelector("form, .form-group, #questionForm, #addQuestionForm") || getEl("addQuestionForm");
+        if (formOrContent) {
+            const isHidden = formOrContent.style.display === "none";
+            formOrContent.style.display = isHidden ? "block" : "none";
             btn.innerHTML = isHidden ? "🙈 Hide" : "👁️ Show";
         }
     }
 });
 
 /* =========================================================
-   10. FILTERS
+   8. FILTERS & SEARCH
    ========================================================= */
 function applyFilters() {
     const q = (getEl("searchInput")?.value || "").toLowerCase();
@@ -504,10 +495,9 @@ function applyFilters() {
 }
 
 /* =========================================================
-   11. INITIALIZATION ON DOM READY
+   9. EVENT LISTENERS SETUP
    ========================================================= */
 window.addEventListener("DOMContentLoaded", () => {
-    // Attach Filters
     const search = getEl("searchInput");
     if (search) search.addEventListener("input", applyFilters);
 
@@ -517,7 +507,43 @@ window.addEventListener("DOMContentLoaded", () => {
     const fDate = getEl("filterDate");
     if (fDate) fDate.addEventListener("change", applyFilters);
 
-    // Question Form
+    const editSurveyForm = getEl("editSurveyForm");
+    if (editSurveyForm) {
+        editSurveyForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (!currentEditId) return;
+
+            const updatedData = {
+                name: getEl("editName")?.value.trim() || "",
+                mobile: getEl("editMobile")?.value.trim() || "",
+                age: getEl("editAge")?.value.trim() || "",
+                village: getEl("editVillage")?.value.trim() || ""
+            };
+
+            try {
+                await firebase.firestore().collection("surveys").doc(currentEditId).update(updatedData);
+                alert("सर्वे सफलतापूर्वक अपडेट हो गया!");
+                closeEditModal();
+            } catch (error) {
+                alert("अपडेट त्रुटि: " + error.message);
+            }
+        });
+    }
+
+    const deleteAllBtn = getEl("deleteAllSurveysBtn");
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener("click", async () => {
+            if (!confirm("चेतावनी: इससे सभी सर्वे हमेशा के लिए मिट जाएँगे!")) return;
+            try {
+                const snap = await firebase.firestore().collection("surveys").get();
+                const batch = firebase.firestore().batch();
+                snap.docs.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                alert("सभी सर्वे हटा दिए गए!");
+            } catch (err) { alert("त्रुटि: " + err.message); }
+        });
+    }
+
     const qForm = getEl("addQuestionForm") || getEl("questionForm");
     if (qForm) {
         qForm.addEventListener("submit", async (e) => {
@@ -526,7 +552,7 @@ window.addEventListener("DOMContentLoaded", () => {
             const type = (getEl("newQuestionType") || qForm.querySelector("select"))?.value || "text";
             if (!text) return;
             try {
-                await db.collection("questions").add({
+                await firebase.firestore().collection("questions").add({
                     text: text,
                     type: type,
                     order: allQuestions.length + 1,
@@ -538,24 +564,30 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Limit Save
     const saveLimitBtn = getEl("saveDailyLimitBtn");
     if (saveLimitBtn) {
         saveLimitBtn.addEventListener("click", async () => {
             const val = parseInt(getEl("dailyLimitInput")?.value);
             if (!val || val < 1) return;
             try {
-                await db.collection("settings").doc("config").set({ dailyLimit: val }, { merge: true });
-                alert("लिमिट सेव हो गई!");
+                await firebase.firestore().collection("settings").doc("config").set({ dailyLimit: val }, { merge: true });
+                alert("डेली लिमिट सेव हो गई!");
             } catch(e) { alert("त्रुटि: " + e.message); }
+        });
+    }
+
+    const logoutBtn = getEl("logoutBtn");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+            firebase.auth().signOut().then(() => window.location.href = "login.html");
         });
     }
 });
 
 /* =========================================================
-   12. AUTH OBSERVER
+   10. AUTH STATE LISTENER (START POINT)
    ========================================================= */
-auth.onAuthStateChanged((user) => {
+firebase.auth().onAuthStateChanged((user) => {
     if (!user) {
         window.location.href = "login.html";
         return;
@@ -564,14 +596,13 @@ auth.onAuthStateChanged((user) => {
     const email = (user.email || "").toLowerCase().trim();
     if (email !== ADMIN_EMAIL.toLowerCase()) {
         alert("केवल एडमिन ही इस पैनल को खोल सकता है!");
-        auth.signOut().then(() => window.location.href = "login.html");
+        firebase.auth().signOut().then(() => window.location.href = "login.html");
         return;
     }
 
     const adminEmailEl = getEl("adminUserEmail");
     if (adminEmailEl) adminEmailEl.textContent = user.email;
 
-    // Start Realtime Streams
     loadSurveysRealtime();
     loadSurveyorsRealtime();
     loadQuestionsRealtime();
