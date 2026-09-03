@@ -1,5 +1,5 @@
 /* =========================================================
-   SURVEYKSHAN - ADMIN PANEL (COMPLETELY INTEGRATED)
+   SURVEYKSHAN - ADMIN PANEL (QUESTION RESOLVER & DATE FIX)
    ========================================================= */
 
 // State Variables
@@ -72,25 +72,50 @@ function getSurveyPhotosArray(survey) {
 }
 
 /* =========================================================
-   2. DATE FORMATTER (ELIMINATES "INVALID DATE")
+   2. DATE FORMATTER (ALL POSSIBLE KEYS & FORMATS)
    ========================================================= */
-function formatSurveyDate(survey) {
+function parseAnyDate(val) {
+    if (!val) return null;
     try {
-        if (survey.timestamp && typeof survey.timestamp.toDate === "function") {
-            return survey.timestamp.toDate().toLocaleString("en-IN");
-        }
-        if (survey.timestamp && typeof survey.timestamp === "object" && survey.timestamp.seconds !== undefined) {
-            return new Date(survey.timestamp.seconds * 1000).toLocaleString("en-IN");
-        }
-        const fallback = survey.createdAt || survey.timestamp || survey.date;
-        if (fallback) {
-            const d = new Date(fallback);
-            if (!isNaN(d.getTime())) {
-                return d.toLocaleString("en-IN");
-            }
+        if (typeof val.toDate === "function") return val.toDate();
+        if (typeof val === "object" && val.seconds !== undefined) return new Date(val.seconds * 1000);
+        if (typeof val === "number") return new Date(val);
+        if (typeof val === "string") {
+            const parsed = new Date(val);
+            if (!isNaN(parsed.getTime())) return parsed;
         }
     } catch (e) {}
-    return "N/A";
+    return null;
+}
+
+function getSurveyDateObject(survey) {
+    const possibleKeys = [
+        "timestamp", "createdAt", "submittedAt", "date", "time", 
+        "created_at", "submitted_at", "surveyDate", "survey_time"
+    ];
+    for (const key of possibleKeys) {
+        if (survey[key]) {
+            const d = parseAnyDate(survey[key]);
+            if (d && !isNaN(d.getTime())) return d;
+        }
+    }
+    return null;
+}
+
+function formatSurveyDate(survey) {
+    const d = getSurveyDateObject(survey);
+    if (d) {
+        return d.toLocaleString("en-IN", {
+            day: "numeric",
+            month: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hour12: true
+        });
+    }
+    return "Date Pending";
 }
 
 /* =========================================================
@@ -109,14 +134,14 @@ firebase.auth().onAuthStateChanged((user) => {
         return;
     }
 
+    loadQuestionsRealtime();
     loadSurveysRealtime();
     loadSurveyorsRealtime();
-    loadQuestionsRealtime();
     loadDailyLimit();
 });
 
 /* =========================================================
-   4. SURVEYS TABLE RENDERER (WITH EDIT BUTTON)
+   4. SURVEYS TABLE RENDERER
    ========================================================= */
 function loadSurveysRealtime() {
     firebase.firestore().collection("surveys").onSnapshot((snapshot) => {
@@ -125,14 +150,11 @@ function loadSurveysRealtime() {
             allSurveys.push({ id: doc.id, ...doc.data() });
         });
 
+        // Date sorting
         allSurveys.sort((a, b) => {
-            const getT = (obj) => {
-                if (obj.timestamp?.toDate) return obj.timestamp.toDate().getTime();
-                if (obj.timestamp?.seconds) return obj.timestamp.seconds * 1000;
-                if (obj.createdAt) return new Date(obj.createdAt).getTime();
-                return 0;
-            };
-            return getT(b) - getT(a);
+            const dateA = getSurveyDateObject(a)?.getTime() || 0;
+            const dateB = getSurveyDateObject(b)?.getTime() || 0;
+            return dateB - dateA;
         });
 
         renderSurveys(allSurveys);
@@ -193,7 +215,7 @@ function renderSurveys(surveys) {
             <td>${mapLink}</td>
             <td>
                 <div style="font-weight:bold; font-size:12px;">${surveyorEmail}</div>
-                <div style="font-size:11px; color:#666;">${dateString}</div>
+                <div style="font-size:11px; color:#555; margin-top:3px;">${dateString}</div>
             </td>
             <td>
                 <div style="display:inline-flex; gap:4px;">
@@ -209,7 +231,74 @@ function renderSurveys(surveys) {
 }
 
 /* =========================================================
-   5. EDIT MODAL LOGIC
+   5. ANSWERS MODAL (MATCH QUESTION ID TO QUESTION TEXT)
+   ========================================================= */
+window.openAnswersModal = function(surveyId) {
+    const survey = allSurveys.find(s => s.id === surveyId);
+    if (!survey) return;
+
+    const body = getEl("answerModalBody");
+    if (!body) return;
+    body.innerHTML = "";
+
+    let answers = survey.answers || survey.responses || {};
+
+    // Helper: Find question text by id or text
+    const getQuestionText = (key, idx) => {
+        // 1. Direct match by ID
+        const matched = allQuestions.find(q => q.id === key);
+        if (matched) return matched.text || matched.question;
+
+        // 2. If already question text
+        if (key.length > 25 && key.includes(" ")) return key;
+
+        // 3. Fallback to index if available
+        if (allQuestions[idx]) return allQuestions[idx].text || allQuestions[idx].question;
+
+        return `Question (${key})`;
+    };
+
+    let entries = [];
+    if (Array.isArray(answers)) {
+        answers.forEach((ans, i) => {
+            entries.push({
+                q: allQuestions[i] ? (allQuestions[i].text || allQuestions[i].question) : `Question ${i + 1}`,
+                a: ans
+            });
+        });
+    } else if (typeof answers === "object" && answers !== null) {
+        let i = 0;
+        for (const [key, val] of Object.entries(answers)) {
+            entries.push({
+                q: getQuestionText(key, i),
+                a: typeof val === "object" ? JSON.stringify(val) : val
+            });
+            i++;
+        }
+    }
+
+    if (entries.length === 0) {
+        body.innerHTML = `<p style="text-align:center; color:#888;">कोई उत्तर दर्ज नहीं हैं।</p>`;
+    } else {
+        let html = `<div style="display:flex; flex-direction:column; gap:12px;">`;
+        entries.forEach((item, index) => {
+            html += `
+                <div style="background:#f1f5f9; padding:12px 14px; border-radius:8px; border-left:4px solid #1565c0;">
+                    <div style="font-weight:bold; color:#1e293b; font-size:14px;">Q${index + 1}. ${item.q}</div>
+                    <div style="color:#0f172a; margin-top:5px; font-size:13px; font-weight:500;">👉 ${item.a || "-"}</div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        body.innerHTML = html;
+    }
+
+    const modal = getEl("answerModal");
+    if (modal) modal.classList.add("show");
+};
+
+/* =========================================================
+   6. EDIT MODAL LOGIC
    ========================================================= */
 window.openEditModal = function(surveyId) {
     const survey = allSurveys.find(s => s.id === surveyId);
@@ -232,7 +321,7 @@ window.closeEditModal = function() {
 };
 
 /* =========================================================
-   6. 4-PHOTO MODAL
+   7. 4-PHOTO MODAL
    ========================================================= */
 window.openPhotosModal = function(surveyId) {
     const survey = allSurveys.find(s => s.id === surveyId);
@@ -269,46 +358,6 @@ window.closePhotosModal = function() {
 };
 
 /* =========================================================
-   7. ANSWERS MODAL
-   ========================================================= */
-window.openAnswersModal = function(surveyId) {
-    const survey = allSurveys.find(s => s.id === surveyId);
-    if (!survey) return;
-
-    const body = getEl("answerModalBody");
-    if (body) {
-        body.innerHTML = "";
-        let answers = survey.answers || survey.responses || {};
-
-        if (Array.isArray(answers)) {
-            let mapped = {};
-            answers.forEach((ans, i) => mapped[`Q${i+1}`] = ans);
-            answers = mapped;
-        }
-
-        const keys = Object.keys(answers);
-        if (keys.length === 0) {
-            body.innerHTML = `<p style="text-align:center; color:#888;">कोई उत्तर दर्ज नहीं हैं।</p>`;
-        } else {
-            let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
-            keys.forEach(k => {
-                html += `
-                    <div style="background:#f1f5f9; padding:12px; border-radius:8px; border-left:4px solid #1565c0;">
-                        <div style="font-weight:bold; color:#1e293b; font-size:14px;">${k}</div>
-                        <div style="color:#334155; margin-top:4px; font-size:13px;">${answers[k]}</div>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-            body.innerHTML = html;
-        }
-    }
-
-    const modal = getEl("answerModal");
-    if (modal) modal.classList.add("show");
-};
-
-/* =========================================================
    8. DASHBOARD CARDS SYNC
    ========================================================= */
 function updateDashboardCards() {
@@ -326,11 +375,7 @@ function updateDashboardCards() {
     let countMonth = 0;
 
     allSurveys.forEach(s => {
-        let d = null;
-        if (s.timestamp?.toDate) d = s.timestamp.toDate();
-        else if (s.timestamp?.seconds) d = new Date(s.timestamp.seconds * 1000);
-        else if (s.createdAt) d = new Date(s.createdAt);
-
+        const d = getSurveyDateObject(s);
         if (d && !isNaN(d.getTime())) {
             if (d.toISOString().split("T")[0] === todayStr) countToday++;
             if (d >= startOfWeek) countWeek++;
@@ -399,7 +444,7 @@ function renderSurveyorsTable() {
             const sEmail = (surv.surveyorEmail || surv.createdBy || "").toLowerCase();
             if (sEmail === surveyorEmail) {
                 total++;
-                let d = surv.timestamp?.toDate ? surv.timestamp.toDate() : (surv.timestamp?.seconds ? new Date(surv.timestamp.seconds * 1000) : (surv.createdAt ? new Date(surv.createdAt) : null));
+                const d = getSurveyDateObject(surv);
                 if (d && !isNaN(d.getTime())) {
                     if (d.toISOString().split("T")[0] === todayStr) today++;
                     if (d >= startOfWeek) week++;
@@ -590,7 +635,7 @@ function applyFilters() {
         if (fSurveyor && surveyor !== fSurveyor) return false;
 
         if (fDate) {
-            let d = survey.timestamp?.toDate ? survey.timestamp.toDate() : (survey.timestamp?.seconds ? new Date(survey.timestamp.seconds * 1000) : (survey.createdAt ? new Date(survey.createdAt) : null));
+            const d = getSurveyDateObject(survey);
             if (!d || isNaN(d.getTime())) return false;
 
             if (fDate === "today" && d.toISOString().split("T")[0] !== todayStr) return false;
