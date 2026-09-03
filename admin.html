@@ -1,19 +1,5 @@
-आपकी समस्या की असली जड़ मिल गई है:
-
-`admin.html` के सबसे नीचे एक पुराना `<script>` टैग लगा हुआ था, जिसमें `MutationObserver` चल रहा था। वह स्क्रिप्ट `admin.js` द्वारा रेंडर की गई टेबल के आगे फिर से एक नया `Photo` सेल (`row.insertBefore(photoCell, row.firstElementChild)`) जबरन ठूंस रहा था और साथ ही `Party/Candidate` कॉलम हटाने की कोशिश में टेबल का सारा अलाइनमेंट बिगाड़ रहा था। इसी वजह से `Actions` और `Surveyor Details` खिसककर बाहर चले जा रहे थे और खाली `No Photo` दिख रहा था।
-
-नीचे आपकी **`admin.html`** का पूरा, सही और साफ़ कोड दिया गया है। इसमें:
-
-1. टेबल हेडर को 9 कॉलम्स (`Photo`, `Name`, `Mobile`, `Age`, `Gender`, `Village`, `Location`, `Surveyor Details`, `Actions`) के साथ व्यवस्थित कर दिया गया है।
-2. 4-फ़ोटो देखने के लिए आवश्यक ग्रिड मोडल (`#photosModal`) जोड़ दिया गया है।
-3. नीचे का वह पुराना टकराने वाला स्क्रिप्ट हटा दिया गया है, ताकि सारा काम आपकी नई `admin.js` से सटीक और साफ़ चले।
-
-आप अपनी मौजूदा `admin.html` की सारी कोडिंग हटाकर यह पूरा कोड पेस्ट कर दें:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -335,9 +321,7 @@ tr:hover td {
 
 <div class="container">
 
-<!-- =====================================================
-     DASHBOARD COUNTS
-===================================================== -->
+<!-- DASHBOARD COUNTS -->
 <div class="dashboard">
     <div class="stat">
         <h3>Total Surveys</h3>
@@ -361,9 +345,7 @@ tr:hover td {
     </div>
 </div>
 
-<!-- =====================================================
-     QUESTION MANAGER
-===================================================== -->
+<!-- QUESTION MANAGER -->
 <div class="card">
     <div class="section-title">
         <h2>📝 Survey Question Manager</h2>
@@ -392,9 +374,7 @@ tr:hover td {
     </div>
 </div>
 
-<!-- =====================================================
-     DAILY LIMIT
-===================================================== -->
+<!-- DAILY LIMIT -->
 <div class="card">
     <div class="section-title">
         <h2>⚙️ Daily Survey Limit</h2>
@@ -404,9 +384,7 @@ tr:hover td {
     <span id="limitMessage"></span>
 </div>
 
-<!-- =====================================================
-     SURVEYOR MANAGEMENT
-===================================================== -->
+<!-- SURVEYOR MANAGEMENT -->
 <div class="card">
     <div class="section-title">
         <h2>👥 Surveyor Management</h2>
@@ -428,9 +406,7 @@ tr:hover td {
     </div>
 </div>
 
-<!-- =====================================================
-     FILTER
-===================================================== -->
+<!-- FILTER -->
 <div class="card">
     <div class="section-title">
         <h2>🔎 Filter Survey Records</h2>
@@ -464,9 +440,7 @@ tr:hover td {
     </div>
 </div>
 
-<!-- =====================================================
-     SURVEY RECORDS (9 COLUMNS FIXED)
-===================================================== -->
+<!-- SURVEY RECORDS (9 COLUMNS) -->
 <div class="card">
     <div class="section-title">
         <h2>📊 Survey Records</h2>
@@ -492,9 +466,7 @@ tr:hover td {
     </div>
 </div>
 
-<!-- =====================================================
-     ANSWER MODAL
-===================================================== -->
+<!-- ANSWER MODAL -->
 <div id="answerModal" class="answer-modal">
     <div class="modal-box">
         <div class="modal-header">
@@ -505,33 +477,25 @@ tr:hover td {
     </div>
 </div>
 
-<!-- =====================================================
-     4-PHOTO MODAL
-===================================================== -->
+<!-- 4-PHOTO MODAL -->
 <div id="photosModal" class="photos-modal">
     <div class="photos-modal-box">
         <div class="modal-header">
             <h2 style="margin:0; color:#1565c0;">📷 Survey Photos</h2>
             <button type="button" class="danger" onclick="closePhotosModal()">✖</button>
         </div>
-        <div id="photosModalGrid" class="photos-grid">
-            <!-- admin.js ke jariye yahan charo photos aayengi -->
-        </div>
+        <div id="photosModalGrid" class="photos-grid"></div>
     </div>
 </div>
 
-<!-- =====================================================
-     LOGOUT
-===================================================== -->
+<!-- LOGOUT -->
 <div style="text-align:center; margin:25px;">
     <button id="logoutBtn" class="danger" type="button">🚪 Logout</button>
 </div>
 
 </div>
 
-<!-- =====================================================
-     SCRIPTS
-===================================================== -->
+<!-- SCRIPTS -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -540,5 +504,3 @@ tr:hover td {
 
 </body>
 </html>
-
-```
