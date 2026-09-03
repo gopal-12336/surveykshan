@@ -1,5 +1,5 @@
 /* =========================================================
-   SURVEYKSHAN - ADMIN PANEL JAVASCRIPT (PRODUCTION READY)
+   SURVEYKSHAN - ADMIN PANEL JAVASCRIPT (STABLE & BULLETPROOF)
    ========================================================= */
 
 // State variables
@@ -62,7 +62,7 @@ if (logoutBtn) {
 }
 
 /* =========================================================
-   2. UNIVERSAL PHOTO EXTRACTOR (Cloudinary & Local Safe)
+   2. UNIVERSAL PHOTO EXTRACTOR
    ========================================================= */
 function getSurveyPhotosArray(survey) {
     if (!survey) return [];
@@ -82,14 +82,14 @@ function getSurveyPhotosArray(survey) {
         }
     };
 
-    // Array/Object: photos
+    // Array / Object inside photos
     if (survey.photos) {
         if (Array.isArray(survey.photos)) survey.photos.forEach(checkAndAdd);
         else if (typeof survey.photos === "object") Object.values(survey.photos).forEach(checkAndAdd);
         else if (typeof survey.photos === "string") checkAndAdd(survey.photos);
     }
 
-    // Alternate Array Fields
+    // Alternate Array Keys
     ["photoUrls", "photoURLs", "images", "imageUrls", "surveyPhotos"].forEach(key => {
         if (survey[key]) {
             if (Array.isArray(survey[key])) survey[key].forEach(checkAndAdd);
@@ -97,7 +97,7 @@ function getSurveyPhotosArray(survey) {
         }
     });
 
-    // Root Fields (photo1, photo2, photo3, photo4)
+    // Root Individual Fields
     ["photo1", "photo2", "photo3", "photo4", "photo_1", "photo_2", "photo_3", "photo_4"].forEach(key => {
         if (survey[key]) checkAndAdd(survey[key]);
     });
@@ -111,7 +111,7 @@ function getSurveyPhotosArray(survey) {
         if (survey[key]) checkAndAdd(survey[key]);
     });
 
-    // Deep Fallback: Cloudinary string match anywhere inside the survey document
+    // Deep Search for any Cloudinary link
     if (photos.length === 0) {
         Object.keys(survey).forEach(key => {
             const val = survey[key];
@@ -125,21 +125,28 @@ function getSurveyPhotosArray(survey) {
 }
 
 /* =========================================================
-   3. SURVEYS REALTIME LISTENER & RENDERER
+   3. SURVEYS REALTIME LISTENER & RENDERER (NO QUERY CRASH)
    ========================================================= */
 function loadSurveysRealtime() {
-    db.collection("surveys")
-        .orderBy("timestamp", "desc")
-        .onSnapshot((snapshot) => {
-            allSurveys = [];
-            snapshot.forEach((doc) => {
-                allSurveys.push({ id: doc.id, ...doc.data() });
-            });
-            renderSurveys(allSurveys);
-            updateDashboardCards();
-        }, (error) => {
-            console.error("Error loading surveys:", error);
+    // बिना orderBy के फ़ेच करेंगे ताकि मिसिंग timestamp या इंडेक्स की वजह से डेटा ब्लॉक न हो
+    db.collection("surveys").onSnapshot((snapshot) => {
+        allSurveys = [];
+        snapshot.forEach((doc) => {
+            allSurveys.push({ id: doc.id, ...doc.data() });
         });
+
+        // क्लाइंट साइड पर सुरक्षित सॉर्टिंग
+        allSurveys.sort((a, b) => {
+            const timeA = a.timestamp ? (a.timestamp.toDate ? a.timestamp.toDate().getTime() : new Date(a.timestamp).getTime()) : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+            const timeB = b.timestamp ? (b.timestamp.toDate ? b.timestamp.toDate().getTime() : new Date(b.timestamp).getTime()) : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+            return timeB - timeA;
+        });
+
+        renderSurveys(allSurveys);
+        updateDashboardCards();
+    }, (error) => {
+        console.error("Error loading surveys:", error);
+    });
 }
 
 function renderSurveys(surveys) {
@@ -155,7 +162,7 @@ function renderSurveys(surveys) {
         const photos = getSurveyPhotosArray(survey);
         const tr = document.createElement("tr");
 
-        // 1. Photo Column (Modal trigger button or fallback)
+        // Photo Button / Fallback
         let photoHtml = `<span style="color: #999; font-size: 12px;">No Photo</span>`;
         if (photos.length > 0) {
             photoHtml = `
@@ -165,7 +172,7 @@ function renderSurveys(surveys) {
             `;
         }
 
-        // 2. Map Column Integration
+        // Map Location
         let mapLink = `<span style="color:#999; font-size:12px;">-</span>`;
         const villageText = survey.village || survey.address || "-";
         
@@ -212,7 +219,7 @@ function renderSurveys(surveys) {
 }
 
 /* =========================================================
-   4. 4-PHOTO MODAL HANDLER
+   4. 4-PHOTO MODAL
    ========================================================= */
 window.openPhotosModal = function(surveyId) {
     const survey = allSurveys.find(s => s.id === surveyId);
@@ -221,11 +228,7 @@ window.openPhotosModal = function(surveyId) {
     const photos = getSurveyPhotosArray(survey);
     const photosGrid = document.getElementById("modalPhotosGrid");
     
-    if (!photosGrid) {
-        console.error("modalPhotosGrid element missing in admin.html");
-        return;
-    }
-
+    if (!photosGrid) return;
     photosGrid.innerHTML = "";
 
     if (photos.length === 0) {
@@ -233,10 +236,10 @@ window.openPhotosModal = function(surveyId) {
     } else {
         photos.forEach((url, index) => {
             const container = document.createElement("div");
-            container.style.cssText = "position:relative; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; text-align:center; padding:5px;";
+            container.style.cssText = "position:relative; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; text-align:center; padding:6px;";
 
             container.innerHTML = `
-                <img src="${url}" alt="Survey Photo ${index + 1}" style="width:100%; height:180px; object-fit:cover; border-radius:6px; cursor:pointer;" onclick="window.open('${url}', '_blank')">
+                <img src="${url}" alt="Survey Photo ${index + 1}" style="width:100%; height:170px; object-fit:cover; border-radius:6px; cursor:pointer;" onclick="window.open('${url}', '_blank')">
                 <div style="margin-top:6px; font-size:12px; font-weight:600; color:#475569;">Photo ${index + 1}</div>
                 <a href="${url}" target="_blank" style="display:inline-block; font-size:11px; color:#2563eb; text-decoration:none; margin-top:2px;">🔍 Full View</a>
             `;
@@ -252,7 +255,7 @@ window.closePhotosModal = function() {
 };
 
 /* =========================================================
-   5. ANSWERS MODAL HANDLER
+   5. ANSWERS MODAL
    ========================================================= */
 window.openAnswersModal = function(surveyId) {
     const survey = allSurveys.find(s => s.id === surveyId);
@@ -274,7 +277,7 @@ window.openAnswersModal = function(surveyId) {
 
     const keys = Object.keys(answers);
     if (keys.length === 0) {
-        answersContainer.innerHTML = `<p style="color:#888;">प्रश्नों के कोई उत्तर दर्ज नहीं हैं।</p>`;
+        answersContainer.innerHTML = `<p style="color:#888; text-align:center;">प्रश्नों के कोई उत्तर दर्ज नहीं हैं।</p>`;
     } else {
         let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
         keys.forEach(k => {
@@ -342,7 +345,6 @@ if (editSurveyForm) {
             alert("सर्वे सफलतापूर्वक अपडेट हो गया!");
             closeEditModal();
         } catch (error) {
-            console.error("Update error:", error);
             alert("अपडेट करने में त्रुटि: " + error.message);
         }
     });
@@ -354,7 +356,6 @@ window.deleteSurvey = async function(surveyId) {
             await db.collection("surveys").doc(surveyId).delete();
             alert("सर्वे सफलतापूर्वक डिलीट कर दिया गया।");
         } catch (error) {
-            console.error("Delete error:", error);
             alert("डिलीट करने में त्रुटि: " + error.message);
         }
     }
@@ -372,16 +373,15 @@ if (deleteAllSurveysBtn) {
                 batch.delete(doc.ref);
             });
             await batch.commit();
-            alert("सभी सर्वे सफलतापूर्वक हटा दिए गए!");
+            alert("सभी सर्वे हटा दिए गए!");
         } catch (error) {
-            console.error("Delete all error:", error);
             alert("त्रुटि: " + error.message);
         }
     });
 }
 
 /* =========================================================
-   7. SURVEYORS MANAGEMENT & STATUS TOGGLE
+   7. SURVEYORS
    ========================================================= */
 function loadSurveyorsRealtime() {
     db.collection("surveyors").onSnapshot((snapshot) => {
@@ -468,19 +468,13 @@ window.deleteSurveyor = async function(id) {
    8. QUESTIONS MANAGEMENT
    ========================================================= */
 function loadQuestionsRealtime() {
-    db.collection("questions").orderBy("order", "asc").onSnapshot((snapshot) => {
+    db.collection("questions").onSnapshot((snapshot) => {
         allQuestions = [];
         snapshot.forEach(doc => {
             allQuestions.push({ id: doc.id, ...doc.data() });
         });
         renderQuestions(allQuestions);
-    }, () => {
-        // Fallback without ordering
-        db.collection("questions").onSnapshot(snap => {
-            allQuestions = [];
-            snap.forEach(doc => allQuestions.push({ id: doc.id, ...doc.data() }));
-            renderQuestions(allQuestions);
-        });
+        updateDashboardCards();
     });
 }
 
@@ -570,7 +564,7 @@ if (saveDailyLimitBtn) {
         try {
             await db.collection("settings").doc("config").set({ dailyLimit: val }, { merge: true });
             dailyLimit = val;
-            alert("डेली सर्वे लिमिट सफलतापूर्वक अपडेट हो गई!");
+            alert("डेली लिमिट अपडेट हो गई!");
         } catch (e) {
             alert("त्रुटि: " + e.message);
         }
@@ -599,6 +593,8 @@ function applyFilters() {
             let sDate = "";
             if (survey.timestamp && survey.timestamp.toDate) {
                 sDate = survey.timestamp.toDate().toISOString().split("T")[0];
+            } else if (survey.createdAt) {
+                sDate = new Date(survey.createdAt).toISOString().split("T")[0];
             }
             matchesDate = (sDate === selDate);
         }
@@ -614,22 +610,52 @@ if (filterSurveyor) filterSurveyor.addEventListener("change", applyFilters);
 if (filterDate) filterDate.addEventListener("change", applyFilters);
 
 /* =========================================================
-   11. DASHBOARD METRICS
+   11. ALL 5 DASHBOARD CARDS AUTO-SYNC
    ========================================================= */
 function updateDashboardCards() {
-    const totalSurveysCard = document.getElementById("totalSurveysCard");
-    const todaySurveysCard = document.getElementById("todaySurveysCard");
+    const totalCard = document.getElementById("totalSurveysCard") || document.getElementById("totalSurveys");
+    const todayCard = document.getElementById("todaySurveysCard") || document.getElementById("todaySurveys");
+    const weekCard = document.getElementById("thisWeekSurveysCard") || document.getElementById("weekSurveys") || document.getElementById("thisWeekSurveys");
+    const monthCard = document.getElementById("thisMonthSurveysCard") || document.getElementById("monthSurveys") || document.getElementById("thisMonthSurveys");
+    const questionsCard = document.getElementById("totalQuestionsCard") || document.getElementById("totalQuestions");
 
-    if (totalSurveysCard) totalSurveysCard.textContent = allSurveys.length;
+    // Total Surveys
+    if (totalCard) totalCard.textContent = allSurveys.length;
 
-    if (todaySurveysCard) {
-        const todayStr = new Date().toISOString().split("T")[0];
-        const countToday = allSurveys.filter(s => {
-            if (s.timestamp && s.timestamp.toDate) {
-                return s.timestamp.toDate().toISOString().split("T")[0] === todayStr;
-            }
-            return false;
-        }).length;
-        todaySurveysCard.textContent = countToday;
-    }
+    // Dates Calculations
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Start of Week (Sunday/Monday based)
+    const dayOfWeek = now.getDay();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - dayOfWeek);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    let countToday = 0;
+    let countWeek = 0;
+    let countMonth = 0;
+
+    allSurveys.forEach(s => {
+        let dateObj = null;
+        if (s.timestamp && s.timestamp.toDate) {
+            dateObj = s.timestamp.toDate();
+        } else if (s.createdAt) {
+            dateObj = new Date(s.createdAt);
+        }
+
+        if (dateObj && !isNaN(dateObj.getTime())) {
+            const dateStr = dateObj.toISOString().split("T")[0];
+            if (dateStr === todayStr) countToday++;
+            if (dateObj >= startOfWeek) countWeek++;
+            if (dateObj.getMonth() === currentMonth && dateObj.getFullYear() === currentYear) countMonth++;
+        }
+    });
+
+    if (todayCard) todayCard.textContent = countToday;
+    if (weekCard) weekCard.textContent = countWeek;
+    if (monthCard) monthCard.textContent = countMonth;
+    if (questionsCard) questionsCard.textContent = allQuestions.length;
 }
