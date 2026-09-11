@@ -1,51 +1,411 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Surveykshan Login</title>
 
-<link rel="stylesheet" href="style.css">
+<!-- Google Font: Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: #f1f5f9;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+}
+
+/* =========================================================
+   1. SPLASH SCREEN (NATIVE APP ANIMATION)
+   ========================================================= */
+#splashScreen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(145deg, #0d47a1 0%, #1565c0 50%, #0a3880 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+}
+
+.splash-logo-wrap {
+    width: 130px;
+    height: 130px;
+    animation: zoomPulse 1.4s ease-out forwards;
+    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.35));
+}
+
+.splash-title {
+    color: #ffffff;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-top: 18px;
+    animation: fadeInUp 0.8s 0.2s ease-out backwards;
+}
+
+.splash-subtitle {
+    color: #93c5fd;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    margin-top: 4px;
+    animation: fadeInUp 0.8s 0.35s ease-out backwards;
+}
+
+.splash-loader {
+    width: 140px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    margin-top: 36px;
+    overflow: hidden;
+    position: relative;
+    animation: fadeIn 0.5s 0.4s ease-out backwards;
+}
+
+.splash-loader-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: #38bdf8;
+    border-radius: 10px;
+    animation: loadFill 1.8s ease-in-out forwards;
+}
+
+@keyframes zoomPulse {
+    0% { transform: scale(0.65); opacity: 0; }
+    60% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes loadFill {
+    0% { width: 0%; }
+    40% { width: 60%; }
+    100% { width: 100%; }
+}
+
+/* =========================================================
+   2. LOGIN CONTAINER & MOBILE CARD
+   ========================================================= */
+.login-wrapper {
+    width: 100%;
+    max-width: 420px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: cardAppear 0.8s ease-out;
+}
+
+@keyframes cardAppear {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-card {
+    background: #ffffff;
+    width: 100%;
+    padding: 34px 26px;
+    border-radius: 28px;
+    box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(15, 23, 42, 0.04);
+}
+
+.brand-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.mini-logo {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 12px auto;
+    display: block;
+    filter: drop-shadow(0 6px 12px rgba(21, 101, 192, 0.25));
+}
+
+.brand-header h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+}
+
+.brand-header p {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* =========================================================
+   3. INPUT FIELDS & FORM STYLING
+   ========================================================= */
+.input-group {
+    margin-bottom: 18px;
+}
+
+.input-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 7px;
+    padding-left: 2px;
+}
+
+.input-box {
+    width: 100%;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 15px;
+    color: #0f172a;
+    outline: none;
+    transition: all 0.25s ease;
+}
+
+.input-box:focus {
+    background: #ffffff;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.12);
+}
+
+.input-box::placeholder {
+    color: #94a3b8;
+}
+
+/* =========================================================
+   4. BUTTON & MESSAGES
+   ========================================================= */
+.login-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 15px;
+    background: linear-gradient(135deg, #1565c0, #1976d2);
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 20px -3px rgba(21, 101, 192, 0.35);
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.login-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 10px rgba(21, 101, 192, 0.2);
+}
+
+.error-msg {
+    color: #ef4444;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 14px;
+    min-height: 18px;
+    font-weight: 600;
+}
+
+.app-footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+</style>
 </head>
 
 <body>
 
-<div class="login-box">
-
-<h1>Surveykshan</h1>
-
-<p>Political Survey Management System</p>
-
-<input
-type="email"
-id="email"
-placeholder="Enter Email">
-
-<input
-type="password"
-id="password"
-placeholder="Enter Password">
-
-<button id="loginBtn">
-Login
-</button>
-
-<p id="message"></p>
-
+<!-- 1. Native Splash Screen Overlay -->
+<div id="splashScreen">
+    <div class="splash-logo-wrap">
+        <!-- SVG Brand Logo -->
+        <svg viewBox="0 0 512 512" width="100%" height="100%">
+            <defs>
+                <linearGradient id="splashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff"/>
+                    <stop offset="100%" stop-color="#e2e8f0"/>
+                </linearGradient>
+            </defs>
+            <rect width="512" height="512" rx="120" fill="rgba(255,255,255,0.12)" />
+            <!-- Clipboard -->
+            <rect x="136" y="80" width="240" height="310" rx="26" fill="url(#splashGrad)" />
+            <!-- Clip top -->
+            <rect x="200" y="55" width="112" height="42" rx="12" fill="#cbd5e1" />
+            <rect x="226" y="44" width="60" height="22" rx="6" fill="#0d47a1" />
+            <!-- Charts -->
+            <rect x="176" y="270" width="30" height="75" rx="7" fill="#93c5fd" />
+            <rect x="221" y="225" width="30" height="120" rx="7" fill="#3b82f6" />
+            <rect x="266" y="185" width="30" height="160" rx="7" fill="#1d4ed8" />
+            <!-- Green Badge -->
+            <circle cx="330" cy="300" r="42" fill="#22c55e" stroke="#ffffff" stroke-width="5"/>
+            <path d="M315 300 L325 310 L346 288" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+    </div>
+    <div class="splash-title">Surveykshan</div>
+    <div class="splash-subtitle">FIELD SURVEY SYSTEM</div>
+    <div class="splash-loader">
+        <div class="splash-loader-bar"></div>
+    </div>
 </div>
 
+<!-- 2. Centered Mobile App Login Screen -->
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="brand-header">
+            <div class="mini-logo">
+                <svg viewBox="0 0 512 512" width="100%" height="100%">
+                    <rect width="512" height="512" rx="120" fill="#1565c0" />
+                    <rect x="136" y="80" width="240" height="310" rx="26" fill="#ffffff" />
+                    <rect x="200" y="55" width="112" height="42" rx="12" fill="#e2e8f0" />
+                    <rect x="226" y="44" width="60" height="22" rx="6" fill="#0d47a1" />
+                    <rect x="176" y="270" width="30" height="75" rx="7" fill="#93c5fd" />
+                    <rect x="221" y="225" width="30" height="120" rx="7" fill="#3b82f6" />
+                    <rect x="266" y="185" width="30" height="160" rx="7" fill="#1d4ed8" />
+                    <circle cx="330" cy="300" r="42" fill="#22c55e" stroke="#ffffff" stroke-width="5"/>
+                    <path d="M315 300 L325 310 L346 288" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+            <h1>Surveykshan</h1>
+            <p>Sign in to start field survey</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label class="input-label" for="email">Email Address</label>
+                <input type="email" id="email" class="input-box" placeholder="name@example.com" required autocomplete="email">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="password">Password</label>
+                <input type="password" id="password" class="input-box" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" id="loginBtn" class="login-btn">
+                <span>Sign In</span>
+            </button>
+            <p id="errorMsg" class="error-msg"></p>
+        </form>
+    </div>
+
+    <div class="app-footer">
+        Powered by Surveykshan Secure Cloud
+    </div>
+</div>
+
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
 <script src="firebase.js"></script>
 
-<script src="app.js"></script>
+<script>
+// Splash screen smooth dismiss (2.1 seconds)
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        const splash = document.getElementById("splashScreen");
+        if (splash) {
+            splash.style.opacity = "0";
+            setTimeout(() => {
+                splash.style.visibility = "hidden";
+            }, 600);
+        }
+    }, 2000);
+});
+
+// Firebase Authentication Logic
+const loginForm = document.getElementById("loginForm");
+const errorMsg = document.getElementById("errorMsg");
+const loginBtn = document.getElementById("loginBtn");
+
+const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
+
+loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorMsg.textContent = "";
+    loginBtn.disabled = true;
+    loginBtn.style.opacity = "0.7";
+    loginBtn.innerHTML = "<span>Signing In...</span>";
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    try {
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        const currentEmail = (user.email || "").toLowerCase().trim();
+
+        // Redirect Admin vs Surveyor
+        if (currentEmail === ADMIN_EMAIL.toLowerCase()) {
+            window.location.href = "admin.html";
+        } else {
+            // Check surveyor approval status
+            const doc = await firebase.firestore().collection("surveyors").doc(user.uid).get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.status === "pending" || data.active === false) {
+                    alert("आपका अकाउंट अभी एडमिन द्वारा स्वीकृत (Approve) नहीं किया गया है। कृपया प्रतीक्षा करें।");
+                    await firebase.auth().signOut();
+                    resetButton();
+                    return;
+                }
+            }
+            window.location.href = "survey.html";
+        }
+    } catch (err) {
+        console.error("Login Error:", err);
+        resetButton();
+        if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+            errorMsg.textContent = "गलत ईमेल या पासवर्ड!";
+        } else if (err.code === "auth/too-many-requests") {
+            errorMsg.textContent = "बहुत सारे गलत प्रयास। कृपया कुछ देर बाद प्रयास करें।";
+        } else {
+            errorMsg.textContent = "लॉगिन विफल: " + err.message;
+        }
+    }
+});
+
+function resetButton() {
+    loginBtn.disabled = false;
+    loginBtn.style.opacity = "1";
+    loginBtn.innerHTML = "<span>Sign In</span>";
+}
+</script>
 
 </body>
 </html>
