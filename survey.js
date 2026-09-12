@@ -1,22 +1,21 @@
 /* =========================================================
-   SURVEYKSHAN - SURVEYOR FORM SCRIPT (WITH DUPLICATE BLOCK)
+   SURVEYKSHAN - COMPLETE SURVEYOR JS (MULTI-STEP & DUPLICATE BLOCK)
    ========================================================= */
 
-// Global State
-let dynamicQuestions = [];
-let userLocation = null;
-let capturedPhotos = []; // Base64 or Blob objects
+// Global App State
+let currentUser = null;
 let dailyLimit = 20;
+let todaySurveyCount = 0;
+let userLocation = null;
+let currentStep = 1;
+let dynamicQuestions = [];
+let capturedPhotos = [];
 
-// Cloudinary Configuration (Unsigned Upload Preset)
-const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/du7pmlt2m/image/upload";
-const CLOUDINARY_UPLOAD_PRESET = "survey_preset"; // आपका preset नाम या डिफ़ॉल्ट
-
-// DOM Helpers
+// DOM Helper
 const getEl = (id) => document.getElementById(id);
 
 /* =========================================================
-   1. AUTH STATE & ACCESS CONTROL
+   1. AUTH OBSERVER & INITIALIZATION
    ========================================================= */
 firebase.auth().onAuthStateChanged(async (user) => {
     if (!user) {
@@ -24,41 +23,44 @@ firebase.auth().onAuthStateChanged(async (user) => {
         return;
     }
 
-    const surveyorEmailEl = getEl("surveyorUserEmail") || getEl("currentUserEmail");
+    currentUser = user;
+
+    // Set user profile info if elements exist
+    const surveyorEmailEl = getEl("surveyorUserEmail") || getEl("currentUserEmail") || getEl("surveyorEmail");
     if (surveyorEmailEl) surveyorEmailEl.textContent = user.email;
 
-    // Load Settings, Questions & Stats
-    await fetchDailyLimit();
-    await checkDailySubmissions(user.email);
+    // Load initial data
+    await loadDailyLimitAndCounts();
     loadQuestions();
-    getGeolocation();
+    fetchLocation();
 });
 
 /* =========================================================
-   2. DAILY LIMIT & COUNTER
+   2. DAILY LIMIT & STATS COUNTER
    ========================================================= */
-async function fetchDailyLimit() {
+async function loadDailyLimitAndCounts() {
     try {
-        const doc = await firebase.firestore().collection("settings").doc("config").get();
-        if (doc.exists && doc.data().dailyLimit !== undefined) {
-            dailyLimit = doc.data().dailyLimit;
+        // 1. Fetch Daily Limit (Fallback: 20)
+        try {
+            const configDoc = await firebase.firestore().collection("settings").doc("config").get();
+            if (configDoc.exists && configDoc.data().dailyLimit !== undefined) {
+                dailyLimit = Number(configDoc.data().dailyLimit) || 20;
+            }
+        } catch (e) {
+            console.warn("Using default limit 20:", e);
+            dailyLimit = 20;
         }
-    } catch (e) {
-        console.warn("Could not fetch daily limit:", e);
-    }
-}
 
-async function checkDailySubmissions(email) {
-    try {
+        // 2. Fetch Today's Surveys Count for current surveyor
         const now = new Date();
         const todayStr = now.toISOString().split("T")[0];
 
         const snap = await firebase.firestore()
             .collection("surveys")
-            .where("surveyorEmail", "==", email)
+            .where("surveyorEmail", "==", currentUser.email)
             .get();
 
-        let todayCount = 0;
+        todaySurveyCount = 0;
         snap.forEach(doc => {
             const data = doc.data();
             let d = null;
@@ -67,28 +69,46 @@ async function checkDailySubmissions(email) {
             else if (data.createdAt) d = new Date(data.createdAt);
 
             if (d && d.toISOString().split("T")[0] === todayStr) {
-                todayCount++;
+                todayCountMatch(todaySurveyCount++);
             }
         });
 
-        const countEl = getEl("todaySubmissionCount");
-        if (countEl) countEl.textContent = `${todayCount} / ${dailyLimit}`;
+        function todayCountMatch() {} // helper
 
-        if (todayCount >= dailyLimit) {
-            const formCard = getEl("surveyFormCard") || getEl("surveyForm");
-            if (formCard) {
-                alert(`⚠️ आज की निर्धारित लिमिट (${dailyLimit} सर्वे) पूरी हो चुकी है!`);
-            }
-        }
-    } catch (e) {
-        console.error("Error checking daily submissions:", e);
+        updateCounterUI();
+    } catch (err) {
+        console.error("Counter load error:", err);
+        updateCounterUI(); // Ensure UI never stays stuck on 'Loading...'
     }
+}
+
+function updateCounterUI() {
+    const remaining = Math.max(0, dailyLimit - todaySurveyCount);
+
+    // Update various ID patterns if present in HTML
+    const todayEl = getEl("todaySurveys") || getEl("todaySurvey") || document.querySelector(".today-count");
+    if (todayEl) todayEl.textContent = todaySurveyCount;
+
+    const remainingEl = getEl("remainingSurveys") || getEl("remainingCount") || document.querySelector(".remaining-count");
+    if (remainingEl) remainingEl.textContent = remaining;
+
+    // Text replacement fallback if structure is inside an info box
+    const infoBox = document.querySelector(".stat-box, .survey-count-box, [class*='surveys']");
+    const allSpans = document.querySelectorAll("span, p, div");
+    allSpans.forEach(el => {
+        if (el.textContent.includes("Remaining:") && el.textContent.includes("Loading")) {
+            el.innerHTML = `Remaining: <strong>${remaining}</strong>`;
+        }
+        if (el.textContent.includes("Today's Surveys:") && el.textContent.includes("0")) {
+            el.innerHTML = `📊 Today's Surveys: <strong>${todaySurveyCount}</strong>`;
+        }
+    });
 }
 
 /* =========================================================
    3. GEOLOCATION FETCHER
    ========================================================= */
-function getGeolocation() {
+function fetchLocation() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
             (pos) => {
@@ -96,261 +116,264 @@ function getGeolocation() {
                     latitude: pos.coords.latitude,
                     longitude: pos.coords.longitude
                 };
-                const locText = getEl("locationStatusText");
-                if (locText) locText.innerHTML = `📍 लोकेशन प्राप्त: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
             },
             (err) => {
-                console.warn("Location error:", err);
-                const locText = getEl("locationStatusText");
-                if (locText) locText.innerHTML = `⚠️ लोकेशन अनुमति नहीं मिली`;
+                console.warn("Location permission warning:", err);
             },
-            { enableHighAccuracy: true, timeout: 10000 }
+            { enableHighAccuracy: true, timeout: 8000 }
         );
     }
 }
 
 /* =========================================================
-   4. LOAD DYNAMIC QUESTIONS FROM FIRESTORE
+   4. STEP NAVIGATION (NEXT / PREVIOUS BUTTONS)
    ========================================================= */
-function loadQuestions() {
-    const container = getEl("dynamicQuestionsContainer") || getEl("questionsContainer");
-    if (!container) return;
+window.nextStep = function() {
+    // Step 1 Validation: Respondent Details
+    if (currentStep === 1) {
+        const mobileEl = getEl("mobile") || document.querySelector("input[type='tel']") || document.querySelector("input[placeholder*='Mobile']");
+        const ageEl = getEl("age") || document.querySelector("input[placeholder*='Age']");
+        const villageEl = getEl("village") || document.querySelector("input[placeholder*='Village']");
 
-    firebase.firestore().collection("questions").orderBy("order", "asc").onSnapshot((snapshot) => {
-        dynamicQuestions = [];
-        container.innerHTML = "";
-
-        if (snapshot.empty) {
-            container.innerHTML = `<p style="color:#64748b; font-size:13px;">कोई अतिरिक्त प्रश्न उपलब्ध नहीं हैं।</p>`;
+        if (mobileEl && (!mobileEl.value.trim() || mobileEl.value.trim().length < 10)) {
+            alert("कृपया 10 अंकों का सही मोबाइल नंबर दर्ज करें!");
+            mobileEl.focus();
             return;
         }
 
-        let idx = 1;
-        snapshot.forEach((doc) => {
-            const q = { id: doc.id, ...doc.data() };
-            dynamicQuestions.push(q);
+        if (todaySurveyCount >= dailyLimit) {
+            alert(`⚠️ आपकी आज की लिमिट (${dailyLimit} सर्वे) पूरी हो चुकी है!`);
+            return;
+        }
 
-            const qCard = document.createElement("div");
-            qCard.style.cssText = "background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:15px; margin-bottom:12px;";
+        showStep(2);
+    } else if (currentStep === 2) {
+        showStep(3);
+    }
+};
 
-            let inputHtml = "";
-            if (q.type === "multiple" || q.type === "checkbox") {
-                (q.options || []).forEach(opt => {
-                    inputHtml += `
-                        <label style="display:flex; align-items:center; gap:8px; margin:6px 0; font-size:14px; cursor:pointer;">
-                            <input type="checkbox" name="q_${q.id}" value="${opt}"> ${opt}
-                        </label>
-                    `;
-                });
-            } else if (q.options && q.options.length > 0) {
-                // Single Choice Radio
-                (q.options || []).forEach(opt => {
-                    inputHtml += `
-                        <label style="display:flex; align-items:center; gap:8px; margin:6px 0; font-size:14px; cursor:pointer;">
-                            <input type="radio" name="q_${q.id}" value="${opt}" required> ${opt}
-                        </label>
-                    `;
-                });
-            } else {
-                // Text input
-                inputHtml = `<input type="text" name="q_${q.id}" class="input-box" placeholder="उत्तर दर्ज करें" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; margin-top:6px;" required>`;
-            }
+window.prevStep = function() {
+    if (currentStep > 1) {
+        showStep(currentStep - 1);
+    }
+};
 
-            qCard.innerHTML = `
-                <div style="font-weight:700; color:#1e293b; font-size:14px; margin-bottom:8px;">Q${idx}. ${q.text || q.question}</div>
-                ${inputHtml}
-            `;
-            container.appendChild(qCard);
-            idx++;
+function showStep(stepNum) {
+    currentStep = stepNum;
+
+    // Detect steps by ID, Class, or data attributes
+    const step1 = getEl("step1") || getEl("step-1") || document.querySelector(".step-1") || document.querySelector("[data-step='1']");
+    const step2 = getEl("step2") || getEl("step-2") || document.querySelector(".step-2") || document.querySelector("[data-step='2']");
+    const step3 = getEl("step3") || getEl("step-3") || document.querySelector(".step-3") || document.querySelector("[data-step='3']");
+
+    const steps = [step1, step2, step3].filter(Boolean);
+
+    if (steps.length > 0) {
+        steps.forEach((el, index) => {
+            el.style.display = (index + 1 === stepNum) ? "block" : "none";
         });
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* =========================================================
+   5. DYNAMIC QUESTIONS LOADER
+   ========================================================= */
+function loadQuestions() {
+    const container = getEl("questionsContainer") || getEl("dynamicQuestionsContainer") || getEl("step2");
+    if (!container) return;
+
+    firebase.firestore().collection("questions").onSnapshot((snapshot) => {
+        dynamicQuestions = [];
+        const questionMount = getEl("questionListMount") || container;
+
+        if (getEl("questionListMount")) questionMount.innerHTML = "";
+
+        snapshot.forEach((doc) => {
+            dynamicQuestions.push({ id: doc.id, ...doc.data() });
+        });
+
+        dynamicQuestions.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+        if (getEl("questionListMount")) {
+            dynamicQuestions.forEach((q, idx) => {
+                const card = document.createElement("div");
+                card.style.cssText = "background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px;";
+
+                let optsHtml = "";
+                if (q.options && Array.isArray(q.options)) {
+                    q.options.forEach(opt => {
+                        optsHtml += `
+                            <label style="display:flex; align-items:center; gap:8px; margin:7px 0; font-size:14px; cursor:pointer;">
+                                <input type="${q.type === 'multiple' ? 'checkbox' : 'radio'}" name="q_${q.id}" value="${opt}">
+                                ${opt}
+                            </label>
+                        `;
+                    });
+                }
+
+                card.innerHTML = `
+                    <div style="font-weight:700; color:#1e293b; font-size:14px; margin-bottom:8px;">${idx + 1}. ${q.text || q.question}</div>
+                    ${optsHtml}
+                `;
+                questionMount.appendChild(card);
+            });
+        }
     });
 }
 
 /* =========================================================
-   5. PHOTO CAPTURE & COMPRESSION LOGIC
+   6. PHOTO CAPTURE HANDLER
    ========================================================= */
-const photoInput = getEl("surveyPhotoInput") || getEl("photoInput");
+const photoInput = getEl("photoInput") || document.querySelector("input[type='file']");
 if (photoInput) {
     photoInput.addEventListener("change", async (e) => {
-        const files = Array.from(e.target.files);
-        if (!files.length) return;
-
-        const previewContainer = getEl("photosPreviewGrid") || getEl("photoPreview");
-        if (previewContainer) previewContainer.innerHTML = "";
+        const files = Array.from(e.target.files).slice(0, 4);
         capturedPhotos = [];
+        const preview = getEl("photoPreviewGrid") || getEl("photoPreview");
+        if (preview) preview.innerHTML = "";
 
-        for (let i = 0; i < Math.min(files.length, 4); i++) {
-            const file = files[i];
-            const base64 = await readFileAsDataURL(file);
-            capturedPhotos.push(base64);
-
-            if (previewContainer) {
-                const img = document.createElement("img");
-                img.src = base64;
-                img.style.cssText = "width:70px; height:70px; object-fit:cover; border-radius:8px; border:1px solid #cbd5e1;";
-                previewContainer.appendChild(img);
-            }
+        for (const file of files) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                capturedPhotos.push(event.target.result);
+                if (preview) {
+                    const img = document.createElement("img");
+                    img.src = event.target.result;
+                    img.style.cssText = "width:70px; height:70px; object-fit:cover; border-radius:8px; border:1px solid #ccc; margin:4px;";
+                    preview.appendChild(img);
+                }
+            };
+            reader.readAsDataURL(file);
         }
     });
-}
-
-function readFileAsDataURL(file) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.readAsDataURL(file);
-    });
-}
-
-async function uploadImagesToCloudinary(base64Images) {
-    const uploadedUrls = [];
-    for (const base64 of base64Images) {
-        try {
-            const formData = new FormData();
-            formData.append("file", base64);
-            formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-            const res = await fetch(CLOUDINARY_URL, {
-                method: "POST",
-                body: formData
-            });
-            const data = await res.json();
-            if (data.secure_url) {
-                uploadedUrls.push(data.secure_url);
-            }
-        } catch (err) {
-            console.warn("Cloudinary direct upload failed, storing raw data:", err);
-            uploadedUrls.push(base64);
-        }
-    }
-    return uploadedUrls;
 }
 
 /* =========================================================
-   6. DUPLICATE CHECK & FORM SUBMISSION
+   7. FORM SUBMISSION WITH STRICT DUPLICATE BLOCK
    ========================================================= */
-const surveyForm = getEl("surveyForm") || document.querySelector("form");
-const submitBtn = getEl("submitSurveyBtn") || (surveyForm ? surveyForm.querySelector("button[type='submit']") : null);
-
+const surveyForm = document.querySelector("form");
 if (surveyForm) {
     surveyForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // 1. Validate Mobile Input
-        const mobileEl = getEl("mobile") || getEl("respondentMobile") || surveyForm.querySelector("input[type='tel']");
+        // 1. Get Mobile Number
+        const mobileEl = getEl("mobile") || document.querySelector("input[type='tel']") || document.querySelector("input[placeholder*='Mobile']");
         const mobile = mobileEl ? mobileEl.value.trim() : "";
 
         if (!mobile || mobile.length < 10) {
             alert("कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें!");
+            showStep(1);
             if (mobileEl) mobileEl.focus();
             return;
         }
 
-        // 2. Disable Submit Button to Prevent Multiple Clicks
+        // 2. Lock Submit Button Immediately
+        const submitBtn = surveyForm.querySelector("button[type='submit']") || getEl("submitSurveyBtn");
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.dataset.origText = submitBtn.innerHTML;
-            submitBtn.innerHTML = "⏳ डुप्लीकेट जाँच व सबमिशन जारी है...";
+            submitBtn.innerHTML = "⏳ जाँच और सबमिशन जारी है...";
         }
 
         try {
             // 3. DUPLICATE CHECK IN FIRESTORE
-            const duplicateSnapshot = await firebase.firestore()
+            const duplicateCheck = await firebase.firestore()
                 .collection("surveys")
                 .where("mobile", "==", mobile)
                 .get();
 
-            if (!duplicateSnapshot.empty) {
-                alert(`⚠️ डुप्लीकेट प्रविष्टि!\nमोबाइल नंबर (${mobile}) से पहले ही सर्वे दर्ज हो चुका है।`);
-                resetButtonState();
+            if (!duplicateCheck.empty) {
+                alert(`⚠️ डुप्लीकेट प्रविष्टि: मोबाइल नंबर ${mobile} से पहले ही सर्वे दर्ज किया जा चुका है!`);
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = submitBtn.dataset.origText || "सबमिट करें";
+                }
+                showStep(1);
                 return;
             }
 
-            // 4. Collect Answers to Dynamic Questions
-            let answersObject = {};
-            dynamicQuestions.forEach((q) => {
-                const radios = surveyForm.querySelectorAll(`input[name="q_${q.id}"]:checked`);
-                if (radios.length > 0) {
-                    if (radios.length === 1) {
-                        answersObject[q.id] = radios[0].value;
-                    } else {
-                        answersObject[q.id] = Array.from(radios).map(r => r.value);
-                    }
-                } else {
-                    const textInput = surveyForm.querySelector(`input[name="q_${q.id}"]`);
-                    if (textInput && textInput.value.trim()) {
-                        answersObject[q.id] = textInput.value.trim();
-                    }
+            // 4. Collect Dynamic Answers
+            const answers = {};
+            dynamicQuestions.forEach(q => {
+                const checked = surveyForm.querySelectorAll(`input[name="q_${q.id}"]:checked`);
+                if (checked.length > 0) {
+                    answers[q.id] = checked.length === 1 ? checked[0].value : Array.from(checked).map(c => c.value);
                 }
             });
 
-            // 5. Upload Captured Photos
-            let finalPhotoUrls = [];
-            if (capturedPhotos.length > 0) {
-                if (submitBtn) submitBtn.innerHTML = "📷 फोटो अपलोड हो रही हैं...";
-                finalPhotoUrls = await uploadImagesToCloudinary(capturedPhotos);
-            }
+            // 5. Build Survey Payload
+            const nameEl = getEl("name") || document.querySelector("input[placeholder*='Name']");
+            const ageEl = getEl("age") || document.querySelector("input[placeholder*='Age']");
+            const genderEl = getEl("gender") || document.querySelector("select");
+            const villageEl = getEl("village") || document.querySelector("input[placeholder*='Village']");
+            const districtEl = getEl("district") || document.querySelector("input[placeholder*='District']");
+            const pincodeEl = getEl("pincode") || getEl("pinCode") || document.querySelector("input[placeholder*='PIN']");
 
-            // 6. Form Payload
-            const currentUser = firebase.auth().currentUser;
-            const surveyPayload = {
-                name: (getEl("name") || getEl("respondentName"))?.value.trim() || "",
+            const surveyData = {
+                name: nameEl ? nameEl.value.trim() : "",
                 mobile: mobile,
-                age: (getEl("age") || getEl("respondentAge"))?.value.trim() || "",
-                gender: (getEl("gender") || getEl("respondentGender"))?.value || "",
-                village: (getEl("village") || getEl("respondentVillage"))?.value.trim() || "",
+                age: ageEl ? ageEl.value.trim() : "",
+                gender: genderEl ? genderEl.value : "",
+                village: villageEl ? villageEl.value.trim() : "",
+                district: districtEl ? districtEl.value.trim() : "",
+                pincode: pincodeEl ? pincodeEl.value.trim() : "",
+                location: userLocation ? `${userLocation.latitude},${userLocation.longitude}` : (villageEl ? villageEl.value.trim() : ""),
                 latitude: userLocation ? userLocation.latitude : null,
                 longitude: userLocation ? userLocation.longitude : null,
-                answers: answersObject,
-                photos: finalPhotoUrls,
-                photoCount: finalPhotoUrls.length,
-                surveyorEmail: currentUser ? currentUser.email : "Unknown",
-                createdBy: currentUser ? currentUser.email : "Unknown",
+                answers: answers,
+                photos: capturedPhotos,
+                photoCount: capturedPhotos.length,
+                surveyorEmail: currentUser.email,
+                createdBy: currentUser.email,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 createdAt: new Date().toISOString()
             };
 
-            // 7. Save to Firestore
-            await firebase.firestore().collection("surveys").add(surveyPayload);
+            // 6. Save to Firestore
+            await firebase.firestore().collection("surveys").add(surveyData);
 
-            alert("✅ सर्वे सफलतापूर्वक दर्ज कर लिया गया है!");
+            alert("✅ सर्वे सफलतापूर्वक सबमिट हो गया!");
             surveyForm.reset();
             capturedPhotos = [];
-            const preview = getEl("photosPreviewGrid") || getEl("photoPreview");
-            if (preview) preview.innerHTML = "";
-
-            if (currentUser) {
-                checkDailySubmissions(currentUser.email);
-            }
+            todaySurveyCount++;
+            updateCounterUI();
+            showStep(1);
 
         } catch (error) {
-            console.error("Survey submission failure:", error);
-            alert("त्रुटि: " + error.message);
+            console.error("Submission Error:", error);
+            alert("सबमिशन विफल: " + error.message);
         } finally {
-            resetButtonState();
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = submitBtn.dataset.origText || "सबमिट करें";
+            }
         }
     });
-}
-
-function resetButtonState() {
-    if (submitBtn) {
-        submitBtn.disabled = false;
-        if (submitBtn.dataset.origText) {
-            submitBtn.innerHTML = submitBtn.dataset.origText;
-        } else {
-            submitBtn.innerHTML = "सबमिट करें (Submit Survey)";
-        }
-    }
 }
 
 /* =========================================================
-   7. LOGOUT
+   8. ATTACH CLICK LISTENERS
    ========================================================= */
-const logoutBtn = getEl("logoutBtn");
-if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-        firebase.auth().signOut().then(() => {
-            window.location.href = "index.html";
-        });
+window.addEventListener("DOMContentLoaded", () => {
+    // Attach event to Next button if not using inline onclick
+    const nextButtons = document.querySelectorAll("button");
+    nextButtons.forEach(btn => {
+        if (btn.textContent.includes("Next") || btn.id === "nextBtn") {
+            btn.addEventListener("click", (e) => {
+                if (btn.type !== "submit") {
+                    e.preventDefault();
+                    window.nextStep();
+                }
+            });
+        }
+        if (btn.textContent.includes("Back") || btn.textContent.includes("Previous") || btn.id === "prevBtn") {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                window.prevStep();
+            });
+        }
     });
-}
+});
+                                                                                                                   
