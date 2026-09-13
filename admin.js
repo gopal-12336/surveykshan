@@ -1,11 +1,12 @@
 /* =========================================================
-   SURVEYKSHAN - ORIGINAL COMPLETE ADMIN JS WITH EXCEL EXPORT
+   SURVEYKSHAN - ORIGINAL COMPLETE ADMIN JS WITH FIRESTORE SURVEYORS
    ========================================================= */
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
 let surveys = [];
 let questions = [];
+let registeredSurveyors = [];
 let editingQuestionId = null;
 let editingSurveyId = null;
 
@@ -87,8 +88,8 @@ if (logoutBtn) {
 
 function initAdmin() {
     loadQuestions();
-    loadSurveys();
     loadDailyLimit();
+    loadSurveyorsAndSurveys();
 }
 
 /* =========================================================
@@ -278,9 +279,41 @@ if (saveDailyLimitBtn) {
 }
 
 /* =========================================================
-   5. LOAD & RENDER SURVEYS
+   5. LOAD SURVEYORS & SURVEYS (FIRESTORE SYNC)
    ========================================================= */
-function loadSurveys() {
+function loadSurveyorsAndSurveys() {
+    // 1. Listen to surveyors collection from Firestore
+    firebase.firestore().collection("surveyors").onSnapshot((surveyorsSnap) => {
+        registeredSurveyors = [];
+        surveyorsSnap.forEach((doc) => {
+            const data = doc.data();
+            const email = data.email || doc.id;
+            registeredSurveyors.push({
+                email: email.trim(),
+                active: data.active !== undefined ? data.active : true,
+                enabled: data.enabled !== undefined ? data.enabled : true,
+                status: data.status || "active"
+            });
+        });
+
+        // Ensure default IDs exist as fallback
+        const defaultEmails = ["surveyor1@gopal.com", "surveyor2@gopal.com", "surveyor@gmail.com"];
+        defaultEmails.forEach(defEmail => {
+            if (!registeredSurveyors.some(s => s.email.toLowerCase() === defEmail.toLowerCase())) {
+                registeredSurveyors.push({
+                    email: defEmail,
+                    active: true,
+                    enabled: true,
+                    status: "active"
+                });
+            }
+        });
+
+        renderSurveyorStats();
+        populateFilterDropdowns();
+    });
+
+    // 2. Listen to surveys collection
     firebase.firestore().collection("surveys").onSnapshot((snapshot) => {
         surveys = [];
         snapshot.forEach((doc) => {
@@ -389,7 +422,7 @@ function getPhotosArray(s) {
 }
 
 /* =========================================================
-   6. SURVEYOR STATS TABLE
+   6. SURVEYOR STATS TABLE (SHOWS ALL REGISTERED SURVEYORS)
    ========================================================= */
 function renderSurveyorStats() {
     if (!surveyorManagementTable) return;
@@ -403,9 +436,24 @@ function renderSurveyorStats() {
     startOfWeek.setHours(0,0,0,0);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    // Initialize map with all registered surveyors from Firestore
+    registeredSurveyors.forEach(srv => {
+        map[srv.email] = {
+            total: 0,
+            today: 0,
+            week: 0,
+            month: 0,
+            status: srv.status || "active",
+            enabled: srv.enabled
+        };
+    });
+
+    // Populate counts from surveys
     surveys.forEach(s => {
-        const email = s.surveyorEmail || s.createdBy || "Unknown";
-        if (!map[email]) map[email] = { total: 0, today: 0, week: 0, month: 0 };
+        const email = (s.surveyorEmail || s.createdBy || "Unknown").trim();
+        if (!map[email]) {
+            map[email] = { total: 0, today: 0, week: 0, month: 0, status: "active", enabled: true };
+        }
 
         map[email].total++;
         const d = parseDate(s);
@@ -414,8 +462,14 @@ function renderSurveyorStats() {
         if (d >= startOfMonth) map[email].month++;
     });
 
+    // Render each surveyor row
     Object.keys(map).forEach(email => {
         const st = map[email];
+        const isPending = st.status === "pending";
+        const statusBadge = isPending 
+            ? `<span style="background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:5px; font-weight:bold; font-size:12px;">Pending</span>`
+            : `<span style="background:#dcfce7; color:#166534; padding:3px 8px; border-radius:5px; font-weight:bold; font-size:12px;">Active</span>`;
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td style="font-weight:bold; text-align:left;">${email}</td>
@@ -423,7 +477,7 @@ function renderSurveyorStats() {
             <td>${st.today}</td>
             <td>${st.week}</td>
             <td>${st.month}</td>
-            <td><span style="background:#dcfce7; color:#166534; padding:3px 8px; border-radius:5px; font-weight:bold; font-size:12px;">Active</span></td>
+            <td>${statusBadge}</td>
         `;
         surveyorManagementTable.appendChild(tr);
     });
@@ -434,6 +488,8 @@ function renderSurveyorStats() {
    ========================================================= */
 function populateFilterDropdowns() {
     const names = new Set(), mobiles = new Set(), villages = new Set(), surveyorsList = new Set();
+
+    registeredSurveyors.forEach(srv => surveyorsList.add(srv.email));
 
     surveys.forEach(s => {
         if (s.name) names.add(s.name.trim());
