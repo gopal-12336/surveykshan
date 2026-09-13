@@ -1,8 +1,7 @@
 /* =========================================================
-   SURVEYKSHAN - COMPLETE SURVEYOR LOGIC (HTML MATCHED)
+   SURVEYKSHAN - FIXED & BULLETPROOF SURVEYOR LOGIC
    ========================================================= */
 
-// Global State
 let currentUser = null;
 let dailyLimit = 20;
 let todaySurveyCount = 0;
@@ -44,7 +43,7 @@ firebase.auth().onAuthStateChanged(async (user) => {
 });
 
 /* =========================================================
-   2. DATE PARSER & DAILY LIMIT
+   2. DATE PARSER & COUNTERS
    ========================================================= */
 function parseDateSafely(data) {
     if (!data) return null;
@@ -55,17 +54,13 @@ function parseDateSafely(data) {
             const d = new Date(data.createdAt);
             if (!isNaN(d.getTime())) return d;
         }
-        if (data.timestamp) {
-            const d = new Date(data.timestamp);
-            if (!isNaN(d.getTime())) return d;
-        }
     } catch (e) {}
     return null;
 }
 
 async function loadDailyLimitAndProgress() {
     try {
-        // 1. Settings से लिमिट लाएँ
+        // Daily Limit
         try {
             const configDoc = await firebase.firestore().collection("settings").doc("config").get();
             if (configDoc.exists && configDoc.data().dailyLimit !== undefined) {
@@ -75,7 +70,7 @@ async function loadDailyLimitAndProgress() {
             dailyLimit = 20;
         }
 
-        // 2. आज के कुल सर्वे गिनें
+        // Today's Surveys
         const todayStr = new Date().toDateString();
         const snap = await firebase.firestore()
             .collection("surveys")
@@ -92,7 +87,7 @@ async function loadDailyLimitAndProgress() {
 
         updateLimitUI();
     } catch (err) {
-        console.error("Counter load handled:", err);
+        console.warn("Counter loaded with fallback:", err);
         updateLimitUI();
     }
 }
@@ -124,13 +119,36 @@ function fetchLocation() {
                 };
             },
             (err) => console.warn("Location Warning:", err.message),
-            { enableHighAccuracy: false, timeout: 7000 }
+            { enableHighAccuracy: false, timeout: 6000 }
         );
     }
 }
 
 /* =========================================================
-   4. STEP 1 -> STEP 2 (Next Button Click)
+   4. LOAD QUESTIONS (FAIL-SAFE)
+   ========================================================= */
+function loadQuestionsFromFirestore() {
+    firebase.firestore().collection("questions").onSnapshot((snapshot) => {
+        questions = [];
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            questions.push({
+                id: doc.id,
+                text: data.text || data.question || "सवाल",
+                type: data.type || "radio",
+                options: data.options || [],
+                order: data.order || 0
+            });
+        });
+        questions.sort((a, b) => (a.order || 0) - (b.order || 0));
+        console.log("Total Questions Loaded:", questions.length);
+    }, (err) => {
+        console.error("Questions load error:", err);
+    });
+}
+
+/* =========================================================
+   5. STEP 1 -> STEP 2 (Next Button Click)
    ========================================================= */
 if (basicNextButton) {
     basicNextButton.addEventListener("click", () => {
@@ -142,57 +160,51 @@ if (basicNextButton) {
         const district = document.getElementById("district")?.value.trim();
         const pincode = document.getElementById("pincode")?.value.trim();
 
-        // Validation
-        if (!name) { alert("कृपया नाम दर्ज करें!"); return; }
-        if (!mobile || mobile.length < 10) { alert("कृपया 10 अंकों का मान्य मोबाइल नंबर दर्ज करें!"); return; }
-        if (!age) { alert("कृपया उम्र दर्ज करें!"); return; }
-        if (!gender) { alert("कृपया जेंडर चुनें!"); return; }
-        if (!village) { alert("कृपया गाँव का नाम दर्ज करें!"); return; }
-        if (!district) { alert("कृपया जिला दर्ज करें!"); return; }
-        if (!pincode || pincode.length < 6) { alert("कृपया 6 अंकों का पिन कोड दर्ज करें!"); return; }
+        // 1. Validation
+        if (!name) { alert("कृपया नाम दर्ज करें!"); document.getElementById("name")?.focus(); return; }
+        if (!mobile || mobile.length < 10) { alert("कृपया 10 अंकों का मान्य मोबाइल नंबर दर्ज करें!"); document.getElementById("mobile")?.focus(); return; }
+        if (!age) { alert("कृपया उम्र दर्ज करें!"); document.getElementById("age")?.focus(); return; }
+        if (!gender) { alert("कृपया जेंडर चुनें!"); document.getElementById("gender")?.focus(); return; }
+        if (!village) { alert("कृपया गाँव का नाम दर्ज करें!"); document.getElementById("village")?.focus(); return; }
+        if (!district) { alert("कृपया जिला दर्ज करें!"); document.getElementById("district")?.focus(); return; }
+        if (!pincode || pincode.length < 6) { alert("कृपया 6 अंकों का पिन कोड दर्ज करें!"); document.getElementById("pincode")?.focus(); return; }
 
         if (todaySurveyCount >= dailyLimit) {
             alert(`⚠️ आपकी आज की लिमिट (${dailyLimit} सर्वे) पूरी हो चुकी है!`);
             return;
         }
 
-        if (questions.length === 0) {
-            alert("प्रश्न लोड हो रहे हैं, कृपया 2 सेकंड बाद पुनः प्रयास करें।");
-            return;
-        }
-
-        // Switch Screen
+        // 2. Switch to Questions Step
         basicDetailsStep.style.display = "none";
         questionStep.style.display = "block";
         currentQuestionIndex = 0;
-        renderQuestion(currentQuestionIndex);
+
+        if (questions.length === 0) {
+            // अगर अभी डेटाबेस में सवाल नहीं हैं, तो सीधे सबमिट विकल्प दें
+            if (questionNumberEl) questionNumberEl.textContent = "";
+            if (questionTextEl) questionTextEl.textContent = "कोई अतिरिक्त प्रश्न उपलब्ध नहीं हैं। कृपया सबमिट करें।";
+            if (questionOptionsEl) questionOptionsEl.innerHTML = "";
+            if (nextButton) nextButton.style.display = "none";
+            if (submitSurveyBtn) submitSurveyBtn.style.display = "block";
+        } else {
+            renderQuestion(currentQuestionIndex);
+        }
+
         window.scrollTo({ top: 0, behavior: "smooth" });
     });
 }
 
 /* =========================================================
-   5. QUESTIONS LOADER & WIZARD NAVIGATION
+   6. RENDER QUESTION WIZARD
    ========================================================= */
-function loadQuestionsFromFirestore() {
-    firebase.firestore().collection("questions").onSnapshot((snapshot) => {
-        questions = [];
-        snapshot.forEach((doc) => {
-            questions.push({ id: doc.id, ...doc.data() });
-        });
-        questions.sort((a, b) => (a.order || 0) - (b.order || 0));
-    });
-}
-
 function renderQuestion(index) {
     if (!questions || questions.length === 0 || index >= questions.length) return;
 
     const q = questions[index];
     if (questionNumberEl) questionNumberEl.textContent = `Question ${index + 1} of ${questions.length}`;
-    if (questionTextEl) questionTextEl.textContent = q.text || q.question || "No Question Text";
+    if (questionTextEl) questionTextEl.textContent = q.text;
 
-    // Build Options
     questionOptionsEl.innerHTML = "";
-
     const savedAns = userAnswers[q.id];
 
     if (q.options && Array.isArray(q.options) && q.options.length > 0) {
@@ -215,12 +227,10 @@ function renderQuestion(index) {
         `;
     }
 
-    // Previous Button Toggle
     if (previousButton) {
-        previousButton.disabled = (index === 0);
+        previousButton.disabled = false; //常に allow back to basic details or prev question
     }
 
-    // Next vs Submit Button Toggle
     if (index === questions.length - 1) {
         if (nextButton) nextButton.style.display = "none";
         if (submitSurveyBtn) submitSurveyBtn.style.display = "block";
@@ -231,6 +241,7 @@ function renderQuestion(index) {
 }
 
 function saveCurrentAnswer() {
+    if (questions.length === 0) return;
     const q = questions[currentQuestionIndex];
     if (!q) return;
 
@@ -269,7 +280,6 @@ if (previousButton) {
             renderQuestion(currentQuestionIndex);
             window.scrollTo({ top: 0, behavior: "smooth" });
         } else {
-            // First question: back to basic details
             questionStep.style.display = "none";
             basicDetailsStep.style.display = "block";
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -278,7 +288,7 @@ if (previousButton) {
 }
 
 /* =========================================================
-   6. FINAL SUBMIT WITH DUPLICATE CHECK
+   7. FINAL SUBMIT (STRICT DUPLICATE BLOCK)
    ========================================================= */
 if (submitSurveyBtn) {
     submitSurveyBtn.addEventListener("click", async () => {
@@ -287,23 +297,24 @@ if (submitSurveyBtn) {
         const mobile = document.getElementById("mobile")?.value.trim();
 
         submitSurveyBtn.disabled = true;
-        submitSurveyBtn.textContent = "⏳ सबमिशन व डुप्लीकेट जाँच जारी है...";
+        submitSurveyBtn.textContent = "⏳ जाँच और सबमिशन जारी है...";
 
         try {
-            // 1. DUPLICATE CHECK IN FIRESTORE
+            // DUPLICATE CHECK
             const duplicateCheck = await firebase.firestore()
                 .collection("surveys")
                 .where("mobile", "==", mobile)
                 .get();
 
             if (!duplicateCheck.empty) {
-                alert(`⚠️ डुप्लीकेट प्रविष्टि: मोबाइल नंबर ${mobile} से पहले ही सर्वे दर्ज किया जा चुका है!`);
+                alert(`⚠️ डुप्लीकेट प्रविष्टि!\nमोबाइल नंबर (${mobile}) से पहले ही सर्वे दर्ज किया जा चुका है।`);
                 submitSurveyBtn.disabled = false;
                 submitSurveyBtn.textContent = "Submit Survey";
+                questionStep.style.display = "none";
+                basicDetailsStep.style.display = "block";
                 return;
             }
 
-            // 2. PAYLOAD
             const surveyData = {
                 name: document.getElementById("name")?.value.trim() || "",
                 mobile: mobile,
@@ -326,7 +337,7 @@ if (submitSurveyBtn) {
 
             alert("✅ सर्वे सफलतापूर्वक सबमिट हो गया!");
 
-            // Reset Everything
+            // Form Reset
             document.getElementById("name").value = "";
             document.getElementById("mobile").value = "";
             document.getElementById("age").value = "";
