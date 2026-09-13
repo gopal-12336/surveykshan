@@ -1,18 +1,36 @@
 /* =========================================================
-   SURVEYKSHAN - FIXED SURVEYOR SCRIPT (DATE ERROR FIXED)
+   SURVEYKSHAN - COMPLETE SURVEYOR LOGIC (HTML MATCHED)
    ========================================================= */
 
+// Global State
 let currentUser = null;
 let dailyLimit = 20;
 let todaySurveyCount = 0;
 let userLocation = null;
-let currentStep = 1;
-let dynamicQuestions = [];
-let capturedPhotos = [];
 
-const getEl = (id) => document.getElementById(id);
+let questions = [];
+let currentQuestionIndex = 0;
+let userAnswers = {};
 
-/* 1. AUTHENTICATION */
+// DOM Elements
+const basicDetailsStep = document.getElementById("basicDetailsStep");
+const questionStep = document.getElementById("questionStep");
+const basicNextButton = document.getElementById("basicNextButton");
+const messageEl = document.getElementById("message");
+
+const todayCountEl = document.getElementById("todayCount");
+const remainingCountEl = document.getElementById("remainingCount");
+
+const questionNumberEl = document.getElementById("questionNumber");
+const questionTextEl = document.getElementById("questionText");
+const questionOptionsEl = document.getElementById("questionOptions");
+const previousButton = document.getElementById("previousButton");
+const nextButton = document.getElementById("nextButton");
+const submitSurveyBtn = document.getElementById("submitSurvey");
+
+/* =========================================================
+   1. AUTH STATE CHECK
+   ========================================================= */
 firebase.auth().onAuthStateChanged(async (user) => {
     if (!user) {
         window.location.href = "index.html";
@@ -20,35 +38,34 @@ firebase.auth().onAuthStateChanged(async (user) => {
     }
     currentUser = user;
 
-    const emailDisplay = getEl("surveyorUserEmail") || getEl("currentUserEmail") || getEl("surveyorEmail");
-    if (emailDisplay) emailDisplay.textContent = user.email;
-
-    await loadDailyLimitAndCounts();
-    loadQuestions();
+    await loadDailyLimitAndProgress();
+    loadQuestionsFromFirestore();
     fetchLocation();
 });
 
-/* 2. SAFE DATE PARSER */
+/* =========================================================
+   2. DATE PARSER & DAILY LIMIT
+   ========================================================= */
 function parseDateSafely(data) {
     if (!data) return null;
     try {
         if (data.timestamp?.toDate) return data.timestamp.toDate();
         if (data.timestamp?.seconds) return new Date(data.timestamp.seconds * 1000);
         if (data.createdAt) {
-            const parsed = new Date(data.createdAt);
-            if (!isNaN(parsed.getTime())) return parsed;
+            const d = new Date(data.createdAt);
+            if (!isNaN(d.getTime())) return d;
         }
         if (data.timestamp) {
-            const parsed = new Date(data.timestamp);
-            if (!isNaN(parsed.getTime())) return parsed;
+            const d = new Date(data.timestamp);
+            if (!isNaN(d.getTime())) return d;
         }
     } catch (e) {}
     return null;
 }
 
-/* 3. DAILY LIMIT & SAFE COUNTER */
-async function loadDailyLimitAndCounts() {
+async function loadDailyLimitAndProgress() {
     try {
+        // 1. Settings से लिमिट लाएँ
         try {
             const configDoc = await firebase.firestore().collection("settings").doc("config").get();
             if (configDoc.exists && configDoc.data().dailyLimit !== undefined) {
@@ -58,9 +75,8 @@ async function loadDailyLimitAndCounts() {
             dailyLimit = 20;
         }
 
-        const now = new Date();
-        const todayStr = now.toDateString(); // Safe local date comparison
-
+        // 2. आज के कुल सर्वे गिनें
+        const todayStr = new Date().toDateString();
         const snap = await firebase.firestore()
             .collection("surveys")
             .where("surveyorEmail", "==", currentUser.email)
@@ -68,45 +84,36 @@ async function loadDailyLimitAndCounts() {
 
         todaySurveyCount = 0;
         snap.forEach(doc => {
-            const data = doc.data();
-            const surveyDate = parseDateSafely(data);
-
-            if (surveyDate && !isNaN(surveyDate.getTime())) {
-                if (surveyDate.toDateString() === todayStr) {
-                    todaySurveyCount++;
-                }
+            const d = parseDateSafely(doc.data());
+            if (d && d.toDateString() === todayStr) {
+                todaySurveyCount++;
             }
         });
 
-        updateCounterUI();
+        updateLimitUI();
     } catch (err) {
         console.error("Counter load handled:", err);
-        updateCounterUI();
+        updateLimitUI();
     }
 }
 
-function updateCounterUI() {
+function updateLimitUI() {
     const remaining = Math.max(0, dailyLimit - todaySurveyCount);
+    if (todayCountEl) todayCountEl.textContent = todaySurveyCount;
+    if (remainingCountEl) remainingCountEl.textContent = remaining;
 
-    if (getEl("todaySurveys")) getEl("todaySurveys").textContent = todaySurveyCount;
-    if (getEl("todaySurvey")) getEl("todaySurvey").textContent = todaySurveyCount;
-    if (getEl("remainingSurveys")) getEl("remainingSurveys").textContent = remaining;
-    if (getEl("remainingCount")) getEl("remainingCount").textContent = remaining;
-
-    const elements = document.querySelectorAll("span, p, b, strong");
-    elements.forEach(el => {
-        if (el.children.length === 0) {
-            if (el.textContent.includes("Loading...")) {
-                el.textContent = remaining;
-            }
-            if (el.textContent === "0" && el.parentElement?.textContent.includes("Today's")) {
-                el.textContent = todaySurveyCount;
-            }
+    if (todaySurveyCount >= dailyLimit) {
+        if (messageEl) {
+            messageEl.style.color = "red";
+            messageEl.textContent = `⚠️ आज की निर्धारित लिमिट (${dailyLimit} सर्वे) पूरी हो चुकी है!`;
         }
-    });
+        if (basicNextButton) basicNextButton.disabled = true;
+    }
 }
 
-/* 4. LOCATION (GEOLOCATION) */
+/* =========================================================
+   3. GEOLOCATION
+   ========================================================= */
 function fetchLocation() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
@@ -116,194 +123,232 @@ function fetchLocation() {
                     longitude: pos.coords.longitude
                 };
             },
-            (err) => console.warn("Location permission warning:", err.message),
-            { enableHighAccuracy: false, timeout: 5000 }
+            (err) => console.warn("Location Warning:", err.message),
+            { enableHighAccuracy: false, timeout: 7000 }
         );
     }
 }
 
-/* 5. MULTI-STEP NAVIGATION */
-window.nextStep = function() {
-    const mobileInput = document.querySelector("input[type='tel']") || getEl("mobile") || document.querySelector("input[placeholder*='Mobile']");
-    
-    if (mobileInput && (!mobileInput.value.trim() || mobileInput.value.trim().length < 10)) {
-        alert("कृपया 10 अंकों का मान्य मोबाइल नंबर दर्ज करें!");
-        mobileInput.focus();
-        return;
-    }
+/* =========================================================
+   4. STEP 1 -> STEP 2 (Next Button Click)
+   ========================================================= */
+if (basicNextButton) {
+    basicNextButton.addEventListener("click", () => {
+        const name = document.getElementById("name")?.value.trim();
+        const mobile = document.getElementById("mobile")?.value.trim();
+        const age = document.getElementById("age")?.value.trim();
+        const gender = document.getElementById("gender")?.value;
+        const village = document.getElementById("village")?.value.trim();
+        const district = document.getElementById("district")?.value.trim();
+        const pincode = document.getElementById("pincode")?.value.trim();
 
-    if (todaySurveyCount >= dailyLimit) {
-        alert(`⚠️ आज की लिमिट (${dailyLimit} सर्वे) पूरी हो चुकी है!`);
-        return;
-    }
+        // Validation
+        if (!name) { alert("कृपया नाम दर्ज करें!"); return; }
+        if (!mobile || mobile.length < 10) { alert("कृपया 10 अंकों का मान्य मोबाइल नंबर दर्ज करें!"); return; }
+        if (!age) { alert("कृपया उम्र दर्ज करें!"); return; }
+        if (!gender) { alert("कृपया जेंडर चुनें!"); return; }
+        if (!village) { alert("कृपया गाँव का नाम दर्ज करें!"); return; }
+        if (!district) { alert("कृपया जिला दर्ज करें!"); return; }
+        if (!pincode || pincode.length < 6) { alert("कृपया 6 अंकों का पिन कोड दर्ज करें!"); return; }
 
-    toggleSteps(2);
-};
-
-window.prevStep = function() {
-    toggleSteps(1);
-};
-
-function toggleSteps(stepNum) {
-    currentStep = stepNum;
-    const s1 = getEl("step1") || document.querySelector(".step-1") || getEl("section1");
-    const s2 = getEl("step2") || document.querySelector(".step-2") || getEl("section2");
-
-    if (s1 && s2) {
-        if (stepNum === 1) {
-            s1.style.display = "block";
-            s2.style.display = "none";
-        } else {
-            s1.style.display = "none";
-            s2.style.display = "block";
-        }
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-}
-
-/* 6. LOAD DYNAMIC QUESTIONS */
-function loadQuestions() {
-    const mount = getEl("questionListMount") || getEl("questionsContainer") || getEl("dynamicQuestionsContainer");
-    if (!mount) return;
-
-    firebase.firestore().collection("questions").onSnapshot((snapshot) => {
-        dynamicQuestions = [];
-        mount.innerHTML = "";
-
-        snapshot.forEach((doc) => {
-            dynamicQuestions.push({ id: doc.id, ...doc.data() });
-        });
-
-        dynamicQuestions.sort((a, b) => (a.order || 0) - (b.order || 0));
-
-        dynamicQuestions.forEach((q, idx) => {
-            const card = document.createElement("div");
-            card.style.cssText = "background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px;";
-
-            let optsHtml = "";
-            if (q.options && Array.isArray(q.options)) {
-                q.options.forEach(opt => {
-                    optsHtml += `
-                        <label style="display:flex; align-items:center; gap:8px; margin:7px 0; font-size:14px; cursor:pointer;">
-                            <input type="${q.type === 'multiple' ? 'checkbox' : 'radio'}" name="q_${q.id}" value="${opt}">
-                            ${opt}
-                        </label>
-                    `;
-                });
-            }
-
-            card.innerHTML = `
-                <div style="font-weight:700; color:#1e293b; font-size:14px; margin-bottom:8px;">${idx + 1}. ${q.text || q.question}</div>
-                ${optsHtml}
-            `;
-            mount.appendChild(card);
-        });
-    });
-}
-
-/* 7. DUPLICATE CHECK & FORM SUBMISSION */
-document.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const mobileInput = document.querySelector("input[type='tel']") || getEl("mobile") || document.querySelector("input[placeholder*='Mobile']");
-    const mobile = mobileInput ? mobileInput.value.trim() : "";
-
-    if (!mobile || mobile.length < 10) {
-        alert("कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें!");
-        toggleSteps(1);
-        return;
-    }
-
-    const submitBtn = e.target.querySelector("button[type='submit']");
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.dataset.orig = submitBtn.innerHTML;
-        submitBtn.innerHTML = "⏳ जाँच व सबमिशन जारी है...";
-    }
-
-    try {
-        // DUPLICATE CHECK IN FIRESTORE
-        const dupSnap = await firebase.firestore().collection("surveys").where("mobile", "==", mobile).get();
-        if (!dupSnap.empty) {
-            alert(`⚠️ डुप्लीकेट प्रविष्टि!\nमोबाइल नंबर (${mobile}) से पहले ही सर्वे दर्ज हो चुका है।`);
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = submitBtn.dataset.orig || "Submit";
-            }
-            toggleSteps(1);
+        if (todaySurveyCount >= dailyLimit) {
+            alert(`⚠️ आपकी आज की लिमिट (${dailyLimit} सर्वे) पूरी हो चुकी है!`);
             return;
         }
 
-        // Collect Answers
-        const answers = {};
-        dynamicQuestions.forEach(q => {
-            const checked = document.querySelectorAll(`input[name="q_${q.id}"]:checked`);
-            if (checked.length > 0) {
-                answers[q.id] = checked.length === 1 ? checked[0].value : Array.from(checked).map(c => c.value);
-            }
+        if (questions.length === 0) {
+            alert("प्रश्न लोड हो रहे हैं, कृपया 2 सेकंड बाद पुनः प्रयास करें।");
+            return;
+        }
+
+        // Switch Screen
+        basicDetailsStep.style.display = "none";
+        questionStep.style.display = "block";
+        currentQuestionIndex = 0;
+        renderQuestion(currentQuestionIndex);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+}
+
+/* =========================================================
+   5. QUESTIONS LOADER & WIZARD NAVIGATION
+   ========================================================= */
+function loadQuestionsFromFirestore() {
+    firebase.firestore().collection("questions").onSnapshot((snapshot) => {
+        questions = [];
+        snapshot.forEach((doc) => {
+            questions.push({ id: doc.id, ...doc.data() });
         });
+        questions.sort((a, b) => (a.order || 0) - (b.order || 0));
+    });
+}
 
-        // Collect Inputs
-        const nameVal = (getEl("name") || document.querySelector("input[placeholder*='Name']"))?.value.trim() || "";
-        const ageVal = (getEl("age") || document.querySelector("input[placeholder*='Age']"))?.value.trim() || "";
-        const genderVal = (getEl("gender") || document.querySelector("select"))?.value || "";
-        const villageVal = (getEl("village") || document.querySelector("input[placeholder*='Village']"))?.value.trim() || "";
-        const districtVal = (getEl("district") || document.querySelector("input[placeholder*='District']"))?.value.trim() || "";
-        const pinVal = (getEl("pincode") || document.querySelector("input[placeholder*='PIN']"))?.value.trim() || "";
+function renderQuestion(index) {
+    if (!questions || questions.length === 0 || index >= questions.length) return;
 
-        const payload = {
-            name: nameVal,
-            mobile: mobile,
-            age: ageVal,
-            gender: genderVal,
-            village: villageVal,
-            district: districtVal,
-            pincode: pinVal,
-            answers: answers,
-            surveyorEmail: currentUser.email,
-            createdBy: currentUser.email,
-            latitude: userLocation ? userLocation.latitude : null,
-            longitude: userLocation ? userLocation.longitude : null,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            createdAt: new Date().toISOString()
-        };
+    const q = questions[index];
+    if (questionNumberEl) questionNumberEl.textContent = `Question ${index + 1} of ${questions.length}`;
+    if (questionTextEl) questionTextEl.textContent = q.text || q.question || "No Question Text";
 
-        await firebase.firestore().collection("surveys").add(payload);
+    // Build Options
+    questionOptionsEl.innerHTML = "";
 
-        alert("✅ सर्वे सफलतापूर्वक सबमिट हो गया!");
-        e.target.reset();
-        todaySurveyCount++;
-        updateCounterUI();
-        toggleSteps(1);
+    const savedAns = userAnswers[q.id];
 
-    } catch (err) {
-        console.error("Submit error:", err);
-        alert("त्रुटि: " + err.message);
-    } finally {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = submitBtn.dataset.orig || "Submit";
+    if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+        q.options.forEach((opt) => {
+            const label = document.createElement("label");
+            label.style.cssText = "display:flex; align-items:center; gap:10px; margin:10px 0; font-weight:normal; font-size:16px; cursor:pointer;";
+
+            const isChecked = Array.isArray(savedAns) ? savedAns.includes(opt) : savedAns === opt;
+            const inputType = (q.type === "multiple" || q.type === "checkbox") ? "checkbox" : "radio";
+
+            label.innerHTML = `
+                <input type="${inputType}" name="current_q" value="${opt}" ${isChecked ? "checked" : ""} style="width:20px; min-height:20px; cursor:pointer;">
+                <span>${opt}</span>
+            `;
+            questionOptionsEl.appendChild(label);
+        });
+    } else {
+        questionOptionsEl.innerHTML = `
+            <textarea id="textAnswerInput" placeholder="उत्तर यहाँ दर्ज करें..." style="margin-top:10px;">${savedAns || ""}</textarea>
+        `;
+    }
+
+    // Previous Button Toggle
+    if (previousButton) {
+        previousButton.disabled = (index === 0);
+    }
+
+    // Next vs Submit Button Toggle
+    if (index === questions.length - 1) {
+        if (nextButton) nextButton.style.display = "none";
+        if (submitSurveyBtn) submitSurveyBtn.style.display = "block";
+    } else {
+        if (nextButton) nextButton.style.display = "block";
+        if (submitSurveyBtn) submitSurveyBtn.style.display = "none";
+    }
+}
+
+function saveCurrentAnswer() {
+    const q = questions[currentQuestionIndex];
+    if (!q) return;
+
+    const textInput = document.getElementById("textAnswerInput");
+    if (textInput) {
+        userAnswers[q.id] = textInput.value.trim();
+        return;
+    }
+
+    const checkedInputs = questionOptionsEl.querySelectorAll("input[name='current_q']:checked");
+    if (checkedInputs.length > 0) {
+        if (q.type === "multiple" || q.type === "checkbox") {
+            userAnswers[q.id] = Array.from(checkedInputs).map(i => i.value);
+        } else {
+            userAnswers[q.id] = checkedInputs[0].value;
         }
     }
-});
+}
 
-/* 8. BUTTON EVENT BINDINGS */
-window.addEventListener("DOMContentLoaded", () => {
-    const allBtns = document.querySelectorAll("button");
-    allBtns.forEach(b => {
-        if (b.textContent.includes("Next")) {
-            b.addEventListener("click", (ev) => {
-                if (b.type !== "submit") {
-                    ev.preventDefault();
-                    window.nextStep();
-                }
-            });
-        }
-        if (b.textContent.includes("Back") || b.textContent.includes("Previous")) {
-            b.addEventListener("click", (ev) => {
-                ev.preventDefault();
-                window.prevStep();
-            });
+if (nextButton) {
+    nextButton.addEventListener("click", () => {
+        saveCurrentAnswer();
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion(currentQuestionIndex);
+            window.scrollTo({ top: 0, behavior: "smooth" });
         }
     });
-});
+}
+
+if (previousButton) {
+    previousButton.addEventListener("click", () => {
+        saveCurrentAnswer();
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion(currentQuestionIndex);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+            // First question: back to basic details
+            questionStep.style.display = "none";
+            basicDetailsStep.style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    });
+}
+
+/* =========================================================
+   6. FINAL SUBMIT WITH DUPLICATE CHECK
+   ========================================================= */
+if (submitSurveyBtn) {
+    submitSurveyBtn.addEventListener("click", async () => {
+        saveCurrentAnswer();
+
+        const mobile = document.getElementById("mobile")?.value.trim();
+
+        submitSurveyBtn.disabled = true;
+        submitSurveyBtn.textContent = "⏳ सबमिशन व डुप्लीकेट जाँच जारी है...";
+
+        try {
+            // 1. DUPLICATE CHECK IN FIRESTORE
+            const duplicateCheck = await firebase.firestore()
+                .collection("surveys")
+                .where("mobile", "==", mobile)
+                .get();
+
+            if (!duplicateCheck.empty) {
+                alert(`⚠️ डुप्लीकेट प्रविष्टि: मोबाइल नंबर ${mobile} से पहले ही सर्वे दर्ज किया जा चुका है!`);
+                submitSurveyBtn.disabled = false;
+                submitSurveyBtn.textContent = "Submit Survey";
+                return;
+            }
+
+            // 2. PAYLOAD
+            const surveyData = {
+                name: document.getElementById("name")?.value.trim() || "",
+                mobile: mobile,
+                age: document.getElementById("age")?.value.trim() || "",
+                gender: document.getElementById("gender")?.value || "",
+                village: document.getElementById("village")?.value.trim() || "",
+                district: document.getElementById("district")?.value.trim() || "",
+                pincode: document.getElementById("pincode")?.value.trim() || "",
+                location: userLocation ? `${userLocation.latitude},${userLocation.longitude}` : (document.getElementById("village")?.value.trim() || ""),
+                latitude: userLocation ? userLocation.latitude : null,
+                longitude: userLocation ? userLocation.longitude : null,
+                answers: userAnswers,
+                surveyorEmail: currentUser.email,
+                createdBy: currentUser.email,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: new Date().toISOString()
+            };
+
+            await firebase.firestore().collection("surveys").add(surveyData);
+
+            alert("✅ सर्वे सफलतापूर्वक सबमिट हो गया!");
+
+            // Reset Everything
+            document.getElementById("name").value = "";
+            document.getElementById("mobile").value = "";
+            document.getElementById("age").value = "";
+            document.getElementById("gender").value = "";
+            document.getElementById("village").value = "";
+            document.getElementById("district").value = "";
+            document.getElementById("pincode").value = "";
+            userAnswers = {};
+
+            questionStep.style.display = "none";
+            basicDetailsStep.style.display = "block";
+
+            todaySurveyCount++;
+            updateLimitUI();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+
+        } catch (err) {
+            console.error("Submission failed:", err);
+            alert("त्रुटि: " + err.message);
+        } finally {
+            submitSurveyBtn.disabled = false;
+            submitSurveyBtn.textContent = "Submit Survey";
+        }
+    });
+}
