@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 
 <head>
     <meta charset="UTF-8">
@@ -19,62 +19,72 @@
             margin: 0;
             padding: 0;
             overflow-x: hidden;
-            background: #f4f6f9;
-            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
         .header {
             width: 100%;
-            background: #1565c0;
+            background: linear-gradient(135deg, #1e40af, #2563eb);
             color: white;
-            padding: 16px 12px;
+            padding: 18px 12px;
             text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            line-height: 1.3;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
         }
 
         .container {
             width: 100%;
-            max-width: 720px;
-            margin: 15px auto;
-            padding: 10px;
+            max-width: 680px;
+            margin: 16px auto 30px auto;
+            padding: 12px;
         }
 
         .survey-box {
             width: 100%;
             background: #ffffff;
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 3px 18px rgba(0, 0, 0, 0.1);
+            padding: 26px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border: 1px solid #e2e8f0;
         }
 
         .survey-box h2 {
             text-align: center;
-            color: #1565c0;
+            color: #1e3a8a;
             margin: 0 0 20px 0;
-            font-size: 26px;
+            font-size: 24px;
+            font-weight: 800;
         }
 
         .step-heading {
             font-size: 19px;
-            font-weight: bold;
-            color: #1e293b;
-            margin-bottom: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 6px;
             text-align: center;
+        }
+
+        .step-subtext {
+            text-align: center;
+            color: #64748b;
+            font-size: 13.5px;
+            margin-bottom: 22px;
         }
 
         label {
             display: block;
             margin-top: 16px;
             margin-bottom: 6px;
-            font-weight: bold;
-            font-size: 15px;
-            color: #1e293b;
+            font-weight: 700;
+            font-size: 14.5px;
+            color: #334155;
         }
 
         .required {
-            color: red;
+            color: #ef4444;
         }
 
         input,
@@ -82,140 +92,218 @@
         textarea {
             display: block;
             width: 100%;
-            padding: 13px;
-            border: 1px solid #cbd5e1;
-            border-radius: 9px;
+            padding: 13px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
             font-size: 15px;
-            background: #ffffff;
-            min-height: 48px;
+            background: #f8fafc;
+            color: #0f172a;
+            transition: all 0.2s ease;
         }
 
         input:focus,
         select:focus,
         textarea:focus {
             outline: none;
-            border-color: #1565c0;
-            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.12);
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
         }
 
-        /* Location Card */
-        .location-container {
-            background: #f0fdf4;
-            border: 2px dashed #86efac;
-            border-radius: 14px;
-            padding: 24px 16px;
+        /* =========================================
+           PREMIUM LOCATION STEP
+        ========================================= */
+        .location-card {
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 2px dashed #94a3b8;
+            border-radius: 18px;
+            padding: 30px 16px;
             text-align: center;
-            margin: 20px 0;
+            margin: 15px 0 25px 0;
+            transition: all 0.3s ease;
         }
 
-        .location-coords {
-            font-size: 20px;
-            font-weight: 700;
-            color: #166534;
-            margin: 12px 0;
+        .location-card.captured {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.15);
         }
 
-        .refresh-btn {
-            background: #16a34a;
+        .loc-icon {
+            font-size: 42px;
+            margin-bottom: 8px;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .loc-details-text {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 18px;
+            font-weight: 500;
+        }
+
+        .btn-capture-location {
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+            background: #2563eb;
             color: white;
+            padding: 15px 22px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
             border: none;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 15px;
-            font-weight: bold;
             cursor: pointer;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-        }
-
-        /* Photo Upload Card */
-        .photo-container {
-            background: #f8fafc;
-            border: 2px dashed #94a3b8;
-            border-radius: 14px;
-            padding: 24px 16px;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .photo-preview-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 16px;
             justify-content: center;
+            gap: 8px;
+            transition: all 0.25s ease;
         }
 
-        .photo-preview-grid img {
-            width: 80px;
-            height: 80px;
+        .btn-capture-location.success {
+            background: #16a34a !important;
+            box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35) !important;
+        }
+
+        /* =========================================
+           PREMIUM 4-PHOTO STEP
+        ========================================= */
+        .photo-capture-card {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .photo-capture-card.has-image {
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+
+        .photo-info {
+            flex: 1;
+        }
+
+        .photo-title {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 3px;
+        }
+
+        .photo-status {
+            font-size: 12.5px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .photo-preview-slot {
+            width: 65px;
+            height: 65px;
+            border-radius: 12px;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border: 2px dashed #94a3b8;
+            flex-shrink: 0;
+            transition: border-color 0.2s ease;
+        }
+
+        .photo-preview-slot img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-radius: 10px;
-            border: 2px solid #2563eb;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .photo-preview-slot .cam-icon {
+            font-size: 24px;
+            color: #475569;
+        }
+
+        /* Hidden Direct-Camera Inputs */
+        .cam-file-input {
+            display: none;
         }
 
         /* Daily Progress */
         #dailyLimitBox {
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
+            background: #eff6ff;
+            border: 1.5px solid #bfdbfe;
             padding: 14px;
-            margin: 20px 0;
-            border-radius: 12px;
+            margin: 22px 0 10px 0;
+            border-radius: 14px;
             text-align: center;
-            font-weight: bold;
-            color: #0d47a1;
+            font-weight: 700;
+            color: #1d4ed8;
             line-height: 1.5;
         }
 
         #todayCount,
         #remainingCount {
-            font-size: 19px;
+            font-size: 18px;
         }
 
         #message {
-            margin-top: 12px;
+            margin-top: 10px;
             text-align: center;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13.5px;
         }
 
-        /* Action Buttons */
+        /* Buttons & Wizard Navigation */
         .btn-full {
             display: block;
             width: 100%;
             padding: 15px;
             margin-top: 20px;
-            background: #1565c0;
+            background: #2563eb;
             color: white;
             border: none;
-            border-radius: 9px;
-            font-size: 17px;
-            font-weight: bold;
+            border-radius: 12px;
+            font-size: 16.5px;
+            font-weight: 700;
             cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            transition: background 0.2s;
         }
 
         .btn-full:disabled {
             background: #94a3b8;
+            box-shadow: none;
             cursor: not-allowed;
         }
 
         .step-nav {
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 12px;
+            margin-top: 22px;
         }
 
         .step-nav button {
             flex: 1;
             padding: 14px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             color: white;
-            font-size: 15px;
-            font-weight: bold;
+            font-size: 15.5px;
+            font-weight: 700;
             cursor: pointer;
+            transition: opacity 0.2s;
         }
 
         .btn-prev {
@@ -223,36 +311,44 @@
         }
 
         .btn-next {
-            background: #1565c0;
+            background: #2563eb;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-submit {
+            background: #16a34a !important;
+            box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3) !important;
         }
 
         #questionNumber {
-            margin-top: 10px;
+            margin-top: 8px;
             margin-bottom: 8px;
-            font-weight: bold;
-            color: #1565c0;
+            font-weight: 800;
+            color: #2563eb;
             font-size: 15px;
         }
 
         #questionText {
-            font-size: 18px;
-            font-weight: bold;
-            line-height: 1.4;
+            font-size: 17.5px;
+            font-weight: 700;
+            line-height: 1.45;
+            color: #0f172a;
             margin-bottom: 16px;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 500px) {
             .container {
-                margin: 5px 0;
+                margin: 0;
                 padding: 6px;
             }
 
             .survey-box {
                 padding: 20px 14px;
+                border-radius: 16px;
             }
 
             .survey-box h2 {
-                font-size: 22px;
+                font-size: 21px;
             }
         }
     </style>
@@ -261,7 +357,7 @@
 <body>
 
     <div class="header">
-        Surveykshan Survey Form
+        Surveykshan Survey
     </div>
 
     <div class="container">
@@ -273,31 +369,31 @@
                  STEP 1: BASIC DETAILS
             ================================================== -->
             <div id="stepBasic">
-                <label for="name">Name <span class="required">*</span></label>
+                <label for="name">Name (नाम) <span class="required">*</span></label>
                 <input type="text" id="name" placeholder="Enter Name" autocomplete="off" required>
 
-                <label for="mobile">Mobile <span class="required">*</span></label>
-                <input type="tel" id="mobile" placeholder="Enter Mobile Number" inputmode="numeric" maxlength="10" autocomplete="off" required>
+                <label for="mobile">Mobile (मोबाइल नंबर) <span class="required">*</span></label>
+                <input type="tel" id="mobile" placeholder="Enter 10 digit Mobile" inputmode="numeric" maxlength="10" autocomplete="off" required>
 
-                <label for="age">Age <span class="required">*</span></label>
+                <label for="age">Age (उम्र) <span class="required">*</span></label>
                 <input type="number" id="age" placeholder="Enter Age" min="1" max="120" required>
 
-                <label for="gender">Gender <span class="required">*</span></label>
+                <label for="gender">Gender (लिंग) <span class="required">*</span></label>
                 <select id="gender" required>
                     <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    <option value="Male">Male (पुरुष)</option>
+                    <option value="Female">Female (महिला)</option>
+                    <option value="Other">Other (अन्य)</option>
                 </select>
 
-                <label for="village">Village <span class="required">*</span></label>
+                <label for="village">Village (गाँव / वार्ड) <span class="required">*</span></label>
                 <input type="text" id="village" placeholder="Enter Village" autocomplete="off" required>
 
-                <label for="district">District <span class="required">*</span></label>
+                <label for="district">District (जिला) <span class="required">*</span></label>
                 <input type="text" id="district" placeholder="Enter District" autocomplete="off" required>
 
-                <label for="pincode">PIN Code <span class="required">*</span></label>
-                <input type="tel" id="pincode" placeholder="Enter 6 digit PIN Code" inputmode="numeric" maxlength="6" autocomplete="off" required>
+                <label for="pincode">PIN Code (पिन कोड) <span class="required">*</span></label>
+                <input type="tel" id="pincode" placeholder="Enter 6 digit PIN" inputmode="numeric" maxlength="6" autocomplete="off" required>
 
                 <div id="dailyLimitBox">
                     📊 Today's Surveys: <span id="todayCount">0</span>
@@ -307,7 +403,7 @@
 
                 <div id="message"></div>
 
-                <button id="btnBasicNext" class="btn-full" type="button">Next →</button>
+                <button id="btnBasicNext" class="btn-full" type="button">Next (सवाल शुरू करें) →</button>
             </div>
 
             <!-- =================================================
@@ -315,7 +411,7 @@
             ================================================== -->
             <div id="stepQuestions" style="display: none;">
                 <div id="questionNumber"></div>
-                <div id="questionText">Loading questions...</div>
+                <div id="questionText">Loading question...</div>
                 <div id="questionOptions"></div>
 
                 <div class="step-nav">
@@ -325,39 +421,89 @@
             </div>
 
             <!-- =================================================
-                 STEP 3: GPS LOCATION (PERMANENT STEP)
+                 STEP 3: GPS LOCATION (CUSTOM HINDI FLOW)
             ================================================== -->
             <div id="stepLocation" style="display: none;">
-                <div class="step-heading">📍 Location Verification (अनिवार्य)</div>
-                <p style="text-align:center; color:#64748b; font-size:14px;">कृपया सटीक GPS लोकेशन कैप्चर करें:</p>
+                <div class="step-heading">📍 लोकेशन सत्यापन</div>
+                <div class="step-subtext">सटीक फील्ड सर्वे के लिए अपनी वर्तमान लोकेशन दर्ज करें</div>
 
-                <div class="location-container">
-                    <div style="font-size:32px;">📍</div>
-                    <div id="locationCoords" class="location-coords">लोकेशन प्राप्त की जा रही है...</div>
-                    <button type="button" class="refresh-btn" onclick="fetchLocation()">🔄 Refresh Location</button>
+                <div id="locationCard" class="location-card">
+                    <div class="loc-icon">📍</div>
+                    <div id="locStatusText" class="loc-details-text">लोकेशन अभी कैप्चर नहीं की गई है</div>
+
+                    <button id="btnGetLocation" class="btn-capture-location" type="button" onclick="captureLiveLocation()">
+                        <span>📍 अपनी लोकेशन चुनें</span>
+                    </button>
                 </div>
 
                 <div class="step-nav">
                     <button id="btnLocationPrev" class="btn-prev" type="button">← Previous</button>
-                    <button id="btnLocationNext" class="btn-next" type="button">Next (Photo Capture) →</button>
+                    <button id="btnLocationNext" class="btn-next" type="button">आगे बढ़ें (फोटो खींचें) →</button>
                 </div>
             </div>
 
             <!-- =================================================
-                 STEP 4: PHOTOS & FINAL SUBMIT (PERMANENT STEP)
+                 STEP 4: 4 LIVE CAMERA PHOTOS (DIRECT CAMERA)
             ================================================== -->
             <div id="stepPhotos" style="display: none;">
-                <div class="step-heading">📷 Survey Photos (Max 4 Photos)</div>
-                <p style="text-align:center; color:#64748b; font-size:14px;">सर्वे स्थल या व्यक्ति की अधिकतम 4 तस्वीरें लें:</p>
+                <div class="step-heading">📷 सर्वे फोटो कैप्चर</div>
+                <div class="step-subtext">प्रत्येक बॉक्स पर टैप करके सीधे कैमरे से लाइव फोटो खींचें:</div>
 
-                <div class="photo-container">
-                    <input type="file" id="surveyPhotosInput" accept="image/*" multiple style="border:none; padding:6px; min-height:auto;">
-                    <div id="photoGrid" class="photo-preview-grid"></div>
+                <!-- 1. Village/City Photo (Rear Camera) -->
+                <div class="photo-capture-card" id="cardPhoto1">
+                    <div class="photo-info">
+                        <div class="photo-title">1. गाँव या शहर की फोटो</div>
+                        <div class="photo-status" id="statusPhoto1">📷 फोटो खींचने के लिए टैप करें</div>
+                    </div>
+                    <div class="photo-preview-slot" onclick="triggerCamera('inputPhoto1')">
+                        <span class="cam-icon" id="iconPhoto1">📷</span>
+                        <img id="prevPhoto1" style="display:none;" alt="Village Photo">
+                    </div>
+                    <input type="file" id="inputPhoto1" class="cam-file-input" accept="image/*" capture="environment" onchange="handleLivePhoto(event, 1)">
+                </div>
+
+                <!-- 2. Village/City Problem Photo (Rear Camera) -->
+                <div class="photo-capture-card" id="cardPhoto2">
+                    <div class="photo-info">
+                        <div class="photo-title">2. गाँव या शहर की समस्या की फोटो</div>
+                        <div class="photo-status" id="statusPhoto2">📷 फोटो खींचने के लिए टैप करें</div>
+                    </div>
+                    <div class="photo-preview-slot" onclick="triggerCamera('inputPhoto2')">
+                        <span class="cam-icon" id="iconPhoto2">📷</span>
+                        <img id="prevPhoto2" style="display:none;" alt="Issue Photo">
+                    </div>
+                    <input type="file" id="inputPhoto2" class="cam-file-input" accept="image/*" capture="environment" onchange="handleLivePhoto(event, 2)">
+                </div>
+
+                <!-- 3. Respondent Photo (Rear Camera) -->
+                <div class="photo-capture-card" id="cardPhoto3">
+                    <div class="photo-info">
+                        <div class="photo-title">3. रिस्पॉन्डेंट (उत्तरदाता) की फोटो</div>
+                        <div class="photo-status" id="statusPhoto3">📷 फोटो खींचने के लिए टैप करें</div>
+                    </div>
+                    <div class="photo-preview-slot" onclick="triggerCamera('inputPhoto3')">
+                        <span class="cam-icon" id="iconPhoto3">📷</span>
+                        <img id="prevPhoto3" style="display:none;" alt="Respondent Photo">
+                    </div>
+                    <input type="file" id="inputPhoto3" class="cam-file-input" accept="image/*" capture="environment" onchange="handleLivePhoto(event, 3)">
+                </div>
+
+                <!-- 4. Respondent Selfie (Front Camera Direct) -->
+                <div class="photo-capture-card" id="cardPhoto4">
+                    <div class="photo-info">
+                        <div class="photo-title">4. रिस्पॉन्डेंट के साथ सेल्फी</div>
+                        <div class="photo-status" id="statusPhoto4">🤳 सेल्फी लेने के लिए टैप करें</div>
+                    </div>
+                    <div class="photo-preview-slot" onclick="triggerCamera('inputPhoto4')">
+                        <span class="cam-icon" id="iconPhoto4">🤳</span>
+                        <img id="prevPhoto4" style="display:none;" alt="Selfie Photo">
+                    </div>
+                    <input type="file" id="inputPhoto4" class="cam-file-input" accept="image/*" capture="user" onchange="handleLivePhoto(event, 4)">
                 </div>
 
                 <div class="step-nav">
                     <button id="btnPhotosPrev" class="btn-prev" type="button">← Previous</button>
-                    <button id="btnFinalSubmit" class="btn-next" type="button" style="background:#16a34a;">Submit Survey ✅</button>
+                    <button id="btnFinalSubmit" class="btn-next btn-submit" type="button">Submit Survey (सर्वे सबमिट करें) ✅</button>
                 </div>
             </div>
 
@@ -371,7 +517,7 @@
 
     <!-- App Scripts -->
     <script src="firebase.js"></script>
-    <script src="survey.js?v=201"></script>
+    <script src="survey.js?v=305"></script>
 
 </body>
 </html>
