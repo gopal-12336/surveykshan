@@ -8,9 +8,6 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
-        /* =====================================================
-           GLOBAL
-        ===================================================== */
         * {
             box-sizing: border-box;
         }
@@ -22,16 +19,10 @@
             margin: 0;
             padding: 0;
             overflow-x: hidden;
-        }
-
-        body {
             background: #f4f6f9;
             font-family: Arial, sans-serif;
         }
 
-        /* =====================================================
-           HEADER
-        ===================================================== */
         .header {
             width: 100%;
             background: #1565c0;
@@ -43,45 +34,35 @@
             line-height: 1.3;
         }
 
-        /* =====================================================
-           MAIN CONTAINER
-        ===================================================== */
         .container {
             width: 100%;
             max-width: 720px;
-            margin: 20px auto;
+            margin: 15px auto;
             padding: 10px;
         }
 
-        /* =====================================================
-           SURVEY CARD
-        ===================================================== */
         .survey-box {
             width: 100%;
             background: #ffffff;
-            padding: 28px;
+            padding: 24px;
             border-radius: 16px;
-            box-shadow: 0 3px 18px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 3px 18px rgba(0, 0, 0, 0.1);
         }
 
         .survey-box h2 {
             text-align: center;
             color: #1565c0;
-            margin: 0 0 25px 0;
-            font-size: 28px;
-            line-height: 1.25;
+            margin: 0 0 20px 0;
+            font-size: 26px;
         }
 
-        /* =====================================================
-           LABELS & INPUTS
-        ===================================================== */
         label {
             display: block;
-            margin-top: 18px;
-            margin-bottom: 7px;
+            margin-top: 16px;
+            margin-bottom: 6px;
             font-weight: bold;
-            font-size: 16px;
-            color: #111;
+            font-size: 15px;
+            color: #1e293b;
         }
 
         .required {
@@ -93,20 +74,12 @@
         textarea {
             display: block;
             width: 100%;
-            max-width: 100%;
-            padding: 14px;
-            border: 1px solid #cccccc;
+            padding: 13px;
+            border: 1px solid #cbd5e1;
             border-radius: 9px;
-            box-sizing: border-box;
-            font-size: 16px;
-            font-family: Arial, sans-serif;
+            font-size: 15px;
             background: #ffffff;
-            min-height: 50px;
-        }
-
-        input::placeholder,
-        textarea::placeholder {
-            color: #777;
+            min-height: 48px;
         }
 
         input:focus,
@@ -117,138 +90,142 @@
             box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.12);
         }
 
-        textarea {
-            min-height: 100px;
-            resize: vertical;
+        /* Location Box */
+        .location-badge {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 9px;
+            padding: 12px 14px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #166534;
+            font-weight: 600;
         }
 
-        /* =====================================================
-           DAILY LIMIT BOX
-        ===================================================== */
+        .refresh-loc-btn {
+            background: #16a34a;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* Photo Upload Styling */
+        .photo-upload-box {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .photo-preview-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            justify-content: center;
+        }
+
+        .photo-preview-grid img {
+            width: 72px;
+            height: 72px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #3b82f6;
+        }
+
+        /* Daily Limit */
         #dailyLimitBox {
-            width: 100%;
             background: #e3f2fd;
             border: 1px solid #90caf9;
-            padding: 15px;
+            padding: 14px;
             margin: 20px 0;
             border-radius: 12px;
             text-align: center;
             font-weight: bold;
             color: #0d47a1;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         #todayCount,
         #remainingCount {
-            font-size: 20px;
+            font-size: 19px;
         }
 
         #message {
-            width: 100%;
-            margin-top: 15px;
+            margin-top: 12px;
             text-align: center;
             font-weight: bold;
-            line-height: 1.5;
-            font-size: 15px;
+            font-size: 14px;
         }
 
-        /* =====================================================
-           BUTTONS & NAVIGATION
-        ===================================================== */
+        /* Buttons */
         #basicNextButton,
         #submitSurvey {
             display: block;
-            width: 100% !important;
-            padding: 15px !important;
-            margin-top: 20px !important;
-            background: #1565c0 !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 9px !important;
-            font-size: 18px !important;
-            font-weight: bold !important;
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            background: #1565c0;
+            color: white;
+            border: none;
+            border-radius: 9px;
+            font-size: 17px;
+            font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s ease;
-        }
-
-        #basicNextButton:hover,
-        #submitSurvey:hover {
-            background: #0d47a1 !important;
         }
 
         #basicNextButton:disabled,
         #submitSurvey:disabled {
-            background: #9e9e9e !important;
+            background: #94a3b8;
             cursor: not-allowed;
-            opacity: 0.7;
         }
 
         .question-navigation {
             display: flex;
             gap: 10px;
-            width: 100%;
-            margin-top: 22px;
+            margin-top: 20px;
         }
 
         .question-navigation button {
             flex: 1;
-            min-width: 0;
-            padding: 14px;
+            padding: 13px;
             border: none;
             border-radius: 8px;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             cursor: pointer;
-            min-height: 50px;
         }
 
         #previousButton {
-            background: #757575;
+            background: #64748b;
         }
 
         #nextButton {
             background: #1565c0;
         }
 
-        #previousButton:disabled,
-        #nextButton:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
         #questionNumber {
             margin-top: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             font-weight: bold;
             color: #1565c0;
-            font-size: 16px;
+            font-size: 15px;
         }
 
         #questionText {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: bold;
-            line-height: 1.5;
-            margin-bottom: 18px;
-        }
-
-        /* =====================================================
-           MOBILE RESPONSIVENESS
-        ===================================================== */
-        @media (max-width: 600px) {
-            .container {
-                margin: 6px 0;
-                padding: 6px;
-            }
-
-            .survey-box {
-                padding: 20px 15px;
-                border-radius: 14px;
-            }
-
-            .survey-box h2 {
-                font-size: 22px;
-            }
+            line-height: 1.4;
+            margin-bottom: 16px;
         }
     </style>
 </head>
@@ -264,9 +241,7 @@
 
             <h2>Public Opinion Survey</h2>
 
-            <!-- =================================================
-                 STEP 1: BASIC DETAILS
-            ================================================== -->
+            <!-- STEP 1: BASIC DETAILS + LOCATION + PHOTO -->
             <div id="basicDetailsStep">
 
                 <label for="name">Name <span class="required">*</span></label>
@@ -295,6 +270,19 @@
                 <label for="pincode">PIN Code <span class="required">*</span></label>
                 <input type="tel" id="pincode" placeholder="Enter 6 digit PIN Code" inputmode="numeric" maxlength="6" autocomplete="off" required>
 
+                <!-- Location Section -->
+                <div class="location-badge">
+                    <span id="locationStatus">📍 लोकेशन प्राप्त की जा रही है...</span>
+                    <button type="button" class="refresh-loc-btn" onclick="fetchLocation()">🔄 Refresh</button>
+                </div>
+
+                <!-- Photos Section -->
+                <label>Survey Photos (Max 4 Photos) <span class="required">*</span></label>
+                <div class="photo-upload-box">
+                    <input type="file" id="surveyPhotos" accept="image/*" multiple style="min-height:auto; border:none; padding:0;">
+                    <div id="photosPreviewGrid" class="photo-preview-grid"></div>
+                </div>
+
                 <!-- Daily Progress Box -->
                 <div id="dailyLimitBox">
                     📊 Today's Surveys: <span id="todayCount">0</span>
@@ -307,9 +295,7 @@
                 <button id="basicNextButton" type="button">Next →</button>
             </div>
 
-            <!-- =================================================
-                 STEP 2: QUESTION STEP
-            ================================================== -->
+            <!-- STEP 2: QUESTIONS WIZARD -->
             <div id="questionStep" style="display: none;">
 
                 <div id="questionNumber"></div>
@@ -327,16 +313,14 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs (v8) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- App Config & Logic -->
+    <!-- Scripts -->
     <script src="firebase.js"></script>
-    <!-- Cache-buster parameter (?v=101) ensures the app loads the latest survey.js -->
-    <script src="survey.js?v=101"></script>
+    <script src="survey.js?v=105"></script>
 
 </body>
-
 </html>
