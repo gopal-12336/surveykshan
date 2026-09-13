@@ -1,278 +1,447 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Surveykshan Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surveykshan - Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 
-<style>
-* { box-sizing: border-box; }
-body { margin: 0; background: #f3f6fa; font-family: Arial, sans-serif; color: #222; }
-.header { background: linear-gradient(135deg, #0d47a1, #1976d2); color: white; padding: 20px; text-align: center; font-size: 27px; font-weight: bold; }
-.container { width: 96%; max-width: 1450px; margin: 20px auto; }
-.card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,.08); }
-.dashboard { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
-.stat { text-align: center; padding: 20px; background: white; border-radius: 14px; box-shadow: 0 3px 12px rgba(0,0,0,.07); }
-.stat h3 { margin: 0; color: #666; font-size: 14px; }
-.stat strong { display: block; margin-top: 8px; font-size: 28px; color: #1565c0; }
-.section-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
-.section-title h2 { margin: 0; color: #1565c0; }
-input, select { width: 100%; padding: 11px; border: 1px solid #ccd5df; border-radius: 9px; font-size: 15px; margin: 5px 0; }
-button { border: 0; border-radius: 8px; padding: 10px 15px; cursor: pointer; font-weight: bold; margin: 3px; }
-button:disabled { opacity: .6; cursor: not-allowed; }
-.primary { background: #1565c0; color: white; }
-.success { background: #2e7d32; color: white; }
-.danger { background: #d32f2f; color: white; }
-.warning { background: #ef6c00; color: white; }
-.purple { background: #6a1b9a; color: white; }
-.gray { background: #667085; color: white; }
-#questionManagerBody { display: block; }
-.option-row { display: flex; gap: 8px; margin: 8px 0; }
-.option-row input { flex: 1; }
-.question-card { background: #f7faff; border: 1px solid #dce6f1; border-radius: 10px; padding: 15px; margin: 10px 0; }
-.question-card h3 { margin-top: 0; color: #1565c0; }
-.filter-box { background: #f8fbff; border: 1px solid #d7e3ef; border-radius: 12px; padding: 15px; }
-.filter-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-.filter-grid select { margin: 0; }
-.filter-buttons { margin-top: 10px; }
-#filterResultCount { font-weight: bold; margin-left: 8px; }
-.table-wrap { width: 100%; overflow-x: auto; border: 1px solid #ddd; border-radius: 10px; }
-table { width: 100%; min-width: 950px; border-collapse: collapse; background: white; }
-th { background: #1565c0; color: white; padding: 13px; white-space: nowrap; }
-td { padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center; white-space: nowrap; }
-tr:hover td { background: #f5faff; }
+    <!-- SheetJS (XLSX) Library for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-.answer-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
-.answer-modal.show { display: flex; }
-.modal-box { background: white; width: min(850px, 95%); max-height: 90vh; overflow: auto; border-radius: 15px; padding: 20px; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-.photos-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 10000; align-items: center; justify-content: center; padding: 20px; }
-.photos-modal-box { background: white; width: min(800px, 95%); max-height: 90vh; overflow: auto; border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-.photos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1e293b;
+            min-height: 100vh;
+        }
 
-@media(max-width: 900px) {
-    .dashboard { grid-template-columns: repeat(3, 1fr); }
-    .filter-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media(max-width: 600px) {
-    .dashboard { grid-template-columns: repeat(2, 1fr); }
-    .filter-grid { grid-template-columns: 1fr; }
-    .photos-grid { grid-template-columns: 1fr; }
-    .header { font-size: 21px; }
-}
-</style>
+        /* Top Navigation Bar */
+        .navbar {
+            background: #1565c0;
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 14px;
+        }
+
+        .btn-logout {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        /* Action Toolbar */
+        .action-toolbar {
+            background: white;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 250px;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-excel {
+            background: #16a34a;
+            color: white;
+            box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+        }
+
+        .btn-refresh {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-questions {
+            background: #475569;
+            color: white;
+        }
+
+        /* Data Table */
+        .table-responsive {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            overflow-x: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13.5px;
+            white-space: nowrap;
+        }
+
+        thead th {
+            background: #1565c0;
+            color: white;
+            padding: 14px 16px;
+            font-weight: 700;
+            border-bottom: 2px solid #0d47a1;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.15s ease;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        tbody td {
+            padding: 14px 16px;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        /* Custom Badges & Action Buttons in Table */
+        .btn-table-photo {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-table-answers {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-table-delete {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .map-badge {
+            background: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* Modal Windows */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 700px;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 12px;
+        }
+
+        .modal-close {
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .modal-photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        .modal-photo-item {
+            text-align: center;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 8px;
+        }
+
+        .modal-photo-item img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .modal-photo-item span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            margin-top: 6px;
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="header">
-📊 Surveykshan Admin Dashboard
-</div>
-
-<div class="container">
-
-<div class="dashboard">
-    <div class="stat">
-        <h3>Total Surveys</h3>
-        <strong id="totalSurvey">0</strong>
-    </div>
-    <div class="stat">
-        <h3>Today's Surveys</h3>
-        <strong id="todaySurvey">0</strong>
-    </div>
-    <div class="stat">
-        <h3>This Week</h3>
-        <strong id="weekSurvey">0</strong>
-    </div>
-    <div class="stat">
-        <h3>This Month</h3>
-        <strong id="monthSurvey">0</strong>
-    </div>
-    <div class="stat">
-        <h3>Total Questions</h3>
-        <strong id="questionCount">0</strong>
-    </div>
-</div>
-
-<div class="card">
-    <div class="section-title">
-        <h2>📝 Survey Question Manager</h2>
-        <button id="questionManagerToggle" class="primary" type="button">🙈 Hide</button>
-    </div>
-
-    <div id="questionManagerBody">
-        <input id="questionText" type="text" placeholder="Enter survey question">
-        <select id="questionType">
-            <option value="single">Single Choice</option>
-            <option value="multiple">Multiple Choice</option>
-        </select>
-
-        <h3>Options</h3>
-        <div id="optionsContainer"></div>
-
-        <button id="addOption" type="button" class="gray">➕ Add Option</button>
-        <br>
-        <button id="saveQuestion" type="button" class="success">💾 Save Question</button>
-        <button id="cancelEdit" type="button" class="warning" style="display:none">Cancel Edit</button>
-        <p id="questionMessage"></p>
-        <hr>
-
-        <h3>📋 Existing Questions</h3>
-        <div id="questionsList"></div>
-    </div>
-</div>
-
-<div class="card">
-    <div class="section-title">
-        <h2>⚙️ Daily Survey Limit</h2>
-    </div>
-    <input id="dailyLimitInput" type="number" min="1" value="20">
-    <button id="saveDailyLimit" class="primary" type="button">💾 Save Limit</button>
-    <span id="limitMessage"></span>
-</div>
-
-<div class="card">
-    <div class="section-title">
-        <h2>👥 Surveyor Management</h2>
-    </div>
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Surveyor</th>
-                    <th>Total</th>
-                    <th>Today</th>
-                    <th>This Week</th>
-                    <th>This Month</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="surveyorManagementTable"></tbody>
-        </table>
-    </div>
-</div>
-
-<div class="card">
-    <div class="section-title">
-        <h2>🔎 Filter Survey Records</h2>
-    </div>
-    <div class="filter-box">
-        <div class="filter-grid">
-            <select id="filterName">
-                <option value="">👤 All Names</option>
-            </select>
-            <select id="filterMobile">
-                <option value="">📱 All Mobiles</option>
-            </select>
-            <select id="filterVillage">
-                <option value="">🏠 All Villages</option>
-            </select>
-            <select id="filterSurveyor">
-                <option value="">🧑‍💼 All Surveyors</option>
-            </select>
-            <select id="filterDate">
-                <option value="">📅 All Dates</option>
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-            </select>
+    <!-- Header Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            📊 Surveykshan Admin Dashboard
         </div>
-        <div class="filter-buttons">
-            <button id="applySurveyFilter" class="primary" type="button">🔎 Filter</button>
-            <button id="clearSurveyFilter" class="warning" type="button">✖ Clear</button>
-            <span id="filterResultCount">Showing: 0 / 0</span>
+        <div class="navbar-user">
+            <span id="adminEmailDisplay">Admin</span>
+            <button class="btn-logout" onclick="logoutAdmin()">Logout</button>
         </div>
-    </div>
-</div>
+    </nav>
 
-<div class="card">
-    <div class="section-title">
-        <h2>📊 Survey Records</h2>
-        <button id="deleteAllSurveysBtn" class="danger" type="button">🗑️ Delete All Surveys</button>
-    </div>
-    <div class="table-wrap">
-        <table id="surveyRecordsTable">
-            <thead>
-                <tr>
-                    <th>Photo</th>
-                    <th>Name</th>
-                    <th>Mobile</th>
-                    <th>Age</th>
-                    <th>Gender</th>
-                    <th>Village</th>
-                    <th>Location</th>
-                    <th>Surveyor Details</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="surveyTable"></tbody>
-        </table>
-    </div>
-</div>
+    <!-- Main Content Area -->
+    <div class="container">
 
-<!-- Answers Modal -->
-<div id="answerModal" class="answer-modal">
-    <div class="modal-box">
-        <div class="modal-header">
-            <h2 style="margin:0; color:#1565c0;">📋 Survey Answers</h2>
-            <button id="closeAnswerModal" class="danger" type="button">✖</button>
-        </div>
-        <div id="answerModalBody"></div>
-    </div>
-</div>
-
-<!-- Photos Modal -->
-<div id="photosModal" class="photos-modal">
-    <div class="photos-modal-box">
-        <div class="modal-header">
-            <h2 style="margin:0; color:#1565c0;">📷 Survey Photos</h2>
-            <button type="button" class="danger" onclick="closePhotosModal()">✖</button>
-        </div>
-        <div id="photosModalGrid" class="photos-grid"></div>
-    </div>
-</div>
-
-<!-- Edit Survey Modal -->
-<div id="editSurveyModal" class="answer-modal">
-    <div class="modal-box" style="max-width: 500px;">
-        <div class="modal-header">
-            <h2 style="margin:0; color:#1565c0;">✏️ Edit Survey Record</h2>
-            <button type="button" class="danger" onclick="closeEditModal()">✖</button>
-        </div>
-        <form id="editSurveyForm">
-            <label style="font-weight: bold; font-size: 13px;">Name:</label>
-            <input id="editName" type="text" required>
-
-            <label style="font-weight: bold; font-size: 13px;">Mobile:</label>
-            <input id="editMobile" type="text" required>
-
-            <label style="font-weight: bold; font-size: 13px;">Age:</label>
-            <input id="editAge" type="number">
-
-            <label style="font-weight: bold; font-size: 13px;">Village:</label>
-            <input id="editVillage" type="text">
-
-            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
-                <button type="button" class="gray" onclick="closeEditModal()">Cancel</button>
-                <button type="submit" class="success">💾 Save Changes</button>
+        <!-- Stat Counter Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Surveys</span>
+                <span id="statTotalSurveys" class="stat-value">0</span>
             </div>
-        </form>
+            <div class="stat-card">
+                <span class="stat-label">Surveys Today</span>
+                <span id="statTodaySurveys" class="stat-value">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Active Surveyors</span>
+                <span id="statTotalSurveyors" class="stat-value">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Configured Questions</span>
+                <span id="statTotalQuestions" class="stat-value">0</span>
+            </div>
+        </div>
+
+        <!-- Action Control Bar -->
+        <div class="action-toolbar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by name, mobile, village, or surveyor..." onkeyup="filterSurveysTable()">
+            </div>
+            <div class="toolbar-buttons">
+                <button id="btnExportExcel" class="btn-action btn-excel" onclick="exportSurveysToExcel()">
+                    <span>📥 Export to Excel (.xlsx)</span>
+                </button>
+                <button class="btn-action btn-refresh" onclick="loadAllAdminData()">
+                    <span>🔄 Refresh</span>
+                </button>
+                <a href="questions.html" class="btn-action btn-questions" style="text-decoration:none;">
+                    <span>⚙️ Manage Questions</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Survey Submissions Table -->
+        <div class="table-responsive">
+            <table id="surveysTable">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Village</th>
+                        <th>Location</th>
+                        <th>Surveyor Details</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="surveysTableBody">
+                    <tr>
+                        <td colspan="9" style="text-align:center; padding: 24px; color: #64748b;">
+                            ⏳ Loading survey data...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
     </div>
-</div>
 
-<div style="text-align:center; margin:25px;">
-    <button id="logoutBtn" class="danger" type="button">🚪 Logout</button>
-</div>
+    <!-- Photos Preview Modal -->
+    <div id="photosModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalPhotoTitle">Survey Photos</h3>
+                <button class="modal-close" onclick="closePhotosModal()">&times;</button>
+            </div>
+            <div id="modalPhotosContainer" class="modal-photos-grid"></div>
+        </div>
+    </div>
 
-</div>
+    <!-- Answers Preview Modal -->
+    <div id="answersModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalAnswersTitle">Survey Question Answers</h3>
+                <button class="modal-close" onclick="closeAnswersModal()">&times;</button>
+            </div>
+            <div id="modalAnswersContainer" style="display:flex; flex-direction:column; gap:12px;"></div>
+        </div>
+    </div>
 
-<!-- Firebase Scripts -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="firebase.js"></script>
-<script src="admin.js"></script>
+    <!-- Firebase SDKs (v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- App Configuration & Admin Logic -->
+    <script src="firebase.js"></script>
+    <script src="admin.js?v=501"></script>
 
 </body>
 </html>
