@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<html lang="hi">
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surveykshan - Admin Dashboard</title>
+    <title>Surveykshan Admin Dashboard</title>
     <link rel="stylesheet" href="style.css">
 
-    <!-- SheetJS (XLSX) Library for Excel Export -->
+    <!-- Excel Export Library -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
@@ -18,430 +17,315 @@
         }
 
         body {
-            background-color: #f1f5f9;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #1e293b;
-            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
         }
 
-        /* Top Navigation Bar */
-        .navbar {
+        /* Original Blue Header */
+        .admin-header {
             background: #1565c0;
             color: white;
-            padding: 16px 24px;
+            padding: 16px 20px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            align-items: center;
         }
 
-        .navbar-brand {
+        .admin-header h1 {
             font-size: 22px;
-            font-weight: 700;
+        }
+
+        .header-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-
-        .navbar-user {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            font-size: 14px;
-        }
-
-        .btn-logout {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 1400px;
-            margin: 24px auto;
-            padding: 0 16px;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 14px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .stat-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-        }
-
-        .stat-value {
-            font-size: 26px;
-            font-weight: 800;
-            color: #0f172a;
-        }
-
-        /* Action Toolbar */
-        .action-toolbar {
-            background: white;
-            padding: 16px;
-            border-radius: 14px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
             gap: 12px;
         }
 
-        .search-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 250px;
-            max-width: 400px;
+        .btn-logout {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
         }
 
-        .search-box input {
-            width: 100%;
+        /* Top Controls Bar */
+        .controls-bar {
+            max-width: 1350px;
+            margin: 18px auto 10px auto;
+            padding: 0 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .search-input {
             padding: 10px 14px;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 320px;
             font-size: 14px;
             outline: none;
         }
 
-        .toolbar-buttons {
+        .bar-buttons {
             display: flex;
-            align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
-        .btn-action {
-            padding: 10px 16px;
+        .btn-green-excel {
+            background: #2e7d32;
+            color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 700;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: bold;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: opacity 0.2s;
+            font-size: 14px;
         }
 
-        .btn-excel {
-            background: #16a34a;
+        .btn-blue-refresh {
+            background: #1976d2;
             color: white;
-            box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
         }
 
-        .btn-refresh {
-            background: #2563eb;
+        .btn-manage-q {
+            background: #455a64;
             color: white;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
         }
 
-        .btn-questions {
-            background: #475569;
-            color: white;
-        }
-
-        /* Data Table */
-        .table-responsive {
-            background: white;
-            border-radius: 14px;
-            border: 1px solid #e2e8f0;
+        /* Original Blue Data Table */
+        .table-container {
+            max-width: 1350px;
+            margin: 10px auto 30px auto;
+            padding: 0 15px;
             overflow-x: auto;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            text-align: left;
-            font-size: 13.5px;
-            white-space: nowrap;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-radius: 6px;
+            overflow: hidden;
+            font-size: 14px;
         }
 
-        thead th {
-            background: #1565c0;
+        thead tr {
+            background: #1976d2;
             color: white;
+            text-align: left;
+        }
+
+        th, td {
             padding: 14px 16px;
-            font-weight: 700;
-            border-bottom: 2px solid #0d47a1;
-        }
-
-        tbody tr {
-            border-bottom: 1px solid #f1f5f9;
-            transition: background 0.15s ease;
-        }
-
-        tbody tr:hover {
-            background: #f8fafc;
-        }
-
-        tbody td {
-            padding: 14px 16px;
-            color: #334155;
+            border-bottom: 1px solid #e0e0e0;
             vertical-align: middle;
         }
 
-        /* Custom Badges & Action Buttons in Table */
-        .btn-table-photo {
-            background: #2563eb;
+        tbody tr:hover {
+            background: #f5f9ff;
+        }
+
+        /* Specific Table Buttons */
+        .btn-photo-pill {
+            background: #1976d2;
             color: white;
             border: none;
             padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
+            border-radius: 4px;
+            font-size: 13px;
             cursor: pointer;
+            font-weight: bold;
         }
 
-        .btn-table-answers {
-            background: #7c3aed;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-table-delete {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .map-badge {
-            background: #10b981;
+        .badge-map {
+            background: #00897b;
             color: white;
             padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
+            border-radius: 4px;
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 6px;
         }
 
-        /* Modal Windows */
-        .modal-overlay {
+        .btn-action-answers {
+            background: #6a1b9a;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .btn-action-edit {
+            background: #0288d1;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+
+        .btn-action-del {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+
+        /* Modals */
+        .modal-wrap {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            padding: 16px;
+            z-index: 9999;
+            padding: 15px;
         }
 
-        .modal-card {
+        .modal-box {
             background: white;
             width: 100%;
-            max-width: 700px;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            max-height: 90vh;
+            max-width: 650px;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 85vh;
             overflow-y: auto;
         }
 
-        .modal-header {
+        .modal-head {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            margin-bottom: 16px;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 12px;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
         }
 
-        .modal-close {
-            font-size: 24px;
+        .modal-close-btn {
             background: none;
             border: none;
+            font-size: 24px;
             cursor: pointer;
-            color: #64748b;
+            color: #666;
         }
 
-        .modal-photos-grid {
+        .photo-grid-box {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 14px;
-            margin-top: 14px;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
         }
 
-        .modal-photo-item {
-            text-align: center;
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
-            padding: 8px;
-        }
-
-        .modal-photo-item img {
+        .photo-grid-box img {
             width: 100%;
-            height: 140px;
+            height: 130px;
             object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .modal-photo-item span {
-            font-size: 12px;
-            font-weight: 600;
-            color: #475569;
-            margin-top: 6px;
-            display: block;
+            border-radius: 6px;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
-
 <body>
 
-    <!-- Header Navbar -->
-    <nav class="navbar">
-        <div class="navbar-brand">
-            📊 Surveykshan Admin Dashboard
-        </div>
-        <div class="navbar-user">
-            <span id="adminEmailDisplay">Admin</span>
+    <header class="admin-header">
+        <h1>Surveykshan Admin Panel</h1>
+        <div class="header-actions">
+            <span id="userEmailSpan">goswamivinod2305@gmail.com</span>
             <button class="btn-logout" onclick="logoutAdmin()">Logout</button>
         </div>
-    </nav>
+    </header>
 
-    <!-- Main Content Area -->
-    <div class="container">
-
-        <!-- Stat Counter Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <span class="stat-label">Total Surveys</span>
-                <span id="statTotalSurveys" class="stat-value">0</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Surveys Today</span>
-                <span id="statTodaySurveys" class="stat-value">0</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Active Surveyors</span>
-                <span id="statTotalSurveyors" class="stat-value">0</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Configured Questions</span>
-                <span id="statTotalQuestions" class="stat-value">0</span>
-            </div>
-        </div>
-
-        <!-- Action Control Bar -->
-        <div class="action-toolbar">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search by name, mobile, village, or surveyor..." onkeyup="filterSurveysTable()">
-            </div>
-            <div class="toolbar-buttons">
-                <button id="btnExportExcel" class="btn-action btn-excel" onclick="exportSurveysToExcel()">
-                    <span>📥 Export to Excel (.xlsx)</span>
-                </button>
-                <button class="btn-action btn-refresh" onclick="loadAllAdminData()">
-                    <span>🔄 Refresh</span>
-                </button>
-                <a href="questions.html" class="btn-action btn-questions" style="text-decoration:none;">
-                    <span>⚙️ Manage Questions</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Survey Submissions Table -->
-        <div class="table-responsive">
-            <table id="surveysTable">
-                <thead>
-                    <tr>
-                        <th>Photo</th>
-                        <th>Name</th>
-                        <th>Mobile</th>
-                        <th>Age</th>
-                        <th>Gender</th>
-                        <th>Village</th>
-                        <th>Location</th>
-                        <th>Surveyor Details</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="surveysTableBody">
-                    <tr>
-                        <td colspan="9" style="text-align:center; padding: 24px; color: #64748b;">
-                            ⏳ Loading survey data...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-
-    <!-- Photos Preview Modal -->
-    <div id="photosModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="modalPhotoTitle">Survey Photos</h3>
-                <button class="modal-close" onclick="closePhotosModal()">&times;</button>
-            </div>
-            <div id="modalPhotosContainer" class="modal-photos-grid"></div>
+    <div class="controls-bar">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by name, mobile, village..." onkeyup="filterTable()">
+        <div class="bar-buttons">
+            <button id="btnExcel" class="btn-green-excel" onclick="exportExcel()">📥 Export to Excel</button>
+            <button class="btn-blue-refresh" onclick="loadSurveysData()">🔄 Refresh</button>
+            <a href="questions.html" class="btn-manage-q">Manage Questions</a>
         </div>
     </div>
 
-    <!-- Answers Preview Modal -->
-    <div id="answersModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="modalAnswersTitle">Survey Question Answers</h3>
-                <button class="modal-close" onclick="closeAnswersModal()">&times;</button>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Village</th>
+                    <th>Location</th>
+                    <th>Surveyor Details</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="surveyTbody">
+                <tr>
+                    <td colspan="9" style="text-align:center; padding: 25px; color:#777;">डेटा लोड हो रहा है...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Photos Modal -->
+    <div id="photosModal" class="modal-wrap">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h3 id="photoModalTitle">Survey Photos</h3>
+                <button class="modal-close-btn" onclick="closeModal('photosModal')">&times;</button>
             </div>
-            <div id="modalAnswersContainer" style="display:flex; flex-direction:column; gap:12px;"></div>
+            <div id="photosContainer" class="photo-grid-box"></div>
         </div>
     </div>
 
-    <!-- Firebase SDKs (v8) -->
+    <!-- Answers Modal -->
+    <div id="answersModal" class="modal-wrap">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h3 id="answersModalTitle">Survey Answers</h3>
+                <button class="modal-close-btn" onclick="closeModal('answersModal')">&times;</button>
+            </div>
+            <div id="answersContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- App Configuration & Admin Logic -->
+    <!-- App Scripts -->
     <script src="firebase.js"></script>
-    <script src="admin.js?v=501"></script>
-
+    <script src="admin.js?v=601"></script>
 </body>
 </html>
