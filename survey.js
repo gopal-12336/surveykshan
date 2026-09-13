@@ -1,6 +1,5 @@
 /* =========================================================
-   SURVEYKSHAN - COMPLETE SURVEY LOGIC
-   Flow: Basic Details -> Questionnaire -> Location -> Photos -> Submit
+   SURVEYKSHAN - PROFESSIONAL SURVEY LOGIC WITH DIRECT CAMERA
    ========================================================= */
 
 let currentUser = null;
@@ -11,35 +10,42 @@ let userLocation = null;
 let questions = [];
 let currentQuestionIndex = 0;
 let userAnswers = {};
-let capturedPhotos = [];
 
-// DOM Steps
+// 4 Specific Photos Object
+let surveyPhotos = {
+    photo1: null, // Village Photo
+    photo2: null, // Problem Photo
+    photo3: null, // Respondent Photo
+    photo4: null  // Selfie Photo
+};
+
+// DOM Step Sections
 const stepBasic = document.getElementById("stepBasic");
 const stepQuestions = document.getElementById("stepQuestions");
 const stepLocation = document.getElementById("stepLocation");
 const stepPhotos = document.getElementById("stepPhotos");
 
-// Basic Detail Elements
+// Step 1
 const btnBasicNext = document.getElementById("btnBasicNext");
 const todayCountEl = document.getElementById("todayCount");
 const remainingCountEl = document.getElementById("remainingCount");
 const messageEl = document.getElementById("message");
 
-// Question Step Elements
+// Step 2
 const questionNumberEl = document.getElementById("questionNumber");
 const questionTextEl = document.getElementById("questionText");
 const questionOptionsEl = document.getElementById("questionOptions");
 const btnQuestionsPrev = document.getElementById("btnQuestionsPrev");
 const btnQuestionsNext = document.getElementById("btnQuestionsNext");
 
-// Location Step Elements
-const locationCoords = document.getElementById("locationCoords");
+// Step 3 (Location)
+const locationCard = document.getElementById("locationCard");
+const locStatusText = document.getElementById("locStatusText");
+const btnGetLocation = document.getElementById("btnGetLocation");
 const btnLocationPrev = document.getElementById("btnLocationPrev");
 const btnLocationNext = document.getElementById("btnLocationNext");
 
-// Photo & Submit Elements
-const surveyPhotosInput = document.getElementById("surveyPhotosInput");
-const photoGrid = document.getElementById("photoGrid");
+// Step 4 (Photos & Submit)
 const btnPhotosPrev = document.getElementById("btnPhotosPrev");
 const btnFinalSubmit = document.getElementById("btnFinalSubmit");
 
@@ -55,61 +61,80 @@ firebase.auth().onAuthStateChanged(async (user) => {
 
     await loadDailyLimitAndProgress();
     loadQuestionsFromFirestore();
-    fetchLocation();
 });
 
 /* =========================================================
-   2. GPS LOCATION FETCHER
+   2. GPS LOCATION (CLICK TO CAPTURE)
    ========================================================= */
-function fetchLocation() {
-    if (locationCoords) locationCoords.innerHTML = "📡 GPS सिग्नल खोजा जा रहा है...";
-
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                userLocation = {
-                    latitude: Number(pos.coords.latitude.toFixed(6)),
-                    longitude: Number(pos.coords.longitude.toFixed(6))
-                };
-                if (locationCoords) {
-                    locationCoords.innerHTML = `✅ Lat: ${userLocation.latitude}<br>Lng: ${userLocation.longitude}`;
-                }
-            },
-            (err) => {
-                console.warn("Location Warning:", err);
-                if (locationCoords) {
-                    locationCoords.innerHTML = "⚠️ कृपया फ़ोन की GPS लोकेशन अनुमति ऑन करें";
-                }
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
-    } else {
-        if (locationCoords) locationCoords.innerHTML = "⚠️ GPS समर्थित नहीं है";
+function captureLiveLocation() {
+    if (!("geolocation" in navigator)) {
+        alert("आपके डिवाइस में GPS लोकेशन सपोर्ट नहीं करता है।");
+        return;
     }
+
+    btnGetLocation.disabled = true;
+    btnGetLocation.innerHTML = "<span>⏳ लोकेशन खोजी जा रही है...</span>";
+
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            userLocation = {
+                latitude: Number(pos.coords.latitude.toFixed(6)),
+                longitude: Number(pos.coords.longitude.toFixed(6))
+            };
+
+            // Success State UI
+            locationCard.classList.add("captured");
+            btnGetLocation.classList.add("success");
+            btnGetLocation.disabled = false;
+            btnGetLocation.innerHTML = "<span>✅ लोकेशन ले ली गई है</span>";
+            locStatusText.innerHTML = `<strong style="color:#16a34a;">Lat:</strong> ${userLocation.latitude} | <strong style="color:#16a34a;">Lng:</strong> ${userLocation.longitude}`;
+        },
+        (err) => {
+            console.warn("Location error:", err);
+            btnGetLocation.disabled = false;
+            btnGetLocation.innerHTML = "<span>⚠️ दोबारा प्रयास करें</span>";
+            locStatusText.innerHTML = "<span style='color:#dc2626;'>लोकेशन अनुमति नहीं मिली! फ़ोन की GPS सेटिंग चालू करें।</span>";
+            alert("कृपया अपने मोबाइल की लोकेशन (GPS) अनुमति चालू करें।");
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
 }
-window.fetchLocation = fetchLocation;
+window.captureLiveLocation = captureLiveLocation;
 
 /* =========================================================
-   3. PHOTO PROCESSING & RESIZING (OPTIMIZED FOR STORAGE)
+   3. DIRECT CAMERA TRIGGER & LIVE PREVIEW
    ========================================================= */
-if (surveyPhotosInput) {
-    surveyPhotosInput.addEventListener("change", async (e) => {
-        const files = Array.from(e.target.files).slice(0, 4);
-        capturedPhotos = [];
-        if (photoGrid) photoGrid.innerHTML = "";
-
-        for (const file of files) {
-            const base64 = await compressImage(file);
-            capturedPhotos.push(base64);
-
-            if (photoGrid) {
-                const img = document.createElement("img");
-                img.src = base64;
-                photoGrid.appendChild(img);
-            }
-        }
-    });
+function triggerCamera(inputId) {
+    const inputEl = document.getElementById(inputId);
+    if (inputEl) {
+        inputEl.click();
+    }
 }
+window.triggerCamera = triggerCamera;
+
+async function handleLivePhoto(event, photoIndex) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Fast Compression to keep submission instantaneous
+    const compressedBase64 = await compressImage(file);
+    surveyPhotos[`photo${photoIndex}`] = compressedBase64;
+
+    // UI Updates
+    const card = document.getElementById(`cardPhoto${photoIndex}`);
+    const status = document.getElementById(`statusPhoto${photoIndex}`);
+    const imgEl = document.getElementById(`prevPhoto${photoIndex}`);
+    const iconEl = document.getElementById(`iconPhoto${photoIndex}`);
+
+    if (card) card.classList.add("has-image");
+    if (status) status.innerHTML = "<span style='color:#16a34a; font-weight:bold;'>✅ फोटो ले ली गई (बदलने के लिए फिर टैप करें)</span>";
+    if (iconEl) iconEl.style.display = "none";
+    if (imgEl) {
+        imgEl.src = compressedBase64;
+        imgEl.style.display = "block";
+    }
+}
+window.handleLivePhoto = handleLivePhoto;
 
 function compressImage(file) {
     return new Promise((resolve) => {
@@ -120,7 +145,7 @@ function compressImage(file) {
             img.src = event.target.result;
             img.onload = () => {
                 const canvas = document.createElement("canvas");
-                const maxDim = 800;
+                const maxDim = 800; // Optimal for mobile Firestore payloads
                 let width = img.width;
                 let height = img.height;
 
@@ -143,7 +168,7 @@ function compressImage(file) {
 }
 
 /* =========================================================
-   4. COUNTERS & DAILY LIMIT
+   4. LIMIT COUNTERS & PROGRESS
    ========================================================= */
 function parseDateSafely(data) {
     if (!data) return null;
@@ -152,6 +177,10 @@ function parseDateSafely(data) {
         if (data.timestamp?.seconds) return new Date(data.timestamp.seconds * 1000);
         if (data.createdAt) {
             const d = new Date(data.createdAt);
+            if (!isNaN(d.getTime())) return d;
+        }
+        if (data.timestamp) {
+            const d = new Date(data.timestamp);
             if (!isNaN(d.getTime())) return d;
         }
     } catch (e) {}
@@ -196,7 +225,7 @@ function updateLimitUI() {
 
     if (todaySurveyCount >= dailyLimit) {
         if (messageEl) {
-            messageEl.style.color = "red";
+            messageEl.style.color = "#dc2626";
             messageEl.textContent = `⚠️ आज की निर्धारित लिमिट (${dailyLimit} सर्वे) पूरी हो चुकी है!`;
         }
         if (btnBasicNext) btnBasicNext.disabled = true;
@@ -204,7 +233,7 @@ function updateLimitUI() {
 }
 
 /* =========================================================
-   5. LOAD QUESTIONS FROM FIRESTORE
+   5. LOAD DYNAMIC QUESTIONS
    ========================================================= */
 function loadQuestionsFromFirestore() {
     firebase.firestore().collection("questions").onSnapshot((snapshot) => {
@@ -249,17 +278,14 @@ if (btnBasicNext) {
             return;
         }
 
-        // Hide Step 1
         stepBasic.style.display = "none";
 
-        // If questions exist, show question wizard; else go straight to Location
         if (questions.length > 0) {
             stepQuestions.style.display = "block";
             currentQuestionIndex = 0;
             renderQuestion(currentQuestionIndex);
         } else {
             stepLocation.style.display = "block";
-            fetchLocation();
         }
 
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -282,7 +308,7 @@ function renderQuestion(index) {
     if (q.options && Array.isArray(q.options) && q.options.length > 0) {
         q.options.forEach((opt) => {
             const label = document.createElement("label");
-            label.style.cssText = "display:flex; align-items:center; gap:10px; margin:10px 0; font-weight:normal; font-size:16px; cursor:pointer;";
+            label.style.cssText = "display:flex; align-items:center; gap:12px; margin:11px 0; font-weight:normal; font-size:15.5px; cursor:pointer;";
 
             const isChecked = Array.isArray(savedAns) ? savedAns.includes(opt) : savedAns === opt;
             const inputType = (q.type === "multiple" || q.type === "checkbox") ? "checkbox" : "radio";
@@ -295,7 +321,7 @@ function renderQuestion(index) {
         });
     } else {
         questionOptionsEl.innerHTML = `
-            <textarea id="textAnswerInput" placeholder="उत्तर दर्ज करें..." style="margin-top:10px;">${savedAns || ""}</textarea>
+            <textarea id="textAnswerInput" placeholder="उत्तर यहाँ दर्ज करें..." style="margin-top:10px;">${savedAns || ""}</textarea>
         `;
     }
 }
@@ -329,10 +355,9 @@ if (btnQuestionsNext) {
             currentQuestionIndex++;
             renderQuestion(currentQuestionIndex);
         } else {
-            // All Questions Finished -> Move to Step 3 (Location)
+            // सवालो के बाद सीधे लोकेशन स्टेप
             stepQuestions.style.display = "none";
             stepLocation.style.display = "block";
-            fetchLocation();
         }
         window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -346,7 +371,6 @@ if (btnQuestionsPrev) {
             currentQuestionIndex--;
             renderQuestion(currentQuestionIndex);
         } else {
-            // Back to Basic Details
             stepQuestions.style.display = "none";
             stepBasic.style.display = "block";
         }
@@ -373,7 +397,11 @@ if (btnLocationPrev) {
 
 if (btnLocationNext) {
     btnLocationNext.addEventListener("click", () => {
-        // Move to Step 4 (Photos)
+        if (!userLocation) {
+            const proceedWithoutLoc = confirm("आपने अभी तक GPS लोकेशन कैप्चर नहीं की है। क्या आप फिर भी आगे बढ़ना चाहते हैं?");
+            if (!proceedWithoutLoc) return;
+        }
+
         stepLocation.style.display = "none";
         stepPhotos.style.display = "block";
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -381,7 +409,7 @@ if (btnLocationNext) {
 }
 
 /* =========================================================
-   9. STEP 4 (Photos) & FINAL SUBMISSION
+   9. STEP 4 (Photos) & FINAL SUBMIT
    ========================================================= */
 if (btnPhotosPrev) {
     btnPhotosPrev.addEventListener("click", () => {
@@ -396,11 +424,19 @@ if (btnFinalSubmit) {
         const mobile = document.getElementById("mobile")?.value.trim();
         const village = document.getElementById("village")?.value.trim();
 
+        // 4 Photos Array for Admin compatibility
+        const photosArray = [
+            surveyPhotos.photo1,
+            surveyPhotos.photo2,
+            surveyPhotos.photo3,
+            surveyPhotos.photo4
+        ].filter(Boolean);
+
         btnFinalSubmit.disabled = true;
         btnFinalSubmit.textContent = "⏳ सबमिशन व डुप्लीकेट जाँच जारी है...";
 
         try {
-            // 1. Strict Duplicate Check
+            // 1. DUPLICATE CHECK
             const duplicateCheck = await firebase.firestore()
                 .collection("surveys")
                 .where("mobile", "==", mobile)
@@ -409,13 +445,13 @@ if (btnFinalSubmit) {
             if (!duplicateCheck.empty) {
                 alert(`⚠️ डुप्लीकेट प्रविष्टि: मोबाइल नंबर ${mobile} से पहले ही सर्वे दर्ज हो चुका है!`);
                 btnFinalSubmit.disabled = false;
-                btnFinalSubmit.textContent = "Submit Survey ✅";
+                btnFinalSubmit.textContent = "Submit Survey (सर्वे सबमिट करें) ✅";
                 stepPhotos.style.display = "none";
                 stepBasic.style.display = "block";
                 return;
             }
 
-            // 2. Build Payload
+            // 2. Prepare Survey Document
             const surveyData = {
                 name: document.getElementById("name")?.value.trim() || "",
                 mobile: mobile,
@@ -427,8 +463,14 @@ if (btnFinalSubmit) {
                 location: userLocation ? `${userLocation.latitude},${userLocation.longitude}` : village,
                 latitude: userLocation ? userLocation.latitude : null,
                 longitude: userLocation ? userLocation.longitude : null,
-                photos: capturedPhotos,
-                photoCount: capturedPhotos.length,
+                photos: photosArray, // एडमिन में Photos (4) बटन के लिए
+                categorizedPhotos: {
+                    villagePhoto: surveyPhotos.photo1,
+                    issuePhoto: surveyPhotos.photo2,
+                    respondentPhoto: surveyPhotos.photo3,
+                    selfiePhoto: surveyPhotos.photo4
+                },
+                photoCount: photosArray.length,
                 answers: userAnswers,
                 surveyorEmail: currentUser.email,
                 createdBy: currentUser.email,
@@ -438,7 +480,7 @@ if (btnFinalSubmit) {
 
             await firebase.firestore().collection("surveys").add(surveyData);
 
-            alert("✅ सर्वे, GPS लोकेशन और फोटो सफलतापूर्वक सबमिट हो गए!");
+            alert("✅ सर्वे, GPS लोकेशन और चारों तस्वीरें सफलतापूर्वक सबमिट हो गईं!");
 
             // 3. Reset All Form State
             document.getElementById("name").value = "";
@@ -448,10 +490,30 @@ if (btnFinalSubmit) {
             document.getElementById("village").value = "";
             document.getElementById("district").value = "";
             document.getElementById("pincode").value = "";
-            if (surveyPhotosInput) surveyPhotosInput.value = "";
-            if (photoGrid) photoGrid.innerHTML = "";
-            capturedPhotos = [];
+
+            // Reset Photos & Location
+            surveyPhotos = { photo1: null, photo2: null, photo3: null, photo4: null };
+            userLocation = null;
             userAnswers = {};
+
+            for (let i = 1; i <= 4; i++) {
+                const card = document.getElementById(`cardPhoto${i}`);
+                const status = document.getElementById(`statusPhoto${i}`);
+                const imgEl = document.getElementById(`prevPhoto${i}`);
+                const iconEl = document.getElementById(`iconPhoto${i}`);
+                const inputEl = document.getElementById(`inputPhoto${i}`);
+
+                if (card) card.classList.remove("has-image");
+                if (status) status.innerHTML = (i === 4) ? "🤳 सेल्फी लेने के लिए टैप करें" : "📷 फोटो खींचने के लिए टैप करें";
+                if (imgEl) { imgEl.src = ""; imgEl.style.display = "none"; }
+                if (iconEl) iconEl.style.display = "block";
+                if (inputEl) inputEl.value = "";
+            }
+
+            locationCard.classList.remove("captured");
+            btnGetLocation.classList.remove("success");
+            btnGetLocation.innerHTML = "<span>📍 अपनी लोकेशन चुनें</span>";
+            locStatusText.innerHTML = "लोकेशन अभी कैप्चर नहीं की गई है";
 
             stepPhotos.style.display = "none";
             stepBasic.style.display = "block";
@@ -465,7 +527,7 @@ if (btnFinalSubmit) {
             alert("त्रुटि: " + err.message);
         } finally {
             btnFinalSubmit.disabled = false;
-            btnFinalSubmit.textContent = "Submit Survey ✅";
+            btnFinalSubmit.textContent = "Submit Survey (सर्वे सबमिट करें) ✅";
         }
     });
 }
