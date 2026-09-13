@@ -1,837 +1,492 @@
 /* =========================================================
-   SURVEYKSHAN - ADMIN PANEL (QUESTION RESOLVER & DATE FIX)
+   SURVEYKSHAN - COMPLETE ADMIN SCRIPT WITH EXCEL EXPORT
    ========================================================= */
 
-// State Variables
-let allSurveys = [];
-let allSurveyors = [];
-let allQuestions = [];
-let editingQuestionId = null;
-let currentEditId = null;
-
-// Authorized Admin Email
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
-// DOM Helper
-const getEl = (id) => document.getElementById(id);
+let allSurveys = [];
+let allQuestionsMap = {};
+let orderedQuestions = [];
+
+// DOM References
+const surveysTableBody = document.getElementById("surveysTableBody");
+const statTotalSurveys = document.getElementById("statTotalSurveys");
+const statTodaySurveys = document.getElementById("statTodaySurveys");
+const statTotalSurveyors = document.getElementById("statTotalSurveyors");
+const statTotalQuestions = document.getElementById("statTotalQuestions");
+const adminEmailDisplay = document.getElementById("adminEmailDisplay");
 
 /* =========================================================
-   1. UNIVERSAL PHOTO EXTRACTOR (Cloudinary & Local Safe)
+   1. AUTHENTICATION & ACCESS GUARD
    ========================================================= */
-function getSurveyPhotosArray(survey) {
-    if (!survey) return [];
-    let photos = [];
-
-    const checkAndAdd = (val) => {
-        if (!val) return;
-        if (typeof val === "string") {
-            const clean = val.trim();
-            if ((clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("data:image/")) && !photos.includes(clean)) {
-                photos.push(clean);
-            }
-        } else if (typeof val === "object" && val !== null) {
-            const possibleUrl = val.url || val.secure_url || val.photoUrl || val.photoURL || val.src;
-            if (typeof possibleUrl === "string" && possibleUrl.startsWith("http")) {
-                const clean = possibleUrl.trim();
-                if (!photos.includes(clean)) photos.push(clean);
-            }
-        }
-    };
-
-    if (survey.photos) {
-        if (Array.isArray(survey.photos)) survey.photos.forEach(checkAndAdd);
-        else if (typeof survey.photos === "object") Object.values(survey.photos).forEach(checkAndAdd);
-        else if (typeof survey.photos === "string") checkAndAdd(survey.photos);
+firebase.auth().onAuthStateChanged(async (user) => {
+    if (!user) {
+        window.location.href = "index.html";
+        return;
     }
 
-    ["photoUrls", "photoURLs", "images", "imageUrls", "surveyPhotos"].forEach(key => {
-        if (survey[key]) {
-            if (Array.isArray(survey[key])) survey[key].forEach(checkAndAdd);
-            else if (typeof survey[key] === "object") Object.values(survey[key]).forEach(checkAndAdd);
+    const currentEmail = (user.email || "").toLowerCase().trim();
+    if (currentEmail !== ADMIN_EMAIL.toLowerCase()) {
+        alert("⚠️ अनाधिकृत प्रवेश! केवल अधिकृत एडमिन ही यह डैशबोर्ड देख सकते हैं।");
+        await firebase.auth().signOut();
+        window.location.href = "index.html";
+        return;
+    }
+
+    if (adminEmailDisplay) {
+        adminEmailDisplay.textContent = user.email;
+    }
+
+    // Load initial data
+    await loadAllAdminData();
+});
+
+function logoutAdmin() {
+    firebase.auth().signOut().then(() => {
+        window.location.href = "index.html";
+    });
+}
+window.logoutAdmin = logoutAdmin;
+
+/* =========================================================
+   2. DATA LOADER & AGGREGATOR
+   ========================================================= */
+async function loadAllAdminData() {
+    if (surveysTableBody) {
+        surveysTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px; color:#64748b;">⏳ डेटा लोड हो रहा है, कृपया प्रतीक्षा करें...</td></tr>`;
+    }
+
+    try {
+        // A. Load Questions
+        await loadQuestions();
+
+        // B. Load Surveys
+        await loadSurveys();
+
+        // C. Update Dashboard Stats
+        updateDashboardCounters();
+
+    } catch (err) {
+        console.error("Dashboard Load Error:", err);
+        if (surveysTableBody) {
+            surveysTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px; color:#ef4444;">त्रुटि: ${err.message}</td></tr>`;
         }
+    }
+}
+window.loadAllAdminData = loadAllAdminData;
+
+async function loadQuestions() {
+    allQuestionsMap = {};
+    orderedQuestions = [];
+
+    const snap = await firebase.firestore().collection("questions").get();
+    const tempQuestions = [];
+
+    snap.forEach((doc) => {
+        const data = doc.data();
+        const item = {
+            id: doc.id,
+            text: data.text || data.question || `Question_${doc.id}`,
+            order: data.order !== undefined ? Number(data.order) : 999
+        };
+        tempQuestions.push(item);
+        allQuestionsMap[doc.id] = item.text;
     });
 
-    ["photo1", "photo2", "photo3", "photo4", "photo_1", "photo_2", "photo_3", "photo_4"].forEach(k => {
-        if (survey[k]) checkAndAdd(survey[k]);
-    });
+    tempQuestions.sort((a, b) => a.order - b.order);
+    orderedQuestions = tempQuestions;
 
-    ["photoURL", "photoUrl", "imageUrl", "imageURL", "cloudinaryURL", "photo", "image"].forEach(k => {
-        if (survey[k]) checkAndAdd(survey[k]);
-    });
+    if (statTotalQuestions) {
+        statTotalQuestions.textContent = tempQuestions.length;
+    }
+}
 
-    if (photos.length === 0) {
-        Object.keys(survey).forEach(k => {
-            const val = survey[k];
-            if (typeof val === "string" && (val.includes("cloudinary.com") || val.includes("res.cloudinary"))) {
-                checkAndAdd(val);
-            }
+async function loadSurveys() {
+    const snap = await firebase.firestore().collection("surveys").get();
+    allSurveys = [];
+
+    snap.forEach((doc) => {
+        allSurveys.push({
+            id: doc.id,
+            ...doc.data()
         });
-    }
+    });
 
-    return photos;
+    // Sort descending by date
+    allSurveys.sort((a, b) => {
+        const dateA = parseSurveyDate(a);
+        const dateB = parseSurveyDate(b);
+        return dateB - dateA;
+    });
+
+    renderSurveysTable(allSurveys);
 }
 
 /* =========================================================
-   2. DATE FORMATTER (ALL POSSIBLE KEYS & FORMATS)
+   3. DATE & TIME UTILITY
    ========================================================= */
-function parseAnyDate(val) {
-    if (!val) return null;
+function parseSurveyDate(item) {
+    if (!item) return new Date(0);
     try {
-        if (typeof val.toDate === "function") return val.toDate();
-        if (typeof val === "object" && val.seconds !== undefined) return new Date(val.seconds * 1000);
-        if (typeof val === "number") return new Date(val);
-        if (typeof val === "string") {
-            const parsed = new Date(val);
-            if (!isNaN(parsed.getTime())) return parsed;
+        if (item.timestamp?.toDate) return item.timestamp.toDate();
+        if (item.timestamp?.seconds) return new Date(item.timestamp.seconds * 1000);
+        if (item.createdAt) {
+            const d = new Date(item.createdAt);
+            if (!isNaN(d.getTime())) return d;
+        }
+        if (item.timestamp) {
+            const d = new Date(item.timestamp);
+            if (!isNaN(d.getTime())) return d;
         }
     } catch (e) {}
-    return null;
+    return new Date(0);
 }
 
-function getSurveyDateObject(survey) {
-    const possibleKeys = [
-        "timestamp", "createdAt", "submittedAt", "date", "time", 
-        "created_at", "submitted_at", "surveyDate", "survey_time"
-    ];
-    for (const key of possibleKeys) {
-        if (survey[key]) {
-            const d = parseAnyDate(survey[key]);
-            if (d && !isNaN(d.getTime())) return d;
-        }
-    }
-    return null;
-}
-
-function formatSurveyDate(survey) {
-    const d = getSurveyDateObject(survey);
-    if (d) {
-        return d.toLocaleString("en-IN", {
-            day: "numeric",
-            month: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
-            hour12: true
-        });
-    }
-    return "Date Pending";
-}
-
-/* =========================================================
-   3. AUTHENTICATION OBSERVER
-   ========================================================= */
-firebase.auth().onAuthStateChanged((user) => {
-    if (!user) {
-        window.location.href = "login.html";
-        return;
-    }
-
-    const email = (user.email || "").toLowerCase().trim();
-    if (email !== ADMIN_EMAIL.toLowerCase()) {
-        alert("केवल अधिकृत एडमिन ही इस पैनल को खोल सकता है!");
-        firebase.auth().signOut().then(() => window.location.href = "login.html");
-        return;
-    }
-
-    loadQuestionsRealtime();
-    loadSurveysRealtime();
-    loadSurveyorsRealtime();
-    loadDailyLimit();
-});
-
-/* =========================================================
-   4. SURVEYS TABLE RENDERER
-   ========================================================= */
-function loadSurveysRealtime() {
-    firebase.firestore().collection("surveys").onSnapshot((snapshot) => {
-        allSurveys = [];
-        snapshot.forEach((doc) => {
-            allSurveys.push({ id: doc.id, ...doc.data() });
-        });
-
-        // Date sorting
-        allSurveys.sort((a, b) => {
-            const dateA = getSurveyDateObject(a)?.getTime() || 0;
-            const dateB = getSurveyDateObject(b)?.getTime() || 0;
-            return dateB - dateA;
-        });
-
-        renderSurveys(allSurveys);
-        populateFilterDropdowns(allSurveys);
-        updateDashboardCards();
-    }, (error) => {
-        console.error("Firestore Surveys Error:", error);
+function formatSurveyDate(item) {
+    const d = parseSurveyDate(item);
+    if (d.getTime() === 0) return "N/A";
+    return d.toLocaleString("en-IN", {
+        day: "numeric",
+        month: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+        hour12: true
     });
 }
 
-function renderSurveys(surveys) {
-    const surveyTable = getEl("surveyTable");
-    if (!surveyTable) return;
-    surveyTable.innerHTML = "";
+/* =========================================================
+   4. RENDER SURVEYS TABLE
+   ========================================================= */
+function renderSurveysTable(dataList) {
+    if (!surveysTableBody) return;
 
-    const filterCount = getEl("filterResultCount");
-    if (filterCount) filterCount.textContent = `Showing: ${surveys.length} / ${allSurveys.length}`;
-
-    if (surveys.length === 0) {
-        surveyTable.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:25px; color:#888;">कोई सर्वे रिकॉर्ड नहीं मिला।</td></tr>`;
+    if (!dataList || dataList.length === 0) {
+        surveysTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px; color:#64748b;">कोई सर्वे रिकॉर्ड नहीं मिला।</td></tr>`;
         return;
     }
 
-    surveys.forEach((survey) => {
-        const photos = getSurveyPhotosArray(survey);
+    surveysTableBody.innerHTML = "";
+
+    dataList.forEach((survey) => {
         const tr = document.createElement("tr");
 
-        let photoHtml = `<span style="color:#94a3b8; font-size:12px;">No Photo</span>`;
-        if (photos.length > 0) {
-            photoHtml = `
-                <button type="button" class="primary" style="padding:5px 9px; font-size:11px; border-radius:6px; margin:0;" onclick="openPhotosModal('${survey.id}')">
-                    📷 Photos (${photos.length})
-                </button>
-            `;
-        }
+        // Photo Count & Button
+        const photoList = extractSurveyPhotos(survey);
+        const photoBtnHtml = photoList.length > 0 
+            ? `<button class="btn-table-photo" onclick="openPhotosModal('${survey.id}')">📷 Photos (${photoList.length})</button>`
+            : `<span style="color:#94a3b8; font-size:12px;">No Photo</span>`;
 
-        let mapLink = `<span style="color:#94a3b8; font-size:12px;">-</span>`;
-        const villageText = survey.village || survey.address || "-";
-        
+        // Location & Map
+        let locHtml = survey.village || "N/A";
         if (survey.latitude && survey.longitude) {
-            mapLink = `${villageText} <a href="https://maps.google.com/?q=${survey.latitude},${survey.longitude}" target="_blank" style="background:#059669; color:#fff; text-decoration:none; padding:2px 6px; border-radius:4px; font-size:10px; margin-left:4px; display:inline-block;">📍 Map</a>`;
-        } else if (survey.location && typeof survey.location === "object" && survey.location.latitude) {
-            mapLink = `${villageText} <a href="https://maps.google.com/?q=${survey.location.latitude},${survey.location.longitude}" target="_blank" style="background:#059669; color:#fff; text-decoration:none; padding:2px 6px; border-radius:4px; font-size:10px; margin-left:4px; display:inline-block;">📍 Map</a>`;
-        } else {
-            mapLink = `${villageText}`;
+            locHtml += ` <a href="https://www.google.com/maps?q=${survey.latitude},${survey.longitude}" target="_blank" class="map-badge">📍 Map</a>`;
         }
 
+        // Surveyor & Date
         const surveyorEmail = survey.surveyorEmail || survey.createdBy || "Unknown";
-        const dateString = formatSurveyDate(survey);
+        const dateStr = formatSurveyDate(survey);
 
         tr.innerHTML = `
-            <td>${photoHtml}</td>
-            <td style="font-weight:bold; color:#1565c0;">${survey.name || survey.respondentName || "-"}</td>
-            <td>${survey.mobile || survey.phone || "-"}</td>
-            <td>${survey.age || "-"}</td>
-            <td>${survey.gender || "-"}</td>
-            <td>${survey.village || "-"}</td>
-            <td>${mapLink}</td>
+            <td>${photoBtnHtml}</td>
+            <td style="font-weight:700; color:#1d4ed8;">${survey.name || "N/A"}</td>
+            <td>${survey.mobile || "N/A"}</td>
+            <td>${survey.age || "N/A"}</td>
+            <td>${survey.gender || "N/A"}</td>
+            <td>${survey.village || "N/A"}</td>
+            <td>${locHtml}</td>
             <td>
-                <div style="font-weight:bold; font-size:12px;">${surveyorEmail}</div>
-                <div style="font-size:11px; color:#555; margin-top:3px;">${dateString}</div>
+                <div style="font-weight:700; color:#0f172a;">${surveyorEmail}</div>
+                <div style="font-size:11px; color:#64748b;">${dateStr}</div>
             </td>
             <td>
-                <div style="display:inline-flex; gap:4px;">
-                    <button type="button" class="purple" style="padding:5px 8px; font-size:11px;" onclick="openAnswersModal('${survey.id}')">📋 Answers</button>
-                    <button type="button" class="primary" style="padding:5px 8px; font-size:11px;" onclick="openEditModal('${survey.id}')">✏️ Edit</button>
-                    <button type="button" class="danger" style="padding:5px 8px; font-size:11px;" onclick="deleteSurvey('${survey.id}')">🗑️ Delete</button>
-                </div>
+                <button class="btn-table-answers" onclick="openAnswersModal('${survey.id}')">📋 Answers</button>
+                <button class="btn-table-delete" onclick="deleteSurveyRecord('${survey.id}')">🗑️ Delete</button>
             </td>
         `;
 
-        surveyTable.appendChild(tr);
+        surveysTableBody.appendChild(tr);
     });
 }
 
-/* =========================================================
-   5. ANSWERS MODAL (MATCH QUESTION ID TO QUESTION TEXT)
-   ========================================================= */
-window.openAnswersModal = function(surveyId) {
-    const survey = allSurveys.find(s => s.id === surveyId);
-    if (!survey) return;
-
-    const body = getEl("answerModalBody");
-    if (!body) return;
-    body.innerHTML = "";
-
-    let answers = survey.answers || survey.responses || {};
-
-    // Helper: Find question text by id or text
-    const getQuestionText = (key, idx) => {
-        // 1. Direct match by ID
-        const matched = allQuestions.find(q => q.id === key);
-        if (matched) return matched.text || matched.question;
-
-        // 2. If already question text
-        if (key.length > 25 && key.includes(" ")) return key;
-
-        // 3. Fallback to index if available
-        if (allQuestions[idx]) return allQuestions[idx].text || allQuestions[idx].question;
-
-        return `Question (${key})`;
-    };
-
-    let entries = [];
-    if (Array.isArray(answers)) {
-        answers.forEach((ans, i) => {
-            entries.push({
-                q: allQuestions[i] ? (allQuestions[i].text || allQuestions[i].question) : `Question ${i + 1}`,
-                a: ans
-            });
-        });
-    } else if (typeof answers === "object" && answers !== null) {
-        let i = 0;
-        for (const [key, val] of Object.entries(answers)) {
-            entries.push({
-                q: getQuestionText(key, i),
-                a: typeof val === "object" ? JSON.stringify(val) : val
-            });
-            i++;
-        }
+function extractSurveyPhotos(survey) {
+    if (Array.isArray(survey.photos) && survey.photos.length > 0) {
+        return survey.photos;
     }
-
-    if (entries.length === 0) {
-        body.innerHTML = `<p style="text-align:center; color:#888;">कोई उत्तर दर्ज नहीं हैं।</p>`;
-    } else {
-        let html = `<div style="display:flex; flex-direction:column; gap:12px;">`;
-        entries.forEach((item, index) => {
-            html += `
-                <div style="background:#f1f5f9; padding:12px 14px; border-radius:8px; border-left:4px solid #1565c0;">
-                    <div style="font-weight:bold; color:#1e293b; font-size:14px;">Q${index + 1}. ${item.q}</div>
-                    <div style="color:#0f172a; margin-top:5px; font-size:13px; font-weight:500;">👉 ${item.a || "-"}</div>
-                </div>
-            `;
-        });
-        html += `</div>`;
-        body.innerHTML = html;
+    if (survey.categorizedPhotos) {
+        const list = [
+            survey.categorizedPhotos.villagePhoto,
+            survey.categorizedPhotos.issuePhoto,
+            survey.categorizedPhotos.respondentPhoto,
+            survey.categorizedPhotos.selfiePhoto
+        ].filter(Boolean);
+        if (list.length > 0) return list;
     }
-
-    const modal = getEl("answerModal");
-    if (modal) modal.classList.add("show");
-};
-
-/* =========================================================
-   6. EDIT MODAL LOGIC
-   ========================================================= */
-window.openEditModal = function(surveyId) {
-    const survey = allSurveys.find(s => s.id === surveyId);
-    if (!survey) return;
-
-    currentEditId = surveyId;
-    if (getEl("editName")) getEl("editName").value = survey.name || survey.respondentName || "";
-    if (getEl("editMobile")) getEl("editMobile").value = survey.mobile || survey.phone || "";
-    if (getEl("editAge")) getEl("editAge").value = survey.age || "";
-    if (getEl("editVillage")) getEl("editVillage").value = survey.village || "";
-
-    const modal = getEl("editSurveyModal");
-    if (modal) modal.classList.add("show");
-};
-
-window.closeEditModal = function() {
-    const modal = getEl("editSurveyModal");
-    if (modal) modal.classList.remove("show");
-    currentEditId = null;
-};
-
-/* =========================================================
-   7. 4-PHOTO MODAL
-   ========================================================= */
-window.openPhotosModal = function(surveyId) {
-    const survey = allSurveys.find(s => s.id === surveyId);
-    if (!survey) return;
-
-    const photos = getSurveyPhotosArray(survey);
-    const photosGrid = getEl("photosModalGrid");
-    
-    if (photosGrid) {
-        photosGrid.innerHTML = "";
-        if (photos.length === 0) {
-            photosGrid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#888;">इस सर्वे में कोई फोटो उपलब्ध नहीं है।</p>`;
-        } else {
-            photos.forEach((url, idx) => {
-                const card = document.createElement("div");
-                card.style.cssText = "background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; padding:8px; text-align:center;";
-                card.innerHTML = `
-                    <img src="${url}" alt="Photo ${idx + 1}" style="width:100%; height:180px; object-fit:cover; border-radius:6px; cursor:pointer;" onclick="window.open('${url}', '_blank')">
-                    <div style="margin-top:6px; font-size:12px; font-weight:bold; color:#334155;">Photo ${idx + 1}</div>
-                    <a href="${url}" target="_blank" style="font-size:11px; color:#1565c0; text-decoration:none; display:inline-block; margin-top:3px;">🔍 Full View</a>
-                `;
-                photosGrid.appendChild(card);
-            });
-        }
-    }
-
-    const modal = getEl("photosModal");
-    if (modal) modal.style.display = "flex";
-};
-
-window.closePhotosModal = function() {
-    const modal = getEl("photosModal");
-    if (modal) modal.style.display = "none";
-};
-
-/* =========================================================
-   8. DASHBOARD CARDS SYNC
-   ========================================================= */
-function updateDashboardCards() {
-    const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    let countToday = 0;
-    let countWeek = 0;
-    let countMonth = 0;
-
-    allSurveys.forEach(s => {
-        const d = getSurveyDateObject(s);
-        if (d && !isNaN(d.getTime())) {
-            if (d.toISOString().split("T")[0] === todayStr) countToday++;
-            if (d >= startOfWeek) countWeek++;
-            if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) countMonth++;
-        }
-    });
-
-    if (getEl("totalSurvey")) getEl("totalSurvey").textContent = allSurveys.length;
-    if (getEl("todaySurvey")) getEl("todaySurvey").textContent = countToday;
-    if (getEl("weekSurvey")) getEl("weekSurvey").textContent = countWeek;
-    if (getEl("monthSurvey")) getEl("monthSurvey").textContent = countMonth;
-    if (getEl("questionCount")) getEl("questionCount").textContent = allQuestions.length;
+    if (survey.photoURL) return [survey.photoURL];
+    if (survey.photo) return [survey.photo];
+    return [];
 }
 
 /* =========================================================
-   9. DELETE SURVEYS
+   5. SEARCH FILTER
    ========================================================= */
-window.deleteSurvey = async function(surveyId) {
-    if (confirm("क्या आप वाकई इस सर्वे को हटाना चाहते हैं?")) {
-        try {
-            await firebase.firestore().collection("surveys").doc(surveyId).delete();
-            alert("सर्वे सफलतापूर्वक हटा दिया गया।");
-        } catch (e) {
-            alert("त्रुटि: " + e.message);
-        }
-    }
-};
+function filterSurveysTable() {
+    const q = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
 
-/* =========================================================
-   10. SURVEYORS MANAGEMENT TABLE
-   ========================================================= */
-function loadSurveyorsRealtime() {
-    firebase.firestore().collection("surveyors").onSnapshot((snapshot) => {
-        allSurveyors = [];
-        snapshot.forEach((doc) => {
-            allSurveyors.push({ id: doc.id, ...doc.data() });
-        });
-        renderSurveyorsTable();
-    });
-}
-
-function renderSurveyorsTable() {
-    const tableBody = getEl("surveyorManagementTable");
-    if (!tableBody) return;
-    tableBody.innerHTML = "";
-
-    if (allSurveyors.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:15px; color:#888;">कोई सर्वेक्षक पंजीकृत नहीं है।</td></tr>`;
+    if (!q) {
+        renderSurveysTable(allSurveys);
         return;
     }
 
-    const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    allSurveyors.forEach((s) => {
-        const surveyorEmail = (s.email || s.id || "").toLowerCase();
-        let total = 0, today = 0, week = 0, month = 0;
-
-        allSurveys.forEach(surv => {
-            const sEmail = (surv.surveyorEmail || surv.createdBy || "").toLowerCase();
-            if (sEmail === surveyorEmail) {
-                total++;
-                const d = getSurveyDateObject(surv);
-                if (d && !isNaN(d.getTime())) {
-                    if (d.toISOString().split("T")[0] === todayStr) today++;
-                    if (d >= startOfWeek) week++;
-                    if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) month++;
-                }
-            }
-        });
-
-        const isApproved = (s.status === "approved" || s.active === true);
-        const tr = document.createElement("tr");
-
-        tr.innerHTML = `
-            <td style="text-align:left; font-weight:bold;">${s.name || s.id} <br><small style="color:#666; font-weight:normal;">${s.email || s.id}</small></td>
-            <td><strong>${total}</strong></td>
-            <td>${today}</td>
-            <td>${week}</td>
-            <td>${month}</td>
-            <td>
-                <button type="button" class="${isApproved ? 'warning' : 'success'}" style="padding:4px 8px; font-size:11px;" onclick="toggleSurveyorStatus('${s.id}', '${s.status || (isApproved ? 'approved' : 'pending')}')">
-                    ${isApproved ? 'Reject' : 'Approve'}
-                </button>
-                <button type="button" class="danger" style="padding:4px 8px; font-size:11px;" onclick="deleteSurveyor('${s.id}')">🗑️</button>
-            </td>
-        `;
-
-        tableBody.appendChild(tr);
+    const filtered = allSurveys.filter((s) => {
+        const name = (s.name || "").toLowerCase();
+        const mobile = (s.mobile || "").toLowerCase();
+        const village = (s.village || "").toLowerCase();
+        const surveyor = (s.surveyorEmail || s.createdBy || "").toLowerCase();
+        return name.includes(q) || mobile.includes(q) || village.includes(q) || surveyor.includes(q);
     });
+
+    renderSurveysTable(filtered);
+}
+window.filterSurveysTable = filterSurveysTable;
+
+/* =========================================================
+   6. COUNTER CARDS UPDATE
+   ========================================================= */
+function updateDashboardCounters() {
+    if (statTotalSurveys) {
+        statTotalSurveys.textContent = allSurveys.length;
+    }
+
+    // Today's Count
+    const todayStr = new Date().toDateString();
+    let todayCount = 0;
+    const uniqueSurveyors = new Set();
+
+    allSurveys.forEach((s) => {
+        const d = parseSurveyDate(s);
+        if (d.toDateString() === todayStr) {
+            todayCount++;
+        }
+        const surveyor = s.surveyorEmail || s.createdBy;
+        if (surveyor) uniqueSurveyors.add(surveyor);
+    });
+
+    if (statTodaySurveys) statTodaySurveys.textContent = todayCount;
+    if (statTotalSurveyors) statTotalSurveyors.textContent = uniqueSurveyors.size;
 }
 
-window.toggleSurveyorStatus = async function(id, currentStatus) {
-    const nextStatus = currentStatus === "approved" ? "pending" : "approved";
+/* =========================================================
+   7. EXCEL EXPORT SYSTEM (.XLSX)
+   ========================================================= */
+async function exportSurveysToExcel() {
+    const exportBtn = document.getElementById("btnExportExcel");
+    if (exportBtn) {
+        exportBtn.disabled = true;
+        exportBtn.innerHTML = "<span>⏳ एक्सेल तैयार हो रहा है...</span>";
+    }
+
     try {
-        await firebase.firestore().collection("surveyors").doc(id).set({
-            status: nextStatus,
-            active: nextStatus === "approved"
-        }, { merge: true });
-    } catch (e) {
-        alert("त्रुटि: " + e.message);
-    }
-};
-
-window.deleteSurveyor = async function(id) {
-    if (confirm("क्या आप इस सर्वेक्षक को हटाना चाहते हैं?")) {
-        try {
-            await firebase.firestore().collection("surveyors").doc(id).delete();
-        } catch (e) {
-            alert("त्रुटि: " + e.message);
+        if (!allSurveys || allSurveys.length === 0) {
+            alert("⚠️ डाउनलोड करने के लिए कोई सर्वे डेटा उपलब्ध नहीं है!");
+            return;
         }
-    }
-};
 
-/* =========================================================
-   11. QUESTION MANAGER
-   ========================================================= */
-function loadQuestionsRealtime() {
-    firebase.firestore().collection("questions").onSnapshot((snapshot) => {
-        allQuestions = [];
-        snapshot.forEach(doc => allQuestions.push({ id: doc.id, ...doc.data() }));
+        const excelRows = [];
+        let index = 1;
 
-        const list = getEl("questionsList");
-        if (list) {
-            list.innerHTML = "";
-            allQuestions.forEach((q, idx) => {
-                const card = document.createElement("div");
-                card.className = "question-card";
-                card.innerHTML = `
-                    <h3>${idx + 1}. ${q.text || q.question} (${q.type === 'single' ? 'Single Choice' : 'Multiple Choice'})</h3>
-                    <p style="color:#555; margin:5px 0;">Options: ${q.options ? q.options.join(", ") : "None"}</p>
-                    <button type="button" class="warning" onclick="editQuestion('${q.id}')">✏️ Edit</button>
-                    <button type="button" class="danger" onclick="deleteQuestion('${q.id}')">🗑️ Delete</button>
-                `;
-                list.appendChild(card);
-            });
-        }
-        updateDashboardCards();
-    });
-}
-
-window.editQuestion = function(id) {
-    const q = allQuestions.find(x => x.id === id);
-    if (!q) return;
-
-    editingQuestionId = id;
-    getEl("questionText").value = q.text || q.question || "";
-    getEl("questionType").value = q.type || "single";
-    
-    const container = getEl("optionsContainer");
-    container.innerHTML = "";
-    if (q.options && Array.isArray(q.options)) {
-        q.options.forEach(opt => {
-            const row = document.createElement("div");
-            row.className = "option-row";
-            row.innerHTML = `
-                <input type="text" value="${opt}" class="question-opt-input">
-                <button type="button" class="danger" onclick="this.parentElement.remove()">✖</button>
-            `;
-            container.appendChild(row);
-        });
-    }
-
-    getEl("cancelEdit").style.display = "inline-block";
-    getEl("questionManagerBody").style.display = "block";
-    if (getEl("questionManagerToggle")) getEl("questionManagerToggle").textContent = "🙈 Hide";
-};
-
-window.deleteQuestion = async function(id) {
-    if (confirm("क्या आप इस प्रश्न को हटाना चाहते हैं?")) {
-        try {
-            await firebase.firestore().collection("questions").doc(id).delete();
-        } catch (e) {
-            alert("त्रुटि: " + e.message);
-        }
-    }
-};
-
-/* =========================================================
-   12. DAILY SURVEY LIMIT
-   ========================================================= */
-function loadDailyLimit() {
-    firebase.firestore().collection("settings").doc("config").get().then((doc) => {
-        if (doc.exists && doc.data().dailyLimit !== undefined) {
-            const input = getEl("dailyLimitInput");
-            if (input) input.value = doc.data().dailyLimit;
-        }
-    }).catch(e => console.warn(e));
-}
-
-/* =========================================================
-   13. FILTERS (Populate & Apply)
-   ========================================================= */
-function populateFilterDropdowns(surveys) {
-    const fillSelect = (selectId, values) => {
-        const select = getEl(selectId);
-        if (!select) return;
-        const currentVal = select.value;
-        const defaultOpt = select.options[0].outerHTML;
-        select.innerHTML = defaultOpt;
-        Array.from(values).sort().forEach(val => {
-            if (val) {
-                const opt = document.createElement("option");
-                opt.value = val;
-                opt.textContent = val;
-                select.appendChild(opt);
+        allSurveys.forEach((s) => {
+            // Google Maps Link
+            let mapLink = "N/A";
+            if (s.latitude && s.longitude) {
+                mapLink = `https://www.google.com/maps?q=${s.latitude},${s.longitude}`;
             }
-        });
-        select.value = currentVal;
-    };
 
-    const names = new Set(), mobiles = new Set(), villages = new Set(), surveyors = new Set();
-    surveys.forEach(s => {
-        if (s.name || s.respondentName) names.add(s.name || s.respondentName);
-        if (s.mobile || s.phone) mobiles.add(s.mobile || s.phone);
-        if (s.village) villages.add(s.village);
-        if (s.surveyorEmail || s.createdBy) surveyors.add(s.surveyorEmail || s.createdBy);
-    });
+            const photos = extractSurveyPhotos(s);
 
-    fillSelect("filterName", names);
-    fillSelect("filterMobile", mobiles);
-    fillSelect("filterVillage", villages);
-    fillSelect("filterSurveyor", surveyors);
-}
-
-function applyFilters() {
-    const fName = getEl("filterName")?.value || "";
-    const fMobile = getEl("filterMobile")?.value || "";
-    const fVillage = getEl("filterVillage")?.value || "";
-    const fSurveyor = getEl("filterSurveyor")?.value || "";
-    const fDate = getEl("filterDate")?.value || "";
-
-    const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const filtered = allSurveys.filter(survey => {
-        const name = survey.name || survey.respondentName || "";
-        const mobile = survey.mobile || survey.phone || "";
-        const village = survey.village || "";
-        const surveyor = survey.surveyorEmail || survey.createdBy || "";
-
-        if (fName && name !== fName) return false;
-        if (fMobile && mobile !== fMobile) return false;
-        if (fVillage && village !== fVillage) return false;
-        if (fSurveyor && surveyor !== fSurveyor) return false;
-
-        if (fDate) {
-            const d = getSurveyDateObject(survey);
-            if (!d || isNaN(d.getTime())) return false;
-
-            if (fDate === "today" && d.toISOString().split("T")[0] !== todayStr) return false;
-            if (fDate === "week" && d < startOfWeek) return false;
-            if (fDate === "month" && (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear)) return false;
-        }
-
-        return true;
-    });
-
-    renderSurveys(filtered);
-}
-
-/* =========================================================
-   14. ATTACH ALL DOM EVENT LISTENERS
-   ========================================================= */
-window.addEventListener("DOMContentLoaded", () => {
-    // Edit Form Submit
-    const editForm = getEl("editSurveyForm");
-    if (editForm) {
-        editForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            if (!currentEditId) return;
-
-            const updatedData = {
-                name: getEl("editName").value.trim(),
-                mobile: getEl("editMobile").value.trim(),
-                age: getEl("editAge").value.trim(),
-                village: getEl("editVillage").value.trim()
+            const rowData = {
+                "क्र. सं. (S.No)": index++,
+                "सर्वेक्षक का ईमेल (Surveyor Email)": s.surveyorEmail || s.createdBy || "N/A",
+                "सर्वे दिनांक व समय (Submission Date)": formatSurveyDate(s),
+                "उत्तरदाता का नाम (Respondent Name)": s.name || "N/A",
+                "मोबाइल नंबर (Mobile)": s.mobile || "N/A",
+                "उम्र (Age)": s.age || "N/A",
+                "लिंग (Gender)": s.gender || "N/A",
+                "गाँव/वार्ड (Village)": s.village || "N/A",
+                "जिला (District)": s.district || "N/A",
+                "पिन कोड (PIN Code)": s.pincode || "N/A",
+                "अक्षांश (Latitude)": s.latitude || "",
+                "देशांतर (Longitude)": s.longitude || "",
+                "गूगल मैप लिंक (Google Maps Link)": mapLink,
+                "कुल फ़ोटो संख्या (Photos Count)": photos.length
             };
 
-            try {
-                await firebase.firestore().collection("surveys").doc(currentEditId).update(updatedData);
-                alert("सर्वे सफलतापूर्वक अपडेट हो गया!");
-                closeEditModal();
-            } catch (error) {
-                alert("अपडेट करने में त्रुटि: " + error.message);
+            // Dynamic Questions Columns (Mapped with Real Question Text)
+            if (orderedQuestions.length > 0) {
+                orderedQuestions.forEach((q) => {
+                    let ans = s.answers ? s.answers[q.id] : "";
+                    if (Array.isArray(ans)) ans = ans.join(", ");
+                    rowData[q.text] = ans || "-";
+                });
+            } else if (s.answers) {
+                Object.keys(s.answers).forEach((k) => {
+                    let ans = s.answers[k];
+                    if (Array.isArray(ans)) ans = ans.join(", ");
+                    const title = allQuestionsMap[k] || k;
+                    rowData[title] = ans || "-";
+                });
             }
-        });
-    }
 
-    // Question Manager Toggle
-    const qToggle = getEl("questionManagerToggle");
-    if (qToggle) {
-        qToggle.addEventListener("click", () => {
-            const body = getEl("questionManagerBody");
-            if (body) {
-                const isHidden = body.style.display === "none";
-                body.style.display = isHidden ? "block" : "none";
-                qToggle.textContent = isHidden ? "🙈 Hide" : "👁️ Show";
-            }
+            excelRows.push(rowData);
         });
-    }
 
-    // Add Option
-    const addOpt = getEl("addOption");
-    if (addOpt) {
-        addOpt.addEventListener("click", () => {
-            const container = getEl("optionsContainer");
-            const row = document.createElement("div");
-            row.className = "option-row";
-            row.innerHTML = `
-                <input type="text" placeholder="Option text" class="question-opt-input">
-                <button type="button" class="danger" onclick="this.parentElement.remove()">✖</button>
+        // Generate Worksheet & Workbook
+        const worksheet = XLSX.utils.json_to_sheet(excelRows);
+
+        // Dynamic Column Auto-Width
+        const colWidths = Object.keys(excelRows[0] || {}).map((k) => ({
+            wch: Math.max(k.length + 4, 15)
+        }));
+        worksheet["!cols"] = colWidths;
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Survey_Report");
+
+        // Trigger Download
+        const currentDate = new Date().toISOString().split("T")[0];
+        XLSX.writeFile(workbook, `Surveykshan_Full_Report_${currentDate}.xlsx`);
+
+    } catch (err) {
+        console.error("Excel Export Failure:", err);
+        alert("एक्सेल एक्सपोर्ट में समस्या आई: " + err.message);
+    } finally {
+        if (exportBtn) {
+            exportBtn.disabled = false;
+            exportBtn.innerHTML = "<span>📥 Export to Excel (.xlsx)</span>";
+        }
+    }
+}
+window.exportSurveysToExcel = exportSurveysToExcel;
+
+/* =========================================================
+   8. MODALS (PHOTOS & ANSWERS)
+   ========================================================= */
+function openPhotosModal(surveyId) {
+    const survey = allSurveys.find((s) => s.id === surveyId);
+    if (!survey) return;
+
+    const modal = document.getElementById("photosModal");
+    const container = document.getElementById("modalPhotosContainer");
+    const title = document.getElementById("modalPhotoTitle");
+
+    title.textContent = `Photos: ${survey.name || "Survey"} (${survey.mobile || ""})`;
+    container.innerHTML = "";
+
+    const photos = extractSurveyPhotos(survey);
+    const labels = [
+        "1. गाँव/शहर की फोटो",
+        "2. समस्या की फोटो",
+        "3. रिस्पॉन्डेंट की फोटो",
+        "4. रिस्पॉन्डेंट के साथ सेल्फी"
+    ];
+
+    if (photos.length === 0) {
+        container.innerHTML = `<p style="color:#64748b; font-size:14px; grid-column: 1 / -1;">कोई फोटो संलग्न नहीं है।</p>`;
+    } else {
+        photos.forEach((src, idx) => {
+            const item = document.createElement("div");
+            item.className = "modal-photo-item";
+            item.innerHTML = `
+                <a href="${src}" target="_blank">
+                    <img src="${src}" alt="Photo ${idx + 1}">
+                </a>
+                <span>${labels[idx] || `Photo ${idx + 1}`}</span>
             `;
-            container.appendChild(row);
+            container.appendChild(item);
         });
     }
 
-    // Save Question
-    const saveQ = getEl("saveQuestion");
-    if (saveQ) {
-        saveQ.addEventListener("click", async () => {
-            const text = getEl("questionText")?.value.trim();
-            const type = getEl("questionType")?.value;
-            const optInputs = document.querySelectorAll(".question-opt-input");
-            let options = [];
-            optInputs.forEach(input => {
-                if (input.value.trim()) options.push(input.value.trim());
-            });
+    modal.style.display = "flex";
+}
+window.openPhotosModal = openPhotosModal;
 
-            if (!text) {
-                alert("कृपया प्रश्न दर्ज करें!");
-                return;
-            }
+function closePhotosModal() {
+    document.getElementById("photosModal").style.display = "none";
+}
+window.closePhotosModal = closePhotosModal;
 
-            try {
-                if (editingQuestionId) {
-                    await firebase.firestore().collection("questions").doc(editingQuestionId).update({
-                        question: text,
-                        text: text,
-                        type: type,
-                        options: options
-                    });
-                    editingQuestionId = null;
-                    getEl("cancelEdit").style.display = "none";
-                } else {
-                    await firebase.firestore().collection("questions").add({
-                        question: text,
-                        text: text,
-                        type: type,
-                        options: options,
-                        order: allQuestions.length + 1,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
+function openAnswersModal(surveyId) {
+    const survey = allSurveys.find((s) => s.id === surveyId);
+    if (!survey) return;
 
-                getEl("questionText").value = "";
-                getEl("optionsContainer").innerHTML = "";
-                getEl("questionMessage").textContent = "प्रश्न सफलतापूर्वक सेव हो गया!";
-                setTimeout(() => getEl("questionMessage").textContent = "", 3000);
-            } catch (e) {
-                alert("त्रुटि: " + e.message);
+    const modal = document.getElementById("answersModal");
+    const container = document.getElementById("modalAnswersContainer");
+    const title = document.getElementById("modalAnswersTitle");
+
+    title.textContent = `Answers: ${survey.name || "Survey"} (${survey.mobile || ""})`;
+    container.innerHTML = "";
+
+    const answers = survey.answers || {};
+    const keys = Object.keys(answers);
+
+    if (keys.length === 0) {
+        container.innerHTML = `<p style="color:#64748b; font-size:14px;">कोई उत्तर दर्ज नहीं हैं।</p>`;
+    } else {
+        let idx = 1;
+        // Match ordered questions first
+        orderedQuestions.forEach((q) => {
+            if (answers[q.id] !== undefined) {
+                let ans = answers[q.id];
+                if (Array.isArray(ans)) ans = ans.join(", ");
+                container.innerHTML += `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px;">
+                        <div style="font-weight:700; color:#1e293b; font-size:14px; margin-bottom:4px;">Q${idx}. ${q.text}</div>
+                        <div style="color:#1d4ed8; font-weight:600; font-size:14.5px;">${ans || "-"}</div>
+                    </div>
+                `;
+                idx++;
             }
         });
-    }
 
-    // Cancel Edit Question
-    const cancelEdit = getEl("cancelEdit");
-    if (cancelEdit) {
-        cancelEdit.addEventListener("click", () => {
-            editingQuestionId = null;
-            getEl("questionText").value = "";
-            getEl("optionsContainer").innerHTML = "";
-            cancelEdit.style.display = "none";
-        });
-    }
-
-    // Daily Limit Save
-    const saveLimit = getEl("saveDailyLimit");
-    if (saveLimit) {
-        saveLimit.addEventListener("click", async () => {
-            const val = parseInt(getEl("dailyLimitInput")?.value);
-            if (!val || val < 1) {
-                alert("कृपया सही संख्या दर्ज करें!");
-                return;
-            }
-            try {
-                await firebase.firestore().collection("settings").doc("config").set({ dailyLimit: val }, { merge: true });
-                const msg = getEl("limitMessage");
-                if (msg) {
-                    msg.textContent = "✅ सेव हो गया!";
-                    setTimeout(() => msg.textContent = "", 3000);
-                }
-            } catch (e) {
-                alert("त्रुटि: " + e.message);
+        // Fallback for any questions not in ordered list
+        keys.forEach((k) => {
+            if (!orderedQuestions.some((q) => q.id === k)) {
+                let ans = answers[k];
+                if (Array.isArray(ans)) ans = ans.join(", ");
+                container.innerHTML += `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px;">
+                        <div style="font-weight:700; color:#1e293b; font-size:14px; margin-bottom:4px;">${allQuestionsMap[k] || k}</div>
+                        <div style="color:#1d4ed8; font-weight:600; font-size:14.5px;">${ans || "-"}</div>
+                    </div>
+                `;
             }
         });
     }
 
-    // Filter Buttons
-    const applyFilter = getEl("applySurveyFilter");
-    if (applyFilter) applyFilter.addEventListener("click", applyFilters);
+    modal.style.display = "flex";
+}
+window.openAnswersModal = openAnswersModal;
 
-    const clearFilter = getEl("clearSurveyFilter");
-    if (clearFilter) {
-        clearFilter.addEventListener("click", () => {
-            ["filterName", "filterMobile", "filterVillage", "filterSurveyor", "filterDate"].forEach(id => {
-                const el = getEl(id);
-                if (el) el.value = "";
-            });
-            renderSurveys(allSurveys);
-        });
-    }
+function closeAnswersModal() {
+    document.getElementById("answersModal").style.display = "none";
+}
+window.closeAnswersModal = closeAnswersModal;
 
-    // Close Answer Modal
-    const closeAns = getEl("closeAnswerModal");
-    if (closeAns) {
-        closeAns.addEventListener("click", () => {
-            const modal = getEl("answerModal");
-            if (modal) modal.classList.remove("show");
-        });
-    }
+/* =========================================================
+   9. DELETE RECORD
+   ========================================================= */
+async function deleteSurveyRecord(surveyId) {
+    const ok = confirm("क्या आप वाकई इस सर्वे रिकॉर्ड को हमेशा के लिए हटाना चाहते हैं?");
+    if (!ok) return;
 
-    // Delete All Surveys
-    const delAll = getEl("deleteAllSurveysBtn");
-    if (delAll) {
-        delAll.addEventListener("click", async () => {
-            if (!confirm("चेतावनी: इससे सभी सर्वे हमेशा के लिए मिट जाएँगे! क्या आप जारी रखना चाहते हैं?")) return;
-            try {
-                const snap = await firebase.firestore().collection("surveys").get();
-                const batch = firebase.firestore().batch();
-                snap.docs.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
-                alert("सभी सर्वे हटा दिए गए!");
-            } catch (e) {
-                alert("त्रुटि: " + e.message);
-            }
-        });
+    try {
+        await firebase.firestore().collection("surveys").doc(surveyId).delete();
+        alert("✅ सर्वे सफलतापूर्वक हटा दिया गया!");
+        await loadAllAdminData();
+    } catch (err) {
+        console.error("Delete Error:", err);
+        alert("हटाने में त्रुटि: " + err.message);
     }
-
-    // Logout
-    const logout = getEl("logoutBtn");
-    if (logout) {
-        logout.addEventListener("click", () => {
-            firebase.auth().signOut().then(() => window.location.href = "login.html");
-        });
-    }
-});
+}
+window.deleteSurveyRecord = deleteSurveyRecord;
