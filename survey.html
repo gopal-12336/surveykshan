@@ -110,9 +110,7 @@
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
         }
 
-        /* =========================================
-           PREMIUM LOCATION STEP
-        ========================================= */
+        /* LOCATION CARD */
         .location-card {
             background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
             border: 2px dashed #94a3b8;
@@ -133,7 +131,6 @@
             font-size: 42px;
             margin-bottom: 8px;
             display: inline-block;
-            transition: transform 0.3s ease;
         }
 
         .loc-details-text {
@@ -168,29 +165,34 @@
             box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35) !important;
         }
 
-        /* =========================================
-           PREMIUM 4-PHOTO STEP
-        ========================================= */
+        /* PHOTO STEP CARDS (TOUCH-ENABLED LABELS) */
         .photo-capture-card {
-            background: #f8fafc;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 14px 16px;
-            margin-bottom: 15px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            user-select: none;
             transition: all 0.2s ease;
+        }
+
+        .photo-capture-card:active {
+            transform: scale(0.98);
         }
 
         .photo-capture-card.has-image {
             background: #f0fdf4;
-            border-color: #86efac;
+            border-color: #22c55e;
         }
 
         .photo-info {
             flex: 1;
+            pointer-events: none;
         }
 
         .photo-title {
@@ -203,9 +205,6 @@
         .photo-status {
             font-size: 12.5px;
             color: #64748b;
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
 
         .photo-preview-slot {
@@ -216,12 +215,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            position: relative;
             overflow: hidden;
             border: 2px dashed #94a3b8;
             flex-shrink: 0;
-            transition: border-color 0.2s ease;
+            pointer-events: none;
         }
 
         .photo-preview-slot img {
@@ -232,15 +229,18 @@
 
         .photo-preview-slot .cam-icon {
             font-size: 24px;
-            color: #475569;
         }
 
-        /* Hidden Direct-Camera Inputs */
-        .cam-file-input {
-            display: none;
+        .native-cam-input {
+            position: absolute;
+            opacity: 0;
+            width: 0.1px;
+            height: 0.1px;
+            overflow: hidden;
+            z-index: -1;
         }
 
-        /* Daily Progress */
+        /* DAILY PROGRESS BOX */
         #dailyLimitBox {
             background: #eff6ff;
             border: 1.5px solid #bfdbfe;
@@ -265,7 +265,7 @@
             font-size: 13.5px;
         }
 
-        /* Buttons & Wizard Navigation */
+        /* NAVIGATION BUTTONS */
         .btn-full {
             display: block;
             width: 100%;
@@ -279,7 +279,6 @@
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-            transition: background 0.2s;
         }
 
         .btn-full:disabled {
@@ -303,7 +302,6 @@
             font-size: 15.5px;
             font-weight: 700;
             cursor: pointer;
-            transition: opacity 0.2s;
         }
 
         .btn-prev {
@@ -365,9 +363,7 @@
 
             <h2>Public Opinion Survey</h2>
 
-            <!-- =================================================
-                 STEP 1: BASIC DETAILS
-            ================================================== -->
+            <!-- STEP 1: BASIC DETAILS -->
             <div id="stepBasic">
                 <label for="name">Name (नाम) <span class="required">*</span></label>
                 <input type="text" id="name" placeholder="Enter Name" autocomplete="off" required>
@@ -406,9 +402,7 @@
                 <button id="btnBasicNext" class="btn-full" type="button">Next (सवाल शुरू करें) →</button>
             </div>
 
-            <!-- =================================================
-                 STEP 2: QUESTIONS WIZARD
-            ================================================== -->
+            <!-- STEP 2: QUESTIONS WIZARD -->
             <div id="stepQuestions" style="display: none;">
                 <div id="questionNumber"></div>
                 <div id="questionText">Loading question...</div>
@@ -420,11 +414,9 @@
                 </div>
             </div>
 
-            <!-- =================================================
-                 STEP 3: GPS LOCATION (CUSTOM HINDI FLOW)
-            ================================================== -->
+            <!-- STEP 3: GPS LOCATION -->
             <div id="stepLocation" style="display: none;">
-                <div class="step-heading">📍 लोकेशन सत्यापन</div>
+                <div class="step-heading">📍 लोकेशन सत्यापन (अनिवार्य)</div>
                 <div class="step-subtext">सटीक फील्ड सर्वे के लिए अपनी वर्तमान लोकेशन दर्ज करें</div>
 
                 <div id="locationCard" class="location-card">
@@ -442,64 +434,62 @@
                 </div>
             </div>
 
-            <!-- =================================================
-                 STEP 4: 4 LIVE CAMERA PHOTOS (DIRECT CAMERA)
-            ================================================== -->
+            <!-- STEP 4: 4 LIVE CAMERA PHOTOS (NATIVE TOUCH-DIRECT CAMERA) -->
             <div id="stepPhotos" style="display: none;">
-                <div class="step-heading">📷 सर्वे फोटो कैप्चर</div>
-                <div class="step-subtext">प्रत्येक बॉक्स पर टैप करके सीधे कैमरे से लाइव फोटो खींचें:</div>
+                <div class="step-heading">📷 सर्वे फोटो कैप्चर (चारों अनिवार्य)</div>
+                <div class="step-subtext">प्रत्येक कार्ड पर टैप करके सीधे लाइव कैमरे से फ़ोटो लें:</div>
 
-                <!-- 1. Village/City Photo (Rear Camera) -->
-                <div class="photo-capture-card" id="cardPhoto1">
+                <!-- 1. Village/City Photo -->
+                <label for="inputPhoto1" class="photo-capture-card" id="cardPhoto1">
                     <div class="photo-info">
-                        <div class="photo-title">1. गाँव या शहर की फोटो</div>
-                        <div class="photo-status" id="statusPhoto1">📷 फोटो खींचने के लिए टैप करें</div>
+                        <div class="photo-title">1. गाँव या शहर की फोटो <span class="required">*</span></div>
+                        <div class="photo-status" id="statusPhoto1">📷 टैप करके फोटो खींचें</div>
                     </div>
-                    <div class="photo-preview-slot" onclick="triggerCamera('inputPhoto1')">
+                    <div class="photo-preview-slot">
                         <span class="cam-icon" id="iconPhoto1">📷</span>
                         <img id="prevPhoto1" style="display:none;" alt="Village Photo">
                     </div>
-                    <input type="file" id="inputPhoto1" class="cam-file-input" accept="image/*" capture="environment" onchange="handleLivePhoto(event, 1)">
-                </div>
+                </label>
+                <input type="file" id="inputPhoto1" class="native-cam-input" accept="image/*" capture="environment" onchange="handleLivePhoto(event, 1)">
 
-                <!-- 2. Village/City Problem Photo (Rear Camera) -->
-                <div class="photo-capture-card" id="cardPhoto2">
+                <!-- 2. Village Problem Photo -->
+                <label for="inputPhoto2" class="photo-capture-card" id="cardPhoto2">
                     <div class="photo-info">
-                        <div class="photo-title">2. गाँव या शहर की समस्या की फोटो</div>
-                        <div class="photo-status" id="statusPhoto2">📷 फोटो खींचने के लिए टैप करें</div>
+                        <div class="photo-title">2. गाँव या शहर की समस्या की फोटो <span class="required">*</span></div>
+                        <div class="photo-status" id="statusPhoto2">📷 टैप करके फोटो खींचें</div>
                     </div>
-                    <div class="photo-preview-slot" onclick="triggerCamera('inputPhoto2')">
+                    <div class="photo-preview-slot">
                         <span class="cam-icon" id="iconPhoto2">📷</span>
                         <img id="prevPhoto2" style="display:none;" alt="Issue Photo">
                     </div>
-                    <input type="file" id="inputPhoto2" class="cam-file-input" accept="image/*" capture="environment" onchange="handleLivePhoto(event, 2)">
-                </div>
+                </label>
+                <input type="file" id="inputPhoto2" class="native-cam-input" accept="image/*" capture="environment" onchange="handleLivePhoto(event, 2)">
 
-                <!-- 3. Respondent Photo (Rear Camera) -->
-                <div class="photo-capture-card" id="cardPhoto3">
+                <!-- 3. Respondent Photo -->
+                <label for="inputPhoto3" class="photo-capture-card" id="cardPhoto3">
                     <div class="photo-info">
-                        <div class="photo-title">3. रिस्पॉन्डेंट (उत्तरदाता) की फोटो</div>
-                        <div class="photo-status" id="statusPhoto3">📷 फोटो खींचने के लिए टैप करें</div>
+                        <div class="photo-title">3. रिस्पॉन्डेंट की फोटो <span class="required">*</span></div>
+                        <div class="photo-status" id="statusPhoto3">📷 टैप करके फोटो खींचें</div>
                     </div>
-                    <div class="photo-preview-slot" onclick="triggerCamera('inputPhoto3')">
+                    <div class="photo-preview-slot">
                         <span class="cam-icon" id="iconPhoto3">📷</span>
                         <img id="prevPhoto3" style="display:none;" alt="Respondent Photo">
                     </div>
-                    <input type="file" id="inputPhoto3" class="cam-file-input" accept="image/*" capture="environment" onchange="handleLivePhoto(event, 3)">
-                </div>
+                </label>
+                <input type="file" id="inputPhoto3" class="native-cam-input" accept="image/*" capture="environment" onchange="handleLivePhoto(event, 3)">
 
-                <!-- 4. Respondent Selfie (Front Camera Direct) -->
-                <div class="photo-capture-card" id="cardPhoto4">
+                <!-- 4. Respondent Selfie -->
+                <label for="inputPhoto4" class="photo-capture-card" id="cardPhoto4">
                     <div class="photo-info">
-                        <div class="photo-title">4. रिस्पॉन्डेंट के साथ सेल्फी</div>
-                        <div class="photo-status" id="statusPhoto4">🤳 सेल्फी लेने के लिए टैप करें</div>
+                        <div class="photo-title">4. रिस्पॉन्डेंट के साथ सेल्फी <span class="required">*</span></div>
+                        <div class="photo-status" id="statusPhoto4">🤳 टैप करके सेल्फी लें</div>
                     </div>
-                    <div class="photo-preview-slot" onclick="triggerCamera('inputPhoto4')">
+                    <div class="photo-preview-slot">
                         <span class="cam-icon" id="iconPhoto4">🤳</span>
                         <img id="prevPhoto4" style="display:none;" alt="Selfie Photo">
                     </div>
-                    <input type="file" id="inputPhoto4" class="cam-file-input" accept="image/*" capture="user" onchange="handleLivePhoto(event, 4)">
-                </div>
+                </label>
+                <input type="file" id="inputPhoto4" class="native-cam-input" accept="image/*" capture="user" onchange="handleLivePhoto(event, 4)">
 
                 <div class="step-nav">
                     <button id="btnPhotosPrev" class="btn-prev" type="button">← Previous</button>
@@ -510,14 +500,14 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs (v8) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <!-- App Scripts -->
     <script src="firebase.js"></script>
-    <script src="survey.js?v=305"></script>
+    <script src="survey.js?v=405"></script>
 
 </body>
 </html>
