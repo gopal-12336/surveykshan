@@ -2,22 +2,15 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Surveykshan Survey</title>
-
     <link rel="stylesheet" href="style.css">
 
     <style>
-
         /* =====================================================
            GLOBAL
         ===================================================== */
-
         * {
             box-sizing: border-box;
         }
@@ -36,11 +29,9 @@
             font-family: Arial, sans-serif;
         }
 
-
         /* =====================================================
            HEADER
         ===================================================== */
-
         .header {
             width: 100%;
             background: #1565c0;
@@ -52,11 +43,9 @@
             line-height: 1.3;
         }
 
-
         /* =====================================================
            MAIN CONTAINER
         ===================================================== */
-
         .container {
             width: 100%;
             max-width: 720px;
@@ -64,11 +53,9 @@
             padding: 10px;
         }
 
-
         /* =====================================================
            SURVEY CARD
         ===================================================== */
-
         .survey-box {
             width: 100%;
             background: #ffffff;
@@ -77,41 +64,29 @@
             box-shadow: 0 3px 18px rgba(0, 0, 0, 0.12);
         }
 
-
-        /* =====================================================
-           TITLE
-        ===================================================== */
-
         .survey-box h2 {
             text-align: center;
             color: #1565c0;
             margin: 0 0 25px 0;
-            font-size: 30px;
+            font-size: 28px;
             line-height: 1.25;
         }
 
-
         /* =====================================================
-           LABELS
+           LABELS & INPUTS
         ===================================================== */
-
         label {
             display: block;
             margin-top: 18px;
             margin-bottom: 7px;
             font-weight: bold;
-            font-size: 17px;
+            font-size: 16px;
             color: #111;
         }
 
         .required {
             color: red;
         }
-
-
-        /* =====================================================
-           INPUTS
-        ===================================================== */
 
         input,
         select,
@@ -123,7 +98,7 @@
             border: 1px solid #cccccc;
             border-radius: 9px;
             box-sizing: border-box;
-            font-size: 17px;
+            font-size: 16px;
             font-family: Arial, sans-serif;
             background: #ffffff;
             min-height: 50px;
@@ -147,33 +122,19 @@
             resize: vertical;
         }
 
-
         /* =====================================================
            DAILY LIMIT BOX
         ===================================================== */
-
-        #dailyLimitBox,
-        #dailyProgressBox {
-
+        #dailyLimitBox {
             width: 100%;
-            max-width: 100%;
-
             background: #e3f2fd;
-
             border: 1px solid #90caf9;
-
             padding: 15px;
-
             margin: 20px 0;
-
             border-radius: 12px;
-
             text-align: center;
-
             font-weight: bold;
-
             color: #0d47a1;
-
             line-height: 1.6;
         }
 
@@ -182,196 +143,63 @@
             font-size: 20px;
         }
 
-
-        /* =====================================================
-           DYNAMIC DAILY PROGRESS BOX
-        ===================================================== */
-
-        #dailyProgressBox {
-
-            background: #e3f2fd;
-
-            border: 1px solid #90caf9;
-
-            text-align: left;
-
-        }
-
-        #dailyProgressText {
-            font-weight: bold;
-        }
-
-        #dailyRemainingText {
-            font-size: 14px;
-        }
-
-
-        /* =====================================================
-           MESSAGE
-        ===================================================== */
-
         #message {
-
             width: 100%;
-
             margin-top: 15px;
-
             text-align: center;
-
             font-weight: bold;
-
             line-height: 1.5;
-
             font-size: 15px;
         }
 
-
         /* =====================================================
-           BASIC NEXT BUTTON
+           BUTTONS & NAVIGATION
         ===================================================== */
-
-        #basicNextButton {
-
+        #basicNextButton,
+        #submitSurvey {
             display: block;
-
             width: 100% !important;
-
             padding: 15px !important;
-
             margin-top: 20px !important;
-
             background: #1565c0 !important;
-
             color: white !important;
-
             border: none !important;
-
             border-radius: 9px !important;
-
             font-size: 18px !important;
-
             font-weight: bold !important;
-
             cursor: pointer;
+            transition: background 0.2s ease;
         }
 
-        #basicNextButton:hover {
+        #basicNextButton:hover,
+        #submitSurvey:hover {
             background: #0d47a1 !important;
         }
 
-        #basicNextButton:disabled {
+        #basicNextButton:disabled,
+        #submitSurvey:disabled {
             background: #9e9e9e !important;
             cursor: not-allowed;
+            opacity: 0.7;
         }
-
-
-        /* =====================================================
-           QUESTION AREA
-        ===================================================== */
-
-        #questionStep,
-        #basicDetailsStep {
-
-            width: 100%;
-
-            max-width: 100%;
-        }
-
-        /*
-           Important:
-           survey.js changes questionStep using class.
-        */
-
-        #questionStep.active {
-            display: block !important;
-        }
-
-        #questionOptions {
-
-            width: 100%;
-
-            max-width: 100%;
-        }
-
-
-        /* =====================================================
-           QUESTION NUMBER
-        ===================================================== */
-
-        #questionNumber {
-
-            margin-top: 10px;
-
-            margin-bottom: 12px;
-
-            font-weight: bold;
-
-            color: #1565c0;
-
-            font-size: 16px;
-        }
-
-
-        /* =====================================================
-           QUESTION TEXT
-        ===================================================== */
-
-        #questionText {
-
-            font-size: 19px;
-
-            font-weight: bold;
-
-            line-height: 1.5;
-
-            margin-bottom: 18px;
-        }
-
-
-        /* =====================================================
-           QUESTION NAVIGATION
-        ===================================================== */
 
         .question-navigation {
-
             display: flex;
-
             gap: 10px;
-
             width: 100%;
-
             margin-top: 22px;
         }
 
         .question-navigation button {
-
             flex: 1;
-
             min-width: 0;
-        }
-
-
-        /* =====================================================
-           PREVIOUS / NEXT
-        ===================================================== */
-
-        #previousButton,
-        #nextButton {
-
             padding: 14px;
-
             border: none;
-
             border-radius: 8px;
-
             color: white;
-
             font-size: 16px;
-
             font-weight: bold;
-
             cursor: pointer;
-
             min-height: 50px;
         }
 
@@ -389,794 +217,125 @@
             cursor: not-allowed;
         }
 
-
-        /* =====================================================
-           FINAL SUBMIT
-        ===================================================== */
-
-        #submitSurvey {
-
-            display: block;
-
-            width: 100%;
-
-            max-width: 100%;
-
-            padding: 15px;
-
-            margin-top: 20px;
-
-            background: #1565c0;
-
-            color: white;
-
-            border: none;
-
-            border-radius: 9px;
-
-            font-size: 18px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-        }
-
-        #submitSurvey:hover {
-            background: #0d47a1;
-        }
-
-        #submitSurvey:disabled {
-
-            background: #9e9e9e;
-
-            cursor: not-allowed;
-
-            opacity: 0.7;
-        }
-
-
-        /* =====================================================
-           LOGOUT
-        ===================================================== */
-
-        .logout-btn {
-
-            width: 100%;
-
-            padding: 12px;
-
+        #questionNumber {
             margin-top: 10px;
-
-            background: #c62828;
-
-            color: white;
-
-            border: none;
-
-            border-radius: 7px;
-
-            cursor: pointer;
+            margin-bottom: 12px;
+            font-weight: bold;
+            color: #1565c0;
+            font-size: 16px;
         }
 
+        #questionText {
+            font-size: 19px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
 
         /* =====================================================
-           TABLET
+           MOBILE RESPONSIVENESS
         ===================================================== */
-
-        @media (max-width: 768px) {
-
+        @media (max-width: 600px) {
             .container {
-
-                width: 100%;
-
-                max-width: 100%;
-
-                margin: 10px auto;
-
-                padding: 8px;
+                margin: 6px 0;
+                padding: 6px;
             }
 
             .survey-box {
-
-                width: 100%;
-
-                padding: 22px;
-
+                padding: 20px 15px;
                 border-radius: 14px;
             }
 
             .survey-box h2 {
-
-                font-size: 25px;
+                font-size: 22px;
             }
-
-            label {
-
-                font-size: 16px;
-            }
-
-            input,
-            select,
-            textarea {
-
-                font-size: 16px;
-
-                padding: 13px;
-            }
-
         }
-
-
-        /* =====================================================
-           MOBILE
-        ===================================================== */
-
-        @media (max-width: 600px) {
-
-            html,
-            body {
-
-                width: 100%;
-
-                max-width: 100%;
-
-                overflow-x: hidden;
-            }
-
-
-            body {
-
-                background: #f4f6f9;
-            }
-
-
-            /* HEADER */
-
-            .header {
-
-                width: 100%;
-
-                padding: 15px 10px;
-
-                font-size: 21px;
-
-                line-height: 1.25;
-            }
-
-
-            /* CONTAINER */
-
-            .container {
-
-                width: 100%;
-
-                max-width: 100%;
-
-                margin: 8px 0;
-
-                padding: 8px;
-            }
-
-
-            /* CARD */
-
-            .survey-box {
-
-                width: 100%;
-
-                max-width: 100%;
-
-                padding: 20px 16px;
-
-                border-radius: 14px;
-
-                box-shadow:
-                    0 2px 12px rgba(0, 0, 0, 0.12);
-            }
-
-
-            /* TITLE */
-
-            .survey-box h2 {
-
-                font-size: 24px;
-
-                line-height: 1.25;
-
-                margin-bottom: 20px;
-            }
-
-
-            /* LABEL */
-
-            label {
-
-                font-size: 17px;
-
-                margin-top: 15px;
-
-                margin-bottom: 7px;
-            }
-
-
-            /* INPUT */
-
-            input,
-            select,
-            textarea {
-
-                width: 100% !important;
-
-                max-width: 100% !important;
-
-                min-width: 0 !important;
-
-                padding: 14px 13px;
-
-                font-size: 16px;
-
-                min-height: 52px;
-
-                border-radius: 9px;
-            }
-
-
-            /* DAILY BOX */
-
-            #dailyLimitBox,
-            #dailyProgressBox {
-
-                width: 100% !important;
-
-                max-width: 100% !important;
-
-                padding: 14px 10px;
-
-                margin: 18px 0;
-
-                border-radius: 10px;
-
-                font-size: 15px;
-
-                line-height: 1.6;
-            }
-
-
-            #todayCount,
-            #remainingCount {
-
-                font-size: 20px;
-            }
-
-
-            #dailyProgressText {
-
-                font-size: 17px;
-            }
-
-
-            #dailyRemainingText {
-
-                font-size: 14px;
-            }
-
-
-            /* MESSAGE */
-
-            #message {
-
-                font-size: 14px;
-
-                padding: 0 3px;
-            }
-
-
-            /* NEXT */
-
-            #basicNextButton {
-
-                width: 100% !important;
-
-                min-height: 52px;
-
-                padding: 14px !important;
-
-                font-size: 17px !important;
-            }
-
-
-            /* QUESTION */
-
-            #questionNumber {
-
-                font-size: 16px;
-            }
-
-
-            #questionText {
-
-                font-size: 18px;
-
-                line-height: 1.5;
-            }
-
-
-            /* NAVIGATION */
-
-            .question-navigation {
-
-                display: flex;
-
-                flex-direction: row;
-
-                gap: 8px;
-            }
-
-
-            #previousButton,
-            #nextButton {
-
-                width: 50%;
-
-                min-height: 50px;
-
-                padding: 12px 8px;
-
-                font-size: 15px;
-            }
-
-
-            /* SUBMIT */
-
-            #submitSurvey {
-
-                width: 100% !important;
-
-                min-height: 52px;
-
-                padding: 14px;
-
-                font-size: 17px;
-            }
-
-        }
-
-
-        /* =====================================================
-           SMALL MOBILE
-        ===================================================== */
-
-        @media (max-width: 380px) {
-
-            .header {
-
-                font-size: 19px;
-
-                padding: 13px 7px;
-            }
-
-
-            .container {
-
-                padding: 5px;
-            }
-
-
-            .survey-box {
-
-                padding: 17px 12px;
-
-                border-radius: 11px;
-            }
-
-
-            .survey-box h2 {
-
-                font-size: 21px;
-
-                margin-bottom: 17px;
-            }
-
-
-            label {
-
-                font-size: 16px;
-
-                margin-top: 13px;
-            }
-
-
-            input,
-            select,
-            textarea {
-
-                font-size: 15px;
-
-                padding: 12px;
-
-                min-height: 49px;
-            }
-
-
-            #dailyLimitBox,
-            #dailyProgressBox {
-
-                padding: 12px 8px;
-
-                font-size: 14px;
-            }
-
-
-            #todayCount,
-            #remainingCount {
-
-                font-size: 18px;
-            }
-
-
-            #basicNextButton,
-            #submitSurvey {
-
-                font-size: 16px !important;
-
-                min-height: 50px;
-            }
-
-
-            #questionText {
-
-                font-size: 17px;
-            }
-
-
-            #previousButton,
-            #nextButton {
-
-                font-size: 14px;
-
-                padding: 11px 5px;
-            }
-
-        }
-
-
-        /* =====================================================
-           PREVENT VERY LONG TEXT FROM BREAKING MOBILE
-        ===================================================== */
-
-        input,
-        select,
-        textarea,
-        button {
-
-            max-width: 100%;
-
-            word-wrap: break-word;
-        }
-
-
-        /* =====================================================
-           DYNAMIC PROGRESS BOX MOBILE FIX
-        ===================================================== */
-
-        @media (max-width: 600px) {
-
-            #dailyProgressBox {
-
-                font-size: 14px;
-
-                padding: 13px;
-
-                margin: 10px 0 12px 0;
-            }
-
-            #dailyProgressBox > div {
-
-                max-width: 100%;
-            }
-
-        }
-
     </style>
-
 </head>
 
-
 <body>
-
-
-    <!-- =====================================================
-         HEADER
-    ===================================================== -->
 
     <div class="header">
         Surveykshan Survey Form
     </div>
 
-
-    <!-- =====================================================
-         MAIN CONTAINER
-    ===================================================== -->
-
     <div class="container">
-
         <div class="survey-box">
 
+            <h2>Public Opinion Survey</h2>
 
             <!-- =================================================
-                 TITLE
-            ================================================= -->
-
-            <h2>
-                Public Opinion Survey
-            </h2>
-
-
-            <!-- =================================================
-                 BASIC DETAILS
-            ================================================= -->
-
+                 STEP 1: BASIC DETAILS
+            ================================================== -->
             <div id="basicDetailsStep">
 
+                <label for="name">Name <span class="required">*</span></label>
+                <input type="text" id="name" placeholder="Enter Name" autocomplete="off" required>
 
-                <!-- NAME -->
+                <label for="mobile">Mobile <span class="required">*</span></label>
+                <input type="tel" id="mobile" placeholder="Enter Mobile Number" inputmode="numeric" maxlength="10" autocomplete="off" required>
 
-                <label for="name">
-                    Name <span class="required">*</span>
-                </label>
+                <label for="age">Age <span class="required">*</span></label>
+                <input type="number" id="age" placeholder="Enter Age" min="1" max="120" required>
 
-                <input
-                    type="text"
-                    id="name"
-                    placeholder="Enter Name"
-                    autocomplete="off"
-                >
-
-
-                <!-- MOBILE -->
-
-                <label for="mobile">
-                    Mobile <span class="required">*</span>
-                </label>
-
-                <input
-                    type="tel"
-                    id="mobile"
-                    placeholder="Enter Mobile Number"
-                    inputmode="numeric"
-                    maxlength="10"
-                    autocomplete="off"
-                >
-
-
-                <!-- AGE -->
-
-                <label for="age">
-                    Age <span class="required">*</span>
-                </label>
-
-                <input
-                    type="number"
-                    id="age"
-                    placeholder="Enter Age"
-                    min="1"
-                    max="120"
-                >
-
-
-                <!-- GENDER -->
-
-                <label for="gender">
-                    Gender <span class="required">*</span>
-                </label>
-
-                <select id="gender">
-
-                    <option value="">
-                        Select Gender
-                    </option>
-
-                    <option value="Male">
-                        Male
-                    </option>
-
-                    <option value="Female">
-                        Female
-                    </option>
-
-                    <option value="Other">
-                        Other
-                    </option>
-
+                <label for="gender">Gender <span class="required">*</span></label>
+                <select id="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
                 </select>
 
+                <label for="village">Village <span class="required">*</span></label>
+                <input type="text" id="village" placeholder="Enter Village" autocomplete="off" required>
 
-                <!-- VILLAGE -->
+                <label for="district">District <span class="required">*</span></label>
+                <input type="text" id="district" placeholder="Enter District" autocomplete="off" required>
 
-                <label for="village">
-                    Village <span class="required">*</span>
-                </label>
+                <label for="pincode">PIN Code <span class="required">*</span></label>
+                <input type="tel" id="pincode" placeholder="Enter 6 digit PIN Code" inputmode="numeric" maxlength="6" autocomplete="off" required>
 
-                <input
-                    type="text"
-                    id="village"
-                    placeholder="Enter Village"
-                    autocomplete="off"
-                >
-
-
-                <!-- DISTRICT -->
-
-                <label for="district">
-                    District <span class="required">*</span>
-                </label>
-
-                <input
-                    type="text"
-                    id="district"
-                    placeholder="Enter District"
-                    autocomplete="off"
-                >
-
-
-                <!-- PIN CODE -->
-
-                <label for="pincode">
-                    PIN Code <span class="required">*</span>
-                </label>
-
-                <input
-                    type="tel"
-                    id="pincode"
-                    placeholder="Enter 6 digit PIN Code"
-                    inputmode="numeric"
-                    maxlength="6"
-                    autocomplete="off"
-                >
-
-
-                <!-- =================================================
-                     DAILY LIMIT
-                ================================================== -->
-
+                <!-- Daily Progress Box -->
                 <div id="dailyLimitBox">
-
-                    📊 Today's Surveys:
-                    <span id="todayCount">
-                        0
-                    </span>
-
+                    📊 Today's Surveys: <span id="todayCount">0</span>
                     <br>
-
-                    Remaining:
-                    <span id="remainingCount">
-                        Loading...
-                    </span>
-
+                    Remaining: <span id="remainingCount">Loading...</span>
                 </div>
-
-
-                <!-- MESSAGE -->
 
                 <div id="message"></div>
 
-
-                <!-- NEXT -->
-
-                <button
-                    id="basicNextButton"
-                    type="button"
-                >
-                    Next →
-                </button>
-
-
+                <button id="basicNextButton" type="button">Next →</button>
             </div>
-
 
             <!-- =================================================
-                 QUESTION STEP
-            ================================================= -->
+                 STEP 2: QUESTION STEP
+            ================================================== -->
+            <div id="questionStep" style="display: none;">
 
-            <div
-                id="questionStep"
-                class="question-step"
-                style="display:none;"
-            >
-
-
-                <!-- QUESTION NUMBER -->
-
-                <div id="questionNumber">
-                </div>
-
-
-                <!-- QUESTION -->
-
-                <div id="questionText">
-
-                    Loading questions...
-
-                </div>
-
-
-                <!-- OPTIONS -->
-
-                <div id="questionOptions">
-                </div>
-
-
-                <!-- QUESTION NAVIGATION -->
+                <div id="questionNumber"></div>
+                <div id="questionText">Loading questions...</div>
+                <div id="questionOptions"></div>
 
                 <div class="question-navigation">
-
-
-                    <button
-                        id="previousButton"
-                        type="button"
-                    >
-                        ← Previous
-                    </button>
-
-
-                    <button
-                        id="nextButton"
-                        type="button"
-                    >
-                        Next →
-                    </button>
-
-
+                    <button id="previousButton" type="button">← Previous</button>
+                    <button id="nextButton" type="button">Next →</button>
                 </div>
 
-
-                <!-- FINAL SUBMIT -->
-
-                <button
-                    id="submitSurvey"
-                    type="button"
-                >
-                    Submit Survey
-                </button>
-
-
+                <button id="submitSurvey" type="button" style="display: none;">Submit Survey</button>
             </div>
 
-
         </div>
-
     </div>
 
+    <!-- Firebase SDKs (v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- =====================================================
-         FIREBASE
-    ===================================================== -->
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
-    </script>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js">
-    </script>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js">
-    </script>
-
-
-    <!-- =====================================================
-         FIREBASE CONFIG
-    ===================================================== -->
-
-    <script src="firebase.js">
-    </script>
-
-
-    <!-- =====================================================
-         SURVEY JS
-    ===================================================== -->
-
-    <script src="survey.js">
-    </script>
-
+    <!-- App Config & Logic -->
+    <script src="firebase.js"></script>
+    <!-- Cache-buster parameter (?v=101) ensures the app loads the latest survey.js -->
+    <script src="survey.js?v=101"></script>
 
 </body>
 
