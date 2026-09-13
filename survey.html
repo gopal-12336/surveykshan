@@ -56,6 +56,14 @@
             font-size: 26px;
         }
 
+        .step-heading {
+            font-size: 19px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
         label {
             display: block;
             margin-top: 16px;
@@ -90,58 +98,65 @@
             box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.12);
         }
 
-        /* Location Box */
-        .location-badge {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        /* Location Card */
+        .location-container {
             background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 9px;
-            padding: 12px 14px;
-            margin-top: 15px;
-            font-size: 14px;
-            color: #166534;
-            font-weight: 600;
-        }
-
-        .refresh-loc-btn {
-            background: #16a34a;
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        /* Photo Upload Styling */
-        .photo-upload-box {
-            background: #f8fafc;
-            border: 2px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 16px;
+            border: 2px dashed #86efac;
+            border-radius: 14px;
+            padding: 24px 16px;
             text-align: center;
-            margin-top: 8px;
+            margin: 20px 0;
+        }
+
+        .location-coords {
+            font-size: 20px;
+            font-weight: 700;
+            color: #166534;
+            margin: 12px 0;
+        }
+
+        .refresh-btn {
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Photo Upload Card */
+        .photo-container {
+            background: #f8fafc;
+            border: 2px dashed #94a3b8;
+            border-radius: 14px;
+            padding: 24px 16px;
+            text-align: center;
+            margin: 20px 0;
         }
 
         .photo-preview-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 12px;
+            gap: 12px;
+            margin-top: 16px;
             justify-content: center;
         }
 
         .photo-preview-grid img {
-            width: 72px;
-            height: 72px;
+            width: 80px;
+            height: 80px;
             object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid #3b82f6;
+            border-radius: 10px;
+            border: 2px solid #2563eb;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        /* Daily Limit */
+        /* Daily Progress */
         #dailyLimitBox {
             background: #e3f2fd;
             border: 1px solid #90caf9;
@@ -166,9 +181,8 @@
             font-size: 14px;
         }
 
-        /* Buttons */
-        #basicNextButton,
-        #submitSurvey {
+        /* Action Buttons */
+        .btn-full {
             display: block;
             width: 100%;
             padding: 15px;
@@ -182,21 +196,20 @@
             cursor: pointer;
         }
 
-        #basicNextButton:disabled,
-        #submitSurvey:disabled {
+        .btn-full:disabled {
             background: #94a3b8;
             cursor: not-allowed;
         }
 
-        .question-navigation {
+        .step-nav {
             display: flex;
             gap: 10px;
             margin-top: 20px;
         }
 
-        .question-navigation button {
+        .step-nav button {
             flex: 1;
-            padding: 13px;
+            padding: 14px;
             border: none;
             border-radius: 8px;
             color: white;
@@ -205,11 +218,11 @@
             cursor: pointer;
         }
 
-        #previousButton {
+        .btn-prev {
             background: #64748b;
         }
 
-        #nextButton {
+        .btn-next {
             background: #1565c0;
         }
 
@@ -227,6 +240,21 @@
             line-height: 1.4;
             margin-bottom: 16px;
         }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 5px 0;
+                padding: 6px;
+            }
+
+            .survey-box {
+                padding: 20px 14px;
+            }
+
+            .survey-box h2 {
+                font-size: 22px;
+            }
+        }
     </style>
 </head>
 
@@ -241,9 +269,10 @@
 
             <h2>Public Opinion Survey</h2>
 
-            <!-- STEP 1: BASIC DETAILS + LOCATION + PHOTO -->
-            <div id="basicDetailsStep">
-
+            <!-- =================================================
+                 STEP 1: BASIC DETAILS
+            ================================================== -->
+            <div id="stepBasic">
                 <label for="name">Name <span class="required">*</span></label>
                 <input type="text" id="name" placeholder="Enter Name" autocomplete="off" required>
 
@@ -270,20 +299,6 @@
                 <label for="pincode">PIN Code <span class="required">*</span></label>
                 <input type="tel" id="pincode" placeholder="Enter 6 digit PIN Code" inputmode="numeric" maxlength="6" autocomplete="off" required>
 
-                <!-- Location Section -->
-                <div class="location-badge">
-                    <span id="locationStatus">📍 लोकेशन प्राप्त की जा रही है...</span>
-                    <button type="button" class="refresh-loc-btn" onclick="fetchLocation()">🔄 Refresh</button>
-                </div>
-
-                <!-- Photos Section -->
-                <label>Survey Photos (Max 4 Photos) <span class="required">*</span></label>
-                <div class="photo-upload-box">
-                    <input type="file" id="surveyPhotos" accept="image/*" multiple style="min-height:auto; border:none; padding:0;">
-                    <div id="photosPreviewGrid" class="photo-preview-grid"></div>
-                </div>
-
-                <!-- Daily Progress Box -->
                 <div id="dailyLimitBox">
                     📊 Today's Surveys: <span id="todayCount">0</span>
                     <br>
@@ -292,35 +307,71 @@
 
                 <div id="message"></div>
 
-                <button id="basicNextButton" type="button">Next →</button>
+                <button id="btnBasicNext" class="btn-full" type="button">Next →</button>
             </div>
 
-            <!-- STEP 2: QUESTIONS WIZARD -->
-            <div id="questionStep" style="display: none;">
-
+            <!-- =================================================
+                 STEP 2: QUESTIONS WIZARD
+            ================================================== -->
+            <div id="stepQuestions" style="display: none;">
                 <div id="questionNumber"></div>
                 <div id="questionText">Loading questions...</div>
                 <div id="questionOptions"></div>
 
-                <div class="question-navigation">
-                    <button id="previousButton" type="button">← Previous</button>
-                    <button id="nextButton" type="button">Next →</button>
+                <div class="step-nav">
+                    <button id="btnQuestionsPrev" class="btn-prev" type="button">← Previous</button>
+                    <button id="btnQuestionsNext" class="btn-next" type="button">Next →</button>
+                </div>
+            </div>
+
+            <!-- =================================================
+                 STEP 3: GPS LOCATION (PERMANENT STEP)
+            ================================================== -->
+            <div id="stepLocation" style="display: none;">
+                <div class="step-heading">📍 Location Verification (अनिवार्य)</div>
+                <p style="text-align:center; color:#64748b; font-size:14px;">कृपया सटीक GPS लोकेशन कैप्चर करें:</p>
+
+                <div class="location-container">
+                    <div style="font-size:32px;">📍</div>
+                    <div id="locationCoords" class="location-coords">लोकेशन प्राप्त की जा रही है...</div>
+                    <button type="button" class="refresh-btn" onclick="fetchLocation()">🔄 Refresh Location</button>
                 </div>
 
-                <button id="submitSurvey" type="button" style="display: none;">Submit Survey</button>
+                <div class="step-nav">
+                    <button id="btnLocationPrev" class="btn-prev" type="button">← Previous</button>
+                    <button id="btnLocationNext" class="btn-next" type="button">Next (Photo Capture) →</button>
+                </div>
+            </div>
+
+            <!-- =================================================
+                 STEP 4: PHOTOS & FINAL SUBMIT (PERMANENT STEP)
+            ================================================== -->
+            <div id="stepPhotos" style="display: none;">
+                <div class="step-heading">📷 Survey Photos (Max 4 Photos)</div>
+                <p style="text-align:center; color:#64748b; font-size:14px;">सर्वे स्थल या व्यक्ति की अधिकतम 4 तस्वीरें लें:</p>
+
+                <div class="photo-container">
+                    <input type="file" id="surveyPhotosInput" accept="image/*" multiple style="border:none; padding:6px; min-height:auto;">
+                    <div id="photoGrid" class="photo-preview-grid"></div>
+                </div>
+
+                <div class="step-nav">
+                    <button id="btnPhotosPrev" class="btn-prev" type="button">← Previous</button>
+                    <button id="btnFinalSubmit" class="btn-next" type="button" style="background:#16a34a;">Submit Survey ✅</button>
+                </div>
             </div>
 
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- Scripts -->
+    <!-- App Scripts -->
     <script src="firebase.js"></script>
-    <script src="survey.js?v=105"></script>
+    <script src="survey.js?v=201"></script>
 
 </body>
 </html>
