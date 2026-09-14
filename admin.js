@@ -1,5 +1,5 @@
 /* =========================================================
-   SURVEYKSHAN - ORIGINAL COMPLETE ADMIN JS WITH FIRESTORE SURVEYORS
+   SURVEYKSHAN - ORIGINAL COMPLETE ADMIN JS WITH EXCEL & CLIENT REPORT
    ========================================================= */
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
@@ -60,6 +60,7 @@ const editVillage = document.getElementById("editVillage");
 
 const logoutBtn = document.getElementById("logoutBtn");
 const exportExcelBtn = document.getElementById("exportExcelBtn");
+const clientReportBtn = document.getElementById("clientReportBtn");
 const deleteAllSurveysBtn = document.getElementById("deleteAllSurveysBtn");
 
 /* =========================================================
@@ -279,10 +280,9 @@ if (saveDailyLimitBtn) {
 }
 
 /* =========================================================
-   5. LOAD SURVEYORS & SURVEYS (FIRESTORE SYNC)
+   5. LOAD SURVEYORS & SURVEYS
    ========================================================= */
 function loadSurveyorsAndSurveys() {
-    // 1. Listen to surveyors collection from Firestore
     firebase.firestore().collection("surveyors").onSnapshot((surveyorsSnap) => {
         registeredSurveyors = [];
         surveyorsSnap.forEach((doc) => {
@@ -296,7 +296,6 @@ function loadSurveyorsAndSurveys() {
             });
         });
 
-        // Ensure default IDs exist as fallback
         const defaultEmails = ["surveyor1@gopal.com", "surveyor2@gopal.com", "surveyor@gmail.com"];
         defaultEmails.forEach(defEmail => {
             if (!registeredSurveyors.some(s => s.email.toLowerCase() === defEmail.toLowerCase())) {
@@ -313,7 +312,6 @@ function loadSurveyorsAndSurveys() {
         populateFilterDropdowns();
     });
 
-    // 2. Listen to surveys collection
     firebase.firestore().collection("surveys").onSnapshot((snapshot) => {
         surveys = [];
         snapshot.forEach((doc) => {
@@ -422,7 +420,7 @@ function getPhotosArray(s) {
 }
 
 /* =========================================================
-   6. SURVEYOR STATS TABLE (SHOWS ALL REGISTERED SURVEYORS)
+   6. SURVEYOR STATS TABLE
    ========================================================= */
 function renderSurveyorStats() {
     if (!surveyorManagementTable) return;
@@ -436,19 +434,13 @@ function renderSurveyorStats() {
     startOfWeek.setHours(0,0,0,0);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Initialize map with all registered surveyors from Firestore
     registeredSurveyors.forEach(srv => {
         map[srv.email] = {
-            total: 0,
-            today: 0,
-            week: 0,
-            month: 0,
-            status: srv.status || "active",
-            enabled: srv.enabled
+            total: 0, today: 0, week: 0, month: 0,
+            status: srv.status || "active", enabled: srv.enabled
         };
     });
 
-    // Populate counts from surveys
     surveys.forEach(s => {
         const email = (s.surveyorEmail || s.createdBy || "Unknown").trim();
         if (!map[email]) {
@@ -462,7 +454,6 @@ function renderSurveyorStats() {
         if (d >= startOfMonth) map[email].month++;
     });
 
-    // Render each surveyor row
     Object.keys(map).forEach(email => {
         const st = map[email];
         const isPending = st.status === "pending";
@@ -565,7 +556,7 @@ if (clearSurveyFilterBtn) {
 }
 
 /* =========================================================
-   8. EXCEL EXPORT (LOCATED NEXT TO LOGOUT BUTTON)
+   8. EXCEL EXPORT
    ========================================================= */
 if (exportExcelBtn) {
     exportExcelBtn.addEventListener("click", () => {
@@ -606,7 +597,6 @@ if (exportExcelBtn) {
                     "Photos Count": photos.length
                 };
 
-                // Dynamic Questions Text & Answers
                 if (questions.length > 0) {
                     questions.forEach(q => {
                         let ans = s.answers ? s.answers[q.id] : "";
@@ -641,7 +631,139 @@ if (exportExcelBtn) {
 }
 
 /* =========================================================
-   9. MODALS: ANSWERS, PHOTOS, EDIT & DELETE
+   9. ONE-CLICK CLIENT PDF REPORT GENERATOR
+   ========================================================= */
+if (clientReportBtn) {
+    clientReportBtn.addEventListener("click", generateClientReport);
+}
+
+function generateClientReport() {
+    if (!surveys || surveys.length === 0) {
+        alert("⚠️ रिपोर्ट तैयार करने के लिए कोई सर्वे डेटा उपलब्ध नहीं है!");
+        return;
+    }
+
+    const totalCount = surveys.length;
+    const uniqueVillages = new Set(surveys.map(s => (s.village || "").trim()).filter(Boolean)).size;
+    const uniqueSurveyors = new Set(surveys.map(s => s.surveyorEmail || s.createdBy).filter(Boolean)).size;
+
+    // Analytics Calculation
+    let questionsHtml = "";
+    if (questions && questions.length > 0) {
+        questions.forEach((q, idx) => {
+            const counts = {};
+            let answeredCount = 0;
+
+            surveys.forEach(s => {
+                if (s.answers && s.answers[q.id] !== undefined) {
+                    let ans = s.answers[q.id];
+                    if (Array.isArray(ans)) {
+                        ans.forEach(a => {
+                            counts[a] = (counts[a] || 0) + 1;
+                            answeredCount++;
+                        });
+                    } else if (ans) {
+                        counts[ans] = (counts[ans] || 0) + 1;
+                        answeredCount++;
+                    }
+                }
+            });
+
+            let barsHtml = "";
+            Object.keys(counts).forEach(opt => {
+                const percentage = answeredCount > 0 ? ((counts[opt] / answeredCount) * 100).toFixed(1) : 0;
+                barsHtml += `
+                    <div style="margin-bottom: 8px;">
+                        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:3px;">
+                            <span>${opt}</span>
+                            <span>${counts[opt]} votes (${percentage}%)</span>
+                        </div>
+                        <div style="background:#e2e8f0; border-radius:6px; height:10px; overflow:hidden;">
+                            <div style="background:#1565c0; width:${percentage}%; height:100%;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            questionsHtml += `
+                <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:15px; margin-bottom:15px; page-break-inside:avoid;">
+                    <div style="font-weight:bold; color:#1e3a8a; font-size:15px; margin-bottom:10px;">Q${idx + 1}. ${q.text || q.question}</div>
+                    ${barsHtml || "<span style='color:#64748b; font-size:13px;'>कोई प्रतिक्रिया दर्ज नहीं</span>"}
+                </div>
+            `;
+        });
+    }
+
+    const reportWindow = window.open("", "_blank");
+    reportWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Surveykshan_Client_Report_${new Date().toISOString().split("T")[0]}</title>
+            <style>
+                body { font-family: 'Segoe UI', Arial, sans-serif; padding: 25px; color: #1e293b; line-height: 1.5; background: #ffffff; }
+                .report-header { border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+                .report-title { font-size: 26px; font-weight: 800; color: #1e3a8a; }
+                .report-meta { font-size: 13px; color: #64748b; text-align: right; }
+                .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+                .metric-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 15px; text-align: center; }
+                .metric-card strong { display: block; font-size: 24px; color: #1e40af; }
+                .metric-card span { font-size: 12px; color: #475569; font-weight: 600; text-transform: uppercase; }
+                .section-head { font-size: 18px; font-weight: 700; color: #0f172a; margin: 25px 0 12px 0; border-left: 4px solid #1565c0; padding-left: 10px; }
+                .print-bar { background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+                .btn-print { background: #22c55e; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+                @media print {
+                    .print-bar { display: none; }
+                    body { padding: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-bar">
+                <span>📄 <strong>Client Presentation Report Ready</strong></span>
+                <button class="btn-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+            </div>
+
+            <div class="report-header">
+                <div>
+                    <div class="report-title">📊 Surveykshan Executive Summary</div>
+                    <div style="font-size:14px; color:#475569; margin-top:3px;">Field Survey & Public Opinion Analytical Report</div>
+                </div>
+                <div class="report-meta">
+                    <div><strong>Generated On:</strong> ${new Date().toLocaleDateString("en-IN")}</div>
+                    <div><strong>Audited By:</strong> Admin Dashboard</div>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <strong>${totalCount}</strong>
+                    <span>Total Valid Surveys</span>
+                </div>
+                <div class="metric-card">
+                    <strong>${uniqueVillages}</strong>
+                    <span>Villages / Wards Covered</span>
+                </div>
+                <div class="metric-card">
+                    <strong>${uniqueSurveyors}</strong>
+                    <span>Active Field Surveyors</span>
+                </div>
+            </div>
+
+            <div class="section-head">Public Opinion & Question Analysis</div>
+            <div>${questionsHtml}</div>
+
+            <div style="margin-top: 35px; border-top: 1px solid #cbd5e1; padding-top: 10px; text-align: center; font-size: 12px; color: #94a3b8;">
+                Confidential Document • Generated via Surveykshan Field Verification Platform
+            </div>
+        </body>
+        </html>
+    `);
+    reportWindow.document.close();
+}
+
+/* =========================================================
+   10. MODALS: ANSWERS, PHOTOS, EDIT & DELETE
    ========================================================= */
 window.openAnswersModal = function(id) {
     const s = surveys.find(i => i.id === id);
