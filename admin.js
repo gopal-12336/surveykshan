@@ -1,5 +1,5 @@
 /* =========================================================
-   SURVEYKSHAN - ORIGINAL COMPLETE ADMIN JS WITH EXCEL & CLIENT REPORT
+   SURVEYKSHAN - ORIGINAL COMPLETE ADMIN JS (FIXED MODALS)
    ========================================================= */
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
@@ -647,7 +647,6 @@ function generateClientReport() {
     const uniqueVillages = new Set(surveys.map(s => (s.village || "").trim()).filter(Boolean)).size;
     const uniqueSurveyors = new Set(surveys.map(s => s.surveyorEmail || s.createdBy).filter(Boolean)).size;
 
-    // Analytics Calculation
     let questionsHtml = "";
     if (questions && questions.length > 0) {
         questions.forEach((q, idx) => {
@@ -763,7 +762,7 @@ function generateClientReport() {
 }
 
 /* =========================================================
-   10. MODALS: ANSWERS, PHOTOS, EDIT & DELETE
+   10. MODALS: ANSWERS, PHOTOS, EDIT & DELETE (FIXED)
    ========================================================= */
 window.openAnswersModal = function(id) {
     const s = surveys.find(i => i.id === id);
@@ -837,11 +836,15 @@ window.openEditModal = function(id) {
     editAge.value = s.age || "";
     editVillage.value = s.village || "";
 
-    editSurveyModal.classList.add("show");
+    if (editSurveyModal) {
+        editSurveyModal.classList.add("show");
+    }
 };
 
 window.closeEditModal = function() {
-    editingSurveyModal.classList.remove("show");
+    if (editSurveyModal) {
+        editSurveyModal.classList.remove("show");
+    }
     editingSurveyId = null;
 };
 
@@ -850,6 +853,12 @@ if (editSurveyForm) {
         e.preventDefault();
         if (!editingSurveyId) return;
 
+        const submitBtn = editSurveyForm.querySelector("button[type='submit']");
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "⏳ Saving...";
+        }
+
         try {
             await firebase.firestore().collection("surveys").doc(editingSurveyId).update({
                 name: editName.value.trim(),
@@ -857,10 +866,15 @@ if (editSurveyForm) {
                 age: editAge.value.trim(),
                 village: editVillage.value.trim()
             });
-            alert("✅ रिकॉर्ड अपडेट हो गया!");
-            closeEditModal();
+            alert("✅ रिकॉर्ड सफलतापूर्वक अपडेट हो गया!");
+            window.closeEditModal();
         } catch (err) {
             alert("Error: " + err.message);
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "💾 Save Changes";
+            }
         }
     });
 }
