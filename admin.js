@@ -1,11 +1,12 @@
 /* =========================================================
-   SURVEYKSHAN - ORIGINAL COMPLETE ADMIN JS (FIXED MODALS)
+   SURVEYKSHAN - PROFESSIONAL ADMIN JS (ACCURATE ANSWERS & FULL ANALYTICS PDF)
    ========================================================= */
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
 
 let surveys = [];
 let questions = [];
+let questionsMap = {};
 let registeredSurveyors = [];
 let editingQuestionId = null;
 let editingSurveyId = null;
@@ -94,7 +95,7 @@ function initAdmin() {
 }
 
 /* =========================================================
-   2. DATE UTILS
+   2. DATE UTILITIES
    ========================================================= */
 function parseDate(data) {
     if (!data) return new Date(0);
@@ -203,15 +204,25 @@ function resetQuestionForm() {
 function loadQuestions() {
     firebase.firestore().collection("questions").orderBy("order", "asc").onSnapshot((snapshot) => {
         questions = [];
+        questionsMap = {};
         questionsList.innerHTML = "";
+
         snapshot.forEach((doc) => {
-            const q = { id: doc.id, ...doc.data() };
+            const data = doc.data();
+            const q = {
+                id: doc.id,
+                text: data.text || data.question || "Untitled Question",
+                type: data.type || "single",
+                options: data.options || [],
+                order: data.order !== undefined ? Number(data.order) : 999
+            };
             questions.push(q);
+            questionsMap[q.id] = q.text;
 
             const div = document.createElement("div");
             div.className = "question-card";
             div.innerHTML = `
-                <h3>${q.order || ""}. ${q.text || q.question} (${q.type})</h3>
+                <h3>${q.order || ""}. ${q.text} (${q.type})</h3>
                 <p><strong>Options:</strong> ${q.options ? q.options.join(", ") : "None"}</p>
                 <button class="primary" onclick="editQuestion('${q.id}')">✏️ Edit</button>
                 <button class="danger" onclick="deleteQuestion('${q.id}')">🗑️ Delete</button>
@@ -228,7 +239,7 @@ window.editQuestion = function(id) {
     if (!q) return;
 
     editingQuestionId = id;
-    questionText.value = q.text || q.question || "";
+    questionText.value = q.text;
     questionType.value = q.type || "single";
     optionsContainer.innerHTML = "";
 
@@ -599,9 +610,9 @@ if (exportExcelBtn) {
 
                 if (questions.length > 0) {
                     questions.forEach(q => {
-                        let ans = s.answers ? s.answers[q.id] : "";
+                        let ans = s.answers ? (s.answers[q.id] || s.answers[q.text]) : "";
                         if (Array.isArray(ans)) ans = ans.join(", ");
-                        row[q.text || q.question] = ans || "-";
+                        row[q.text] = ans || "-";
                     });
                 } else if (s.answers) {
                     Object.keys(s.answers).forEach(k => {
@@ -631,7 +642,7 @@ if (exportExcelBtn) {
 }
 
 /* =========================================================
-   9. ONE-CLICK CLIENT PDF REPORT GENERATOR
+   9. ONE-CLICK CLIENT PDF REPORT (CHARTS, DEMOGRAPHICS & FULL LEADS)
    ========================================================= */
 if (clientReportBtn) {
     clientReportBtn.addEventListener("click", generateClientReport);
@@ -644,117 +655,247 @@ function generateClientReport() {
     }
 
     const totalCount = surveys.length;
-    const uniqueVillages = new Set(surveys.map(s => (s.village || "").trim()).filter(Boolean)).size;
-    const uniqueSurveyors = new Set(surveys.map(s => s.surveyorEmail || s.createdBy).filter(Boolean)).size;
+    const uniqueVillages = Array.from(new Set(surveys.map(s => (s.village || "").trim()).filter(Boolean)));
+    const uniqueSurveyors = Array.from(new Set(surveys.map(s => s.surveyorEmail || s.createdBy).filter(Boolean)));
 
-    let questionsHtml = "";
-    if (questions && questions.length > 0) {
-        questions.forEach((q, idx) => {
-            const counts = {};
-            let answeredCount = 0;
+    // Demographics Breakdown
+    let genderStats = { Male: 0, Female: 0, Other: 0 };
+    let ageGroups = { "18-25": 0, "26-35": 0, "36-50": 0, "50+": 0 };
 
-            surveys.forEach(s => {
-                if (s.answers && s.answers[q.id] !== undefined) {
-                    let ans = s.answers[q.id];
-                    if (Array.isArray(ans)) {
-                        ans.forEach(a => {
-                            counts[a] = (counts[a] || 0) + 1;
-                            answeredCount++;
-                        });
-                    } else if (ans) {
-                        counts[ans] = (counts[ans] || 0) + 1;
-                        answeredCount++;
-                    }
+    surveys.forEach(s => {
+        const g = s.gender || "Other";
+        if (genderStats[g] !== undefined) genderStats[g]++;
+        else genderStats.Other++;
+
+        const a = Number(s.age) || 0;
+        if (a >= 18 && a <= 25) ageGroups["18-25"]++;
+        else if (a >= 26 && a <= 35) ageGroups["26-35"]++;
+        else if (a >= 36 && a <= 50) ageGroups["36-50"]++;
+        else if (a > 50) ageGroups["50+"]++;
+    });
+
+    // Dynamic Questions Analytics Breakdown
+    const questionAnalytics = [];
+    questions.forEach((q) => {
+        const counts = {};
+        let answeredTotal = 0;
+
+        surveys.forEach(s => {
+            if (s.answers) {
+                const ans = s.answers[q.id] || s.answers[q.text];
+                if (Array.isArray(ans)) {
+                    ans.forEach(val => {
+                        counts[val] = (counts[val] || 0) + 1;
+                        answeredTotal++;
+                    });
+                } else if (ans) {
+                    counts[ans] = (counts[ans] || 0) + 1;
+                    answeredTotal++;
                 }
-            });
-
-            let barsHtml = "";
-            Object.keys(counts).forEach(opt => {
-                const percentage = answeredCount > 0 ? ((counts[opt] / answeredCount) * 100).toFixed(1) : 0;
-                barsHtml += `
-                    <div style="margin-bottom: 8px;">
-                        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:3px;">
-                            <span>${opt}</span>
-                            <span>${counts[opt]} votes (${percentage}%)</span>
-                        </div>
-                        <div style="background:#e2e8f0; border-radius:6px; height:10px; overflow:hidden;">
-                            <div style="background:#1565c0; width:${percentage}%; height:100%;"></div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            questionsHtml += `
-                <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:15px; margin-bottom:15px; page-break-inside:avoid;">
-                    <div style="font-weight:bold; color:#1e3a8a; font-size:15px; margin-bottom:10px;">Q${idx + 1}. ${q.text || q.question}</div>
-                    ${barsHtml || "<span style='color:#64748b; font-size:13px;'>कोई प्रतिक्रिया दर्ज नहीं</span>"}
-                </div>
-            `;
+            }
         });
-    }
+
+        questionAnalytics.push({
+            id: q.id,
+            text: q.text,
+            counts: counts,
+            total: answeredTotal
+        });
+    });
+
+    // Verified Leads Rows
+    let leadsRowsHtml = "";
+    surveys.forEach((s, idx) => {
+        const mapLink = (s.latitude && s.longitude)
+            ? `<a href="https://www.google.com/maps?q=${s.latitude},${s.longitude}" target="_blank" style="color:#0284c7; font-weight:bold;">📍 Map Link</a>`
+            : "N/A";
+
+        let answersSnippet = [];
+        questions.forEach(q => {
+            const a = s.answers ? (s.answers[q.id] || s.answers[q.text]) : "";
+            if (a) answersSnippet.push(`<strong>${q.text}:</strong> ${Array.isArray(a) ? a.join(", ") : a}`);
+        });
+
+        leadsRowsHtml += `
+            <tr>
+                <td style="padding:10px; border-bottom:1px solid #e2e8f0; font-size:12px;">${idx + 1}</td>
+                <td style="padding:10px; border-bottom:1px solid #e2e8f0; font-size:12px; font-weight:bold; color:#1e3a8a;">${s.name || "N/A"}</td>
+                <td style="padding:10px; border-bottom:1px solid #e2e8f0; font-size:12px;">${s.mobile || "N/A"}</td>
+                <td style="padding:10px; border-bottom:1px solid #e2e8f0; font-size:12px;">${s.age || "-"} / ${s.gender || "-"}</td>
+                <td style="padding:10px; border-bottom:1px solid #e2e8f0; font-size:12px;">${s.village || "N/A"}</td>
+                <td style="padding:10px; border-bottom:1px solid #e2e8f0; font-size:12px;">${mapLink}</td>
+                <td style="padding:10px; border-bottom:1px solid #e2e8f0; font-size:11px; text-align:left;">
+                    ${answersSnippet.join("<br>") || "<span style='color:#94a3b8;'>No responses</span>"}
+                </td>
+            </tr>
+        `;
+    });
 
     const reportWindow = window.open("", "_blank");
     reportWindow.document.write(`
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
-            <title>Surveykshan_Client_Report_${new Date().toISOString().split("T")[0]}</title>
+            <meta charset="UTF-8">
+            <title>Surveykshan_Executive_Report_${new Date().toISOString().split("T")[0]}</title>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             <style>
-                body { font-family: 'Segoe UI', Arial, sans-serif; padding: 25px; color: #1e293b; line-height: 1.5; background: #ffffff; }
-                .report-header { border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+                * { box-sizing: border-box; }
+                body { font-family: 'Segoe UI', Arial, sans-serif; background: #ffffff; color: #1e293b; margin: 0; padding: 30px; }
+                .report-header { border-bottom: 3px solid #1e40af; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; }
                 .report-title { font-size: 26px; font-weight: 800; color: #1e3a8a; }
-                .report-meta { font-size: 13px; color: #64748b; text-align: right; }
-                .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-                .metric-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 15px; text-align: center; }
-                .metric-card strong { display: block; font-size: 24px; color: #1e40af; }
-                .metric-card span { font-size: 12px; color: #475569; font-weight: 600; text-transform: uppercase; }
-                .section-head { font-size: 18px; font-weight: 700; color: #0f172a; margin: 25px 0 12px 0; border-left: 4px solid #1565c0; padding-left: 10px; }
-                .print-bar { background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-                .btn-print { background: #22c55e; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+                .report-subtitle { font-size: 13.5px; color: #64748b; margin-top: 4px; }
+                .print-bar { background: #0f172a; color: white; padding: 14px 20px; border-radius: 10px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+                .btn-print { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+                .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+                .stat-box { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 18px; text-align: center; }
+                .stat-box strong { display: block; font-size: 26px; color: #1e40af; margin-top: 4px; }
+                .stat-box span { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; }
+                .section-heading { font-size: 18px; font-weight: 800; color: #0f172a; margin: 30px 0 16px 0; border-left: 4px solid #1e40af; padding-left: 10px; }
+                .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+                .chart-card { background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+                .chart-card h4 { margin: 0 0 15px 0; font-size: 15px; color: #1e293b; text-align: center; }
+                .leads-table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left; }
+                .leads-table th { background: #1e40af; color: white; padding: 10px; font-size: 12px; }
                 @media print {
                     .print-bar { display: none; }
                     body { padding: 0; }
+                    .chart-card { page-break-inside: avoid; }
                 }
             </style>
         </head>
         <body>
             <div class="print-bar">
-                <span>📄 <strong>Client Presentation Report Ready</strong></span>
+                <span>📄 <strong>Surveykshan Comprehensive Analytical Report</strong></span>
                 <button class="btn-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
             </div>
 
             <div class="report-header">
                 <div>
                     <div class="report-title">📊 Surveykshan Executive Summary</div>
-                    <div style="font-size:14px; color:#475569; margin-top:3px;">Field Survey & Public Opinion Analytical Report</div>
+                    <div class="report-subtitle">Field Research, Public Opinion Analytics & Verified Leads Report</div>
                 </div>
-                <div class="report-meta">
-                    <div><strong>Generated On:</strong> ${new Date().toLocaleDateString("en-IN")}</div>
-                    <div><strong>Audited By:</strong> Admin Dashboard</div>
+                <div style="text-align:right; font-size:12px; color:#64748b;">
+                    <div><strong>Date:</strong> ${new Date().toLocaleDateString("en-IN")}</div>
+                    <div><strong>Platform:</strong> Surveykshan Audit Portal</div>
                 </div>
             </div>
 
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <strong>${totalCount}</strong>
+            <!-- Top Summary Counters -->
+            <div class="stats-grid">
+                <div class="stat-box">
                     <span>Total Valid Surveys</span>
+                    <strong>${totalCount}</strong>
                 </div>
-                <div class="metric-card">
-                    <strong>${uniqueVillages}</strong>
-                    <span>Villages / Wards Covered</span>
+                <div class="stat-box">
+                    <span>Villages / Wards</span>
+                    <strong>${uniqueVillages.length}</strong>
                 </div>
-                <div class="metric-card">
-                    <strong>${uniqueSurveyors}</strong>
-                    <span>Active Field Surveyors</span>
+                <div class="stat-box">
+                    <span>Field Surveyors</span>
+                    <strong>${uniqueSurveyors.length}</strong>
+                </div>
+                <div class="stat-box">
+                    <span>Total Questions</span>
+                    <strong>${questions.length}</strong>
                 </div>
             </div>
 
-            <div class="section-head">Public Opinion & Question Analysis</div>
-            <div>${questionsHtml}</div>
-
-            <div style="margin-top: 35px; border-top: 1px solid #cbd5e1; padding-top: 10px; text-align: center; font-size: 12px; color: #94a3b8;">
-                Confidential Document • Generated via Surveykshan Field Verification Platform
+            <!-- Demographics Overview -->
+            <div class="section-heading">1. Demographics Overview</div>
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h4>Gender Ratio Distribution</h4>
+                    <canvas id="genderChart" style="max-height:220px;"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4>Age Group Breakdown</h4>
+                    <canvas id="ageChart" style="max-height:220px;"></canvas>
+                </div>
             </div>
+
+            <!-- Questions Analytical Charts -->
+            <div class="section-heading">2. Question-Wise Public Opinion Analytics</div>
+            <div class="charts-grid" id="questionChartsWrapper"></div>
+
+            <!-- Full Leads Directory -->
+            <div class="section-heading">3. Complete Verified Leads Directory (${surveys.length} Records)</div>
+            <table class="leads-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Age/Gender</th>
+                        <th>Village</th>
+                        <th>Location</th>
+                        <th style="text-align:left;">Survey Responses</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${leadsRowsHtml}
+                </tbody>
+            </table>
+
+            <div style="margin-top:40px; border-top:1px solid #cbd5e1; padding-top:15px; text-align:center; font-size:12px; color:#94a3b8;">
+                Confidential Document • Prepared automatically via Surveykshan Platform
+            </div>
+
+            <script>
+                // 1. Gender Chart
+                new Chart(document.getElementById('genderChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Male', 'Female', 'Other'],
+                        datasets: [{
+                            data: [${genderStats.Male}, ${genderStats.Female}, ${genderStats.Other}],
+                            backgroundColor: ['#2563eb', '#ec4899', '#94a3b8']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // 2. Age Chart
+                new Chart(document.getElementById('ageChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['18-25', '26-35', '36-50', '50+'],
+                        datasets: [{
+                            label: 'Respondents',
+                            data: [${ageGroups["18-25"]}, ${ageGroups["26-35"]}, ${ageGroups["36-50"]}, ${ageGroups["50+"]}],
+                            backgroundColor: '#3b82f6'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+
+                // 3. Dynamic Questions Charts
+                const qData = ${JSON.stringify(questionAnalytics)};
+                const wrapper = document.getElementById('questionChartsWrapper');
+
+                qData.forEach((item, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'chart-card';
+                    card.innerHTML = '<h4>Q' + (idx + 1) + '. ' + item.text + '</h4><canvas id="qChart_' + idx + '" style="max-height:220px;"></canvas>';
+                    wrapper.appendChild(card);
+
+                    const labels = Object.keys(item.counts);
+                    const values = Object.values(item.counts);
+
+                    new Chart(document.getElementById('qChart_' + idx), {
+                        type: 'bar',
+                        data: {
+                            labels: labels.length > 0 ? labels : ['No Response'],
+                            datasets: [{
+                                label: 'Votes',
+                                data: values.length > 0 ? values : [0],
+                                backgroundColor: ['#10b981', '#f59e0b', '#6366f1', '#ef4444', '#8b5cf6']
+                            }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                    });
+                });
+            <\/script>
         </body>
         </html>
     `);
@@ -762,7 +903,7 @@ function generateClientReport() {
 }
 
 /* =========================================================
-   10. MODALS: ANSWERS, PHOTOS, EDIT & DELETE (FIXED)
+   10. MODALS: ACCURATE ANSWERS, PHOTOS, EDIT & DELETE
    ========================================================= */
 window.openAnswersModal = function(id) {
     const s = surveys.find(i => i.id === id);
@@ -771,25 +912,45 @@ window.openAnswersModal = function(id) {
     answerModalBody.innerHTML = "";
     const ans = s.answers || {};
 
-    if (questions.length > 0) {
-        questions.forEach((q, idx) => {
-            let val = ans[q.id];
+    let answeredItems = [];
+
+    // Check mapping across questions
+    questions.forEach((q, idx) => {
+        let val = ans[q.id] !== undefined ? ans[q.id] : ans[q.text];
+        if (val !== undefined) {
             if (Array.isArray(val)) val = val.join(", ");
-            answerModalBody.innerHTML += `
-                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:10px;">
-                    <div style="font-weight:bold; color:#1565c0; font-size:14px;">Q${idx + 1}. ${q.text || q.question}</div>
-                    <div style="margin-top:5px; font-size:15px; color:#222;">${val || "<span style='color:#999'>कोई उत्तर नहीं</span>"}</div>
-                </div>
-            `;
-        });
+            answeredItems.push({
+                num: idx + 1,
+                title: q.text,
+                answer: val
+            });
+        }
+    });
+
+    // Fallback for any questions stored purely by raw text
+    Object.keys(ans).forEach(key => {
+        const alreadyIncluded = answeredItems.some(item => item.title === key || item.title === questionsMap[key]);
+        if (!alreadyIncluded) {
+            let val = ans[key];
+            if (Array.isArray(val)) val = val.join(", ");
+            answeredItems.push({
+                num: answeredItems.length + 1,
+                title: questionsMap[key] || key,
+                answer: val
+            });
+        }
+    });
+
+    if (answeredItems.length === 0) {
+        answerModalBody.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">इस सर्वे में कोई उत्तर दर्ज नहीं मिला।</div>`;
     } else {
-        Object.keys(ans).forEach((k, idx) => {
-            let val = ans[k];
-            if (Array.isArray(val)) val = val.join(", ");
+        answeredItems.forEach(item => {
             answerModalBody.innerHTML += `
-                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:10px;">
-                    <div style="font-weight:bold; color:#1565c0;">Q${idx + 1}. ${k}</div>
-                    <div style="margin-top:5px; font-size:15px;">${val || "-"}</div>
+                <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:14px; margin-bottom:12px;">
+                    <div style="font-weight:bold; color:#1e40af; font-size:14.5px; margin-bottom:6px;">Q${item.num}. ${item.title}</div>
+                    <div style="font-size:15px; color:#0f172a; font-weight:600; background:#ffffff; border:1px solid #e2e8f0; padding:8px 12px; border-radius:6px;">
+                        ${item.answer || "<span style='color:#94a3b8;'>खाली</span>"}
+                    </div>
                 </div>
             `;
         });
