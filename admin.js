@@ -1,5 +1,5 @@
 /* =========================================================
-   SURVEYKSHAN - PROFESSIONAL ADMIN JS (ACCURATE ANSWERS & FULL ANALYTICS PDF)
+   SURVEYKSHAN - ADMIN JS (ACCURATE QUESTIONS & ANSWERS MAPPING)
    ========================================================= */
 
 const ADMIN_EMAIL = "goswamivinod2305@gmail.com";
@@ -74,7 +74,7 @@ firebase.auth().onAuthStateChanged((user) => {
     }
 
     if ((user.email || "").toLowerCase().trim() !== ADMIN_EMAIL.toLowerCase()) {
-        alert("अनाधिकृत प्रवेश! केवल अधिकृत एडमिन ही लॉगिन कर सकते हैं।");
+        alert("Anadhikrit pravesh! Sirf authorized admin hi login kar sakte hain.");
         firebase.auth().signOut().then(() => window.location.href = "index.html");
         return;
     }
@@ -95,7 +95,7 @@ function initAdmin() {
 }
 
 /* =========================================================
-   2. DATE UTILITIES
+   2. DATE UTILS
    ========================================================= */
 function parseDate(data) {
     if (!data) return new Date(0);
@@ -123,7 +123,7 @@ function formatDate(date) {
 }
 
 /* =========================================================
-   3. SURVEY QUESTION MANAGER
+   3. SURVEY QUESTION MANAGER (FIXED: NO ORDER MISSING BLOCK)
    ========================================================= */
 if (questionManagerToggle) {
     questionManagerToggle.addEventListener("click", () => {
@@ -159,7 +159,7 @@ if (saveQuestionBtn) {
         const options = Array.from(optInputs).map(i => i.value.trim()).filter(Boolean);
 
         if (!text) {
-            alert("कृपया प्रश्न दर्ज करें!");
+            alert("Kripya prashna darj karein!");
             return;
         }
 
@@ -169,17 +169,16 @@ if (saveQuestionBtn) {
                 await firebase.firestore().collection("questions").doc(editingQuestionId).update({
                     text, type, options
                 });
-                questionMessage.textContent = "✅ प्रश्न अपडेट हो गया!";
+                questionMessage.textContent = "✅ Prashna update ho gaya!";
             } else {
                 const snap = await firebase.firestore().collection("questions").get();
                 await firebase.firestore().collection("questions").add({
                     text, type, options, order: snap.size + 1
                 });
-                questionMessage.textContent = "✅ नया प्रश्न जुड़ गया!";
+                questionMessage.textContent = "✅ Naya prashna jud gaya!";
             }
 
             resetQuestionForm();
-            loadQuestions();
         } catch (e) {
             questionMessage.textContent = "Error: " + e.message;
         } finally {
@@ -202,33 +201,41 @@ function resetQuestionForm() {
 }
 
 function loadQuestions() {
-    firebase.firestore().collection("questions").orderBy("order", "asc").onSnapshot((snapshot) => {
+    // Bina orderBy ke fetch karein taaki purane documents bina order field ke bhi load hon
+    firebase.firestore().collection("questions").onSnapshot((snapshot) => {
         questions = [];
         questionsMap = {};
-        questionsList.innerHTML = "";
+        if (questionsList) questionsList.innerHTML = "";
 
         snapshot.forEach((doc) => {
             const data = doc.data();
             const q = {
                 id: doc.id,
-                text: data.text || data.question || "Untitled Question",
+                text: data.text || data.question || data.title || "Untitled Question",
                 type: data.type || "single",
                 options: data.options || [],
-                order: data.order !== undefined ? Number(data.order) : 999
+                order: (data.order !== undefined && data.order !== null) ? Number(data.order) : 999
             };
             questions.push(q);
-            questionsMap[q.id] = q.text;
-
-            const div = document.createElement("div");
-            div.className = "question-card";
-            div.innerHTML = `
-                <h3>${q.order || ""}. ${q.text} (${q.type})</h3>
-                <p><strong>Options:</strong> ${q.options ? q.options.join(", ") : "None"}</p>
-                <button class="primary" onclick="editQuestion('${q.id}')">✏️ Edit</button>
-                <button class="danger" onclick="deleteQuestion('${q.id}')">🗑️ Delete</button>
-            `;
-            questionsList.appendChild(div);
+            questionsMap[doc.id] = q.text;
         });
+
+        // Client-side sort
+        questions.sort((a, b) => a.order - b.order);
+
+        if (questionsList) {
+            questions.forEach((q, index) => {
+                const div = document.createElement("div");
+                div.className = "question-card";
+                div.innerHTML = `
+                    <h3>${index + 1}. ${q.text} (${q.type})</h3>
+                    <p><strong>Options:</strong> ${q.options && q.options.length > 0 ? q.options.join(", ") : "None"}</p>
+                    <button class="primary" onclick="editQuestion('${q.id}')">✏️ Edit</button>
+                    <button class="danger" onclick="deleteQuestion('${q.id}')">🗑️ Delete</button>
+                `;
+                questionsList.appendChild(div);
+            });
+        }
 
         if (questionCountEl) questionCountEl.textContent = questions.length;
     });
@@ -253,7 +260,7 @@ window.editQuestion = function(id) {
 };
 
 window.deleteQuestion = async function(id) {
-    if (!confirm("क्या आप वाकई इस प्रश्न को हटाना चाहते हैं?")) return;
+    if (!confirm("Kya aap sach me is prashna ko delete karna chahte hain?")) return;
     try {
         await firebase.firestore().collection("questions").doc(id).delete();
     } catch (e) {
@@ -280,7 +287,7 @@ if (saveDailyLimitBtn) {
         saveDailyLimitBtn.disabled = true;
         try {
             await firebase.firestore().collection("settings").doc("config").set({ dailyLimit: val }, { merge: true });
-            limitMessage.textContent = "✅ लिमिट सेव हो गई!";
+            limitMessage.textContent = "✅ Limit save ho gayi!";
             setTimeout(() => limitMessage.textContent = "", 3000);
         } catch (e) {
             limitMessage.textContent = "Error: " + e.message;
@@ -373,7 +380,7 @@ function renderSurveyTable(data) {
     }
 
     if (data.length === 0) {
-        surveyTable.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:#777;">कोई रिकॉर्ड नहीं मिला</td></tr>`;
+        surveyTable.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:#777;">Koi record nahi mila</td></tr>`;
         return;
     }
 
@@ -572,7 +579,7 @@ if (clearSurveyFilterBtn) {
 if (exportExcelBtn) {
     exportExcelBtn.addEventListener("click", () => {
         if (!surveys || surveys.length === 0) {
-            alert("⚠️ एक्सपोर्ट करने के लिए कोई सर्वे रिकॉर्ड मौजूद नहीं है!");
+            alert("⚠️ Export karne ke liye koi survey record maujood nahi hai!");
             return;
         }
 
@@ -618,7 +625,7 @@ if (exportExcelBtn) {
                     Object.keys(s.answers).forEach(k => {
                         let ans = s.answers[k];
                         if (Array.isArray(ans)) ans = ans.join(", ");
-                        row[`Question_${k}`] = ans || "-";
+                        row[questionsMap[k] || `Question_${k}`] = ans || "-";
                     });
                 }
 
@@ -642,7 +649,7 @@ if (exportExcelBtn) {
 }
 
 /* =========================================================
-   9. ONE-CLICK CLIENT PDF REPORT (CHARTS, DEMOGRAPHICS & FULL LEADS)
+   9. ONE-CLICK CLIENT PDF REPORT
    ========================================================= */
 if (clientReportBtn) {
     clientReportBtn.addEventListener("click", generateClientReport);
@@ -650,7 +657,7 @@ if (clientReportBtn) {
 
 function generateClientReport() {
     if (!surveys || surveys.length === 0) {
-        alert("⚠️ रिपोर्ट तैयार करने के लिए कोई सर्वे डेटा उपलब्ध नहीं है!");
+        alert("⚠️ Report taiyar karne ke liye koi survey data uplabdh nahi hai!");
         return;
     }
 
@@ -658,7 +665,6 @@ function generateClientReport() {
     const uniqueVillages = Array.from(new Set(surveys.map(s => (s.village || "").trim()).filter(Boolean)));
     const uniqueSurveyors = Array.from(new Set(surveys.map(s => s.surveyorEmail || s.createdBy).filter(Boolean)));
 
-    // Demographics Breakdown
     let genderStats = { Male: 0, Female: 0, Other: 0 };
     let ageGroups = { "18-25": 0, "26-35": 0, "36-50": 0, "50+": 0 };
 
@@ -674,7 +680,6 @@ function generateClientReport() {
         else if (a > 50) ageGroups["50+"]++;
     });
 
-    // Dynamic Questions Analytics Breakdown
     const questionAnalytics = [];
     questions.forEach((q) => {
         const counts = {};
@@ -682,7 +687,7 @@ function generateClientReport() {
 
         surveys.forEach(s => {
             if (s.answers) {
-                const ans = s.answers[q.id] || s.answers[q.text];
+                const ans = s.answers[q.id] !== undefined ? s.answers[q.id] : s.answers[q.text];
                 if (Array.isArray(ans)) {
                     ans.forEach(val => {
                         counts[val] = (counts[val] || 0) + 1;
@@ -703,7 +708,6 @@ function generateClientReport() {
         });
     });
 
-    // Verified Leads Rows
     let leadsRowsHtml = "";
     surveys.forEach((s, idx) => {
         const mapLink = (s.latitude && s.longitude)
@@ -712,7 +716,7 @@ function generateClientReport() {
 
         let answersSnippet = [];
         questions.forEach(q => {
-            const a = s.answers ? (s.answers[q.id] || s.answers[q.text]) : "";
+            const a = s.answers ? (s.answers[q.id] !== undefined ? s.answers[q.id] : s.answers[q.text]) : "";
             if (a) answersSnippet.push(`<strong>${q.text}:</strong> ${Array.isArray(a) ? a.join(", ") : a}`);
         });
 
@@ -781,7 +785,6 @@ function generateClientReport() {
                 </div>
             </div>
 
-            <!-- Top Summary Counters -->
             <div class="stats-grid">
                 <div class="stat-box">
                     <span>Total Valid Surveys</span>
@@ -801,7 +804,6 @@ function generateClientReport() {
                 </div>
             </div>
 
-            <!-- Demographics Overview -->
             <div class="section-heading">1. Demographics Overview</div>
             <div class="charts-grid">
                 <div class="chart-card">
@@ -814,11 +816,9 @@ function generateClientReport() {
                 </div>
             </div>
 
-            <!-- Questions Analytical Charts -->
             <div class="section-heading">2. Question-Wise Public Opinion Analytics</div>
             <div class="charts-grid" id="questionChartsWrapper"></div>
 
-            <!-- Full Leads Directory -->
             <div class="section-heading">3. Complete Verified Leads Directory (${surveys.length} Records)</div>
             <table class="leads-table">
                 <thead>
@@ -842,7 +842,6 @@ function generateClientReport() {
             </div>
 
             <script>
-                // 1. Gender Chart
                 new Chart(document.getElementById('genderChart'), {
                     type: 'doughnut',
                     data: {
@@ -855,7 +854,6 @@ function generateClientReport() {
                     options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                // 2. Age Chart
                 new Chart(document.getElementById('ageChart'), {
                     type: 'bar',
                     data: {
@@ -869,7 +867,6 @@ function generateClientReport() {
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
 
-                // 3. Dynamic Questions Charts
                 const qData = ${JSON.stringify(questionAnalytics)};
                 const wrapper = document.getElementById('questionChartsWrapper');
 
@@ -903,7 +900,7 @@ function generateClientReport() {
 }
 
 /* =========================================================
-   10. MODALS: ACCURATE ANSWERS, PHOTOS, EDIT & DELETE
+   10. MODALS: ANSWERS (CLEAN TITLE & VALUE MAPPING)
    ========================================================= */
 window.openAnswersModal = function(id) {
     const s = surveys.find(i => i.id === id);
@@ -914,7 +911,7 @@ window.openAnswersModal = function(id) {
 
     let answeredItems = [];
 
-    // Check mapping across questions
+    // Pehle questions array se match karein ID aur Text dono ke basis par
     questions.forEach((q, idx) => {
         let val = ans[q.id] !== undefined ? ans[q.id] : ans[q.text];
         if (val !== undefined) {
@@ -927,7 +924,7 @@ window.openAnswersModal = function(id) {
         }
     });
 
-    // Fallback for any questions stored purely by raw text
+    // Agar koi answer aisi key me ho jo Firestore questions me alag ho
     Object.keys(ans).forEach(key => {
         const alreadyIncluded = answeredItems.some(item => item.title === key || item.title === questionsMap[key]);
         if (!alreadyIncluded) {
@@ -942,14 +939,14 @@ window.openAnswersModal = function(id) {
     });
 
     if (answeredItems.length === 0) {
-        answerModalBody.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">इस सर्वे में कोई उत्तर दर्ज नहीं मिला।</div>`;
+        answerModalBody.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">Is survey me koi answer darj nahi mila.</div>`;
     } else {
         answeredItems.forEach(item => {
             answerModalBody.innerHTML += `
                 <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:14px; margin-bottom:12px;">
                     <div style="font-weight:bold; color:#1e40af; font-size:14.5px; margin-bottom:6px;">Q${item.num}. ${item.title}</div>
                     <div style="font-size:15px; color:#0f172a; font-weight:600; background:#ffffff; border:1px solid #e2e8f0; padding:8px 12px; border-radius:6px;">
-                        ${item.answer || "<span style='color:#94a3b8;'>खाली</span>"}
+                        ${item.answer || "<span style='color:#94a3b8;'>Khali</span>"}
                     </div>
                 </div>
             `;
@@ -969,7 +966,7 @@ window.openPhotosModal = function(id) {
 
     photosModalGrid.innerHTML = "";
     const photos = getPhotosArray(s);
-    const labels = ["1. गाँव/शहर की फोटो", "2. समस्या की फोटो", "3. रिस्पॉन्डेंट की फोटो", "4. रिस्पॉन्डेंट के साथ सेल्फी"];
+    const labels = ["1. Gaon/Shahar ki Photo", "2. Samasya ki Photo", "3. Respondent ki Photo", "4. Respondent ke sath Selfie"];
 
     photos.forEach((url, i) => {
         photosModalGrid.innerHTML += `
@@ -1027,7 +1024,7 @@ if (editSurveyForm) {
                 age: editAge.value.trim(),
                 village: editVillage.value.trim()
             });
-            alert("✅ रिकॉर्ड सफलतापूर्वक अपडेट हो गया!");
+            alert("✅ Record safaltapoorvak update ho gaya!");
             window.closeEditModal();
         } catch (err) {
             alert("Error: " + err.message);
@@ -1041,7 +1038,7 @@ if (editSurveyForm) {
 }
 
 window.deleteSurvey = async function(id) {
-    if (!confirm("क्या आप वाकई इस सर्वे को हटाना चाहते हैं?")) return;
+    if (!confirm("Kya aap sach me is survey ko delete karna chahte hain?")) return;
     try {
         await firebase.firestore().collection("surveys").doc(id).delete();
     } catch (e) {
@@ -1051,8 +1048,8 @@ window.deleteSurvey = async function(id) {
 
 if (deleteAllSurveysBtn) {
     deleteAllSurveysBtn.addEventListener("click", async () => {
-        if (!confirm("⚠️ चेतावनी: क्या आप वाकई सभी सर्वे रिकॉर्ड्स डिलीट करना चाहते हैं? यह डेटा वापस नहीं आएगा!")) return;
-        const prompt = window.prompt("पुष्टि करने के लिए 'DELETE' टाइप करें:");
+        if (!confirm("⚠️ Chetawani: Kya aap sabhi survey records delete karna chahte hain? Ye data wapas nahi aayega!")) return;
+        const prompt = window.prompt("Pushti ke liye 'DELETE' type karein:");
         if (prompt !== "DELETE") return;
 
         try {
@@ -1060,7 +1057,7 @@ if (deleteAllSurveysBtn) {
             const batch = firebase.firestore().batch();
             snap.forEach(doc => batch.delete(doc.ref));
             await batch.commit();
-            alert("✅ सभी सर्वे डिलीट कर दिए गए!");
+            alert("✅ Sabhi surveys delete kar diye gaye!");
         } catch (e) {
             alert("Error: " + e.message);
         }
